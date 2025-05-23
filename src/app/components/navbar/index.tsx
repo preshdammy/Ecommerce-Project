@@ -22,7 +22,7 @@ const Navbar = () => {
                 <div className='flex justify-between items-center'>
                     <Image className='w-[208px] h-[40px]' src={logo} alt=''/>
                     <div className='flex border-[1px] border-[rgba(0,0,0,0.1)] rounded-[100px] px-4 py-2'>
-                    <input className='w-[500px]' placeholder='Search for anything' type="text" />
+                    <input className='w-[500px] outline-none' placeholder='Search for anything' type="text" />
                     <button><Image className='w-[35px] h-[35px]' src={search} alt=''/></button>
                     </div>
                     <div className='flex gap-[40px]'>
