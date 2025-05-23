@@ -3,3 +3,13 @@ const config = {
 };
 
 export default config;
+
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        merriweather: ['var(--font-merriweather)'],
+      },
+    },
+  },
+}
