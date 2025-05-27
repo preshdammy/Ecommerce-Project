@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Merriweather } from "next/font/google";
 import "./globals.css";
 import ApolloProvider from "@/shared/provider/apolloProvider";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import Header from "./components/header";
-import { Merriweather } from 'next/font/google';
+
 
 
 const geistSans = Geist({
