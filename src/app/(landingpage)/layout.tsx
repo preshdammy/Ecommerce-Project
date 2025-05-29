@@ -1,19 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Merriweather } from "next/font/google";
-import "./globals.css";
+import { Geist, Geist_Mono } from "next/font/google";
 import ApolloProvider from "@/shared/provider/apolloProvider";
-import Navbar from "./components/navbar";
-import Footer from "./components/footer";
+import Navbar from "../components/navbar";
+import Footer from "../components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
-const merriweather = Merriweather({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-merriweather', 
 });
 
 const geistMono = Geist_Mono({
@@ -34,11 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased ${merriweather.className}`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ApolloProvider>
           <Navbar />
           {children}
+          <Footer />
         </ApolloProvider>
         
       </body>
