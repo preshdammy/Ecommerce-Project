@@ -1,9 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 
-import "./globals.css";
 import ApolloProvider from "@/shared/provider/apolloProvider";
-import Header from "./components/header";
 
 
 
@@ -25,7 +23,7 @@ export default function RootLayout({
        
       >
         <ApolloProvider>
-        {/* <Header/> */}
+  
         {children}
         </ApolloProvider>
         
