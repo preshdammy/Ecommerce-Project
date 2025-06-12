@@ -2,7 +2,8 @@ import React from "react";
 import type { Metadata } from "next";
 
 import ApolloProvider from "@/shared/provider/apolloProvider";
-import Header from "../components/header/index";
+import Header from "../components/header";
+import Footer from "../components/footer";
 
 
 
@@ -23,8 +24,10 @@ export default function RootLayout({
        
       >
         <ApolloProvider>
-             {children}
-       
+          <Header />
+          {children}
+          <Footer />
+
         </ApolloProvider>
         
       </body>
