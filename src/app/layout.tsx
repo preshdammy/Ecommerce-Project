@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Merriweather } from "next/font/google";
 import "./globals.css";
 import ApolloProvider from "@/shared/provider/apolloProvider";
-import Header from "./components/header";
+
+
 
 
 
@@ -38,7 +39,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased ${merriweather.className}`}
       >
         <ApolloProvider>
-        <Header/>
         {children}
         </ApolloProvider>
         
