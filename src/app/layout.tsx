@@ -1,13 +1,28 @@
-import React from "react";
-import type { Metadata } from "next";
 
+import type { Metadata } from "next";
+import { Geist, Geist_Mono, Merriweather } from "next/font/google";
 import "./globals.css";
 import ApolloProvider from "@/shared/provider/apolloProvider";
-import Header from "./components/header";
 
 
 
 
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const merriweather = Merriweather({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-merriweather', 
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,7 +40,6 @@ export default function RootLayout({
        
       >
         <ApolloProvider>
-        {/* <Header/> */}
         {children}
         </ApolloProvider>
         

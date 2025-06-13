@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { Dispatch, SetStateAction } from "react";
 import timeShoppyLogo from "../../../../public/figma images/Time-shoppy.png";
 import searchLogo from "../../../../public/figma images/search.png";
 import chevronDown from "../../../../public/figma images/chevron-down.png";
@@ -17,9 +18,13 @@ import { FiShoppingCart } from "react-icons/fi";
 import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState } from "react";
+import { div } from "framer-motion/client";
 
 const Header = () => {
   const [isAuthentication, setIsAuthentication] = useState<boolean>(false);
+  const [showCart, setShowCart] = useState<boolean>(false);
+
+
 
   return (
     <>
@@ -60,7 +65,7 @@ const Header = () => {
             </div>
 
             {isAuthentication ? (
-              <MenuIcon isAuthentication={isAuthentication} />
+              <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} />
             ) : (
               <button className="w-[20%] lg:flex h-[64px] rounded-[16px] hidden bg-[#FF4C3B] justify-center gap-[16px] text-white items-center">
                 <span>Become a Seller </span>
@@ -75,6 +80,7 @@ const Header = () => {
             <div className=" flex items-center sm:gap-[40px] gap-[30px] lg:gap-[50px] lg:hidden text-blue-500">
               <Link
                 href=""
+                onClick={()=> setShowCart(true)}
                 className="md:text-[28px] sm:text-[24px] text-[16px]"
               >
                 {" "}
@@ -90,7 +96,6 @@ const Header = () => {
             </div>
           </div>
         </div>
-
         <div className="mx-auto w-[85%] lg:hidden block">
           <div className="mx-auto w-[100%] sm:w-[90%]">
             <div className="md:h-[55px] pr-[10px] h-[35px] sm:h-[45px] items-center border-[1px] flex  justify-around rounded-[40px] sm:rounded-[16px] border-[#007BFF]">
@@ -118,6 +123,7 @@ const Header = () => {
             </div>
           </div>
         </div>
+
 
         {isAuthentication ? (
           <div className="w-full flex h-[71px] bg-white">
@@ -166,7 +172,7 @@ const Header = () => {
               {isAuthentication ? (
                 ""
               ) : (
-                <MenuIcon isAuthentication={isAuthentication} />
+                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart}/>
               )}
             </div>
           </div>
@@ -196,11 +202,7 @@ const Header = () => {
 
 export default Header;
 
-export const MenuIcon = ({
-  isAuthentication,
-}: {
-  isAuthentication: boolean;
-}) => {
+export const MenuIcon = ({ isAuthentication, setShowCart}: {isAuthentication: boolean,  setShowCart: Dispatch<SetStateAction<boolean>>;}) => {
   return (
     <>
       <div
@@ -220,7 +222,7 @@ export const MenuIcon = ({
             <FaRegHeart />{" "}
           </Link>
         )}
-        <Link href="" className="text-[32px]">
+        <Link href="" onClick={()=> setShowCart(true)} className="text-[32px]">
           {" "}
           <FiShoppingCart />{" "}
         </Link>
