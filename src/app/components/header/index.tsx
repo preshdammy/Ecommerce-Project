@@ -6,7 +6,7 @@ import searchLogo from "../../../../public/figma images/search.png";
 import chevronDown from "../../../../public/figma images/chevron-down.png";
 import chevronRight from "../../../../public/figma images/chevron-right.png";
 import variant3 from "../../../../public/figma images/Variant3.png";
-import bell from '../../../../public/figma images/bell.png';
+import bell from "../../../../public/figma images/bell.png";
 import heart from "../../../../public/figma images/heart.png";
 import shopping_cart from "../../../../public/figma images/shopping-cart.png";
 import frame from "../../../../public/figma images/Frame 164.png";
