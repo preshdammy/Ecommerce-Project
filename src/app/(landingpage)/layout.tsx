@@ -1,7 +1,6 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Merriweather } from "next/font/google";
-import "./globals.css";
 import ApolloProvider from "@/shared/provider/apolloProvider";
 import Header from "../components/header";
 import Footer from "../components/footer";
