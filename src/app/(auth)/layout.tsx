@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ApolloProvider from "@/shared/provider/apolloProvider";
-import Header from "../components/header";
-import Footer from "../components/footer";
-import AuthLayoutWrapper from "../components/AuthLayoutWrapper"; 
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,9 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ApolloProvider>
-          <Header />
-          <AuthLayoutWrapper>{children}</AuthLayoutWrapper>
-          <Footer />
+          {children}
         </ApolloProvider>
       </body>
     </html>
