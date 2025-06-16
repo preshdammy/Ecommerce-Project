@@ -18,7 +18,7 @@ const LandingPage = () => {
         <div className="max-w-[1536px] ">
 
             <div className="w-full h-[550px] bg-[#CCE5FF] relative -z-30">
-             <Image className="h-[98%] absolute bottom-0 right-[2%] " src={int98} alt="" />
+             <Image className="h-[98%] w-[650px] absolute bottom-0 right-[2%] " src={int98} alt="" />
              <Image className="opacity-30 left-[7%]  -rotate-[165deg] absolute top-[-70px] -z-20 w-[700px] h-[420px]" src={bagPexel } alt="" />
              <Image className=" absolute bottom-0  right-[3%]" src={bagPexel} alt="" />
              <div>
