@@ -1,10 +1,7 @@
-import Headers from "../components/header/index"
-import Footer from "../components/footer/index"
 
 const ProductUpload = () => {
     return (  
         <div>
-            <Headers/>
 
             <div className="min-h-screen bg-gray-50 py-10 px-4">
                 <div className="max-w-5xl mx-auto bg-white p-6 rounded-md shadow-sm">
@@ -72,8 +69,6 @@ const ProductUpload = () => {
                     </form>
                 </div>
             </div>
-
-            <Footer/>
         </div>
     );
 }

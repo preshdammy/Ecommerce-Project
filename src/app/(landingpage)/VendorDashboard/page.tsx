@@ -1,11 +1,7 @@
-import Headers from "../components/header/index"
-import Footer from "../components/footer/index"
-import sothhie from  "../../../public/figma images/soothie.jpg"
+
 const vendor = () => {
     return ( 
         <div className="bg-gray-100 min-h-screen">
-     <Headers/>
-      {/* Vendor Profile */}
       <section className="bg-blue-50 py-10 text-center">
         <div className="max-w-xl mx-auto  bg-blue">
           <div className="w-24 h-24 mx-auto bg-blue-600 rounded-full border border-blue-600"> 
@@ -35,8 +31,6 @@ const vendor = () => {
           
         </div>
       </section>
-
-     <Footer/>
     </div>
      );
 }

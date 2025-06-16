@@ -1,5 +1,4 @@
-import Headers from "../components/header/index"
-import Footer from "../components/footer/index"
+
 const Notification = () => {
     return ( 
         <div className="bg-gray-100 min-h-screen">
@@ -7,7 +6,7 @@ const Notification = () => {
       <header className="bg-gray-200 text-center py-4">
         <h1 className="text-2xl font-bold">My Notifications</h1>
       </header>
-      <Headers/>
+      
       
 
       {/* Notifications Section */}
@@ -32,7 +31,7 @@ const Notification = () => {
         </div>
       </main>
 
-    <Footer/>
+   
     </div>
      );
 }
