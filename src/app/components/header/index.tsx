@@ -20,9 +20,31 @@ import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState } from "react";
 import { div } from "framer-motion/client";
 
+
+
+
+
+
+import cancel from '../../../../public/figma images/x-01.png'
+import cart from '../../../../public/figma images/shopping-cart (2).png'
+import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsplash-removebg-preview 1.png'
+import trash from '../../../../public/figma images/Icon.png'
+import substract from '../../../../public/figma images/Icon (1).png'
+import add from '../../../../public/figma images/add-square-02.png'
+
+
+
+
+
+import like from '../../../../public/figma images/heart (1).png'
+import cancel2 from '../../../../public/figma images/Icon (2).png'
+
+
+
 const Header = () => {
   const [isAuthentication, setIsAuthentication] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
+  const [showLike, setShowLike] = useState<boolean>(false);
 
 
 
@@ -65,7 +87,7 @@ const Header = () => {
             </div>
 
             {isAuthentication ? (
-              <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} />
+              <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike} />
             ) : (
               <button className="w-[20%] lg:flex h-[64px] rounded-[16px] hidden bg-[#FF4C3B] justify-center gap-[16px] text-white items-center">
                 <span>Become a Seller </span>
@@ -79,8 +101,7 @@ const Header = () => {
 
             <div className=" flex items-center sm:gap-[40px] gap-[30px] lg:gap-[50px] lg:hidden text-blue-500">
               <Link
-                href=""
-                onClick={()=> setShowCart(true)}
+                href="/cart"
                 className="md:text-[28px] sm:text-[24px] text-[16px]"
               >
                 {" "}
@@ -123,6 +144,81 @@ const Header = () => {
             </div>
           </div>
         </div>
+
+
+        {showLike && (
+           <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white  flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+           <div className='ml-auto'>
+            <button onClick={()=> setShowLike(false)}>
+               <Image src={cancel} alt=''/>
+            </button>
+           </div>
+           <div className='flex items-center my-[10px] gap-[15px]'>
+               <Image src={like} className='w-[27px] h-[27px]' alt=''/><p className='text-[24px] font-[600]'>3 items</p>
+           </div>
+           <div className='overflow-y-scroll'>
+           <div className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
+               <div className='flex items-center'>
+                   <Image src={cancel2} alt=''/>
+               </div>
+               <Image src={shirt} alt=''/>
+               <div className='flex flex-col'>
+                   <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>Black Tee with a simple
+                       white circular logo at
+                       top left</p>
+                   <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ 22,000</p>
+               </div>
+               <Image src={cart} alt=''/>
+           </div>
+           </div>
+           <div className='mx-auto mt-auto'>
+               <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>Checkout Now (₦ 66,000) </button>
+           </div>
+   
+         </div>
+        )}
+
+        
+        {showCart && (
+           <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+           <div className='ml-auto'>
+            <button onClick={()=> setShowCart(false)}>
+               <Image src={cancel} alt=''/>
+            </button>
+               
+           </div>
+           <div className='flex items-center my-[10px] gap-[15px]'>
+               <Image src={cart} className='w-[30px] h-[27px]' alt=''/><p className='text-[24px] font-[600]'>3 items</p>
+           </div>
+           <div className='overflow-y-scroll'>
+           <div className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
+               <div className='flex flex-col items-center'>
+                   <Image src={add} alt=''/>
+                   <p className='text-[24px] font-[600]'>2</p>
+                   <Image src={substract} alt=''/>
+               </div>
+               <Image src={shirt} alt=''/>
+               <div className='flex flex-col'>
+                   <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>Black Tee with a simple
+                       white circular logo at
+                       top left</p>
+                   <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>₦ 22,000 * 1</p>
+                   <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ 22,000</p>
+               </div>
+               <Image src={trash} alt=''/>
+           </div>
+           </div>
+   
+   
+   
+
+           <div className='mx-auto mt-auto'>
+               <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>Checkout Now (₦ 66,000) </button>
+           </div>
+   
+         </div>
+        )}
+
 
 
         {isAuthentication ? (
@@ -172,7 +268,7 @@ const Header = () => {
               {isAuthentication ? (
                 ""
               ) : (
-                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart}/>
+                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike}/>
               )}
             </div>
           </div>
@@ -202,7 +298,7 @@ const Header = () => {
 
 export default Header;
 
-export const MenuIcon = ({ isAuthentication, setShowCart}: {isAuthentication: boolean,  setShowCart: Dispatch<SetStateAction<boolean>>;}) => {
+export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthentication: boolean,  setShowCart: Dispatch<SetStateAction<boolean>>, setShowLike: Dispatch<SetStateAction<boolean>>;}) => {
   return (
     <>
       <div
@@ -217,7 +313,7 @@ export const MenuIcon = ({ isAuthentication, setShowCart}: {isAuthentication: bo
         {isAuthentication ? (
           ""
         ) : (
-          <Link href="" className="text-[32px]">
+          <Link href="" onClick={()=> setShowLike(true)} className="text-[32px]">
             {" "}
             <FaRegHeart />{" "}
           </Link>
