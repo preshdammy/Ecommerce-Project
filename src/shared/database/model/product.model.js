@@ -1,0 +1,17 @@
+import mongoose from 'mongoose'
+
+const productSchema = new mongoose.Schema({
+    name: {type: String, required: true},
+    description: {type: String, required: true},
+    price: {type: Number, required: true},
+    category: {type: String, required: true},
+    subCategory: { type: String },
+    condition: { type: String, enum: ['new', 'used'], required: true },
+    images: [{type: String, required: true}],
+    stock: {type: Number, required: true, default: 0},
+    seller: { type: mongoose.Schema.Types.ObjectId, ref: 'vendor', required: true },
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'review' }]
+
+}, {timestamps: true})
+
+export const productModel = mongoose.models.products || mongoose.model("products", productSchema) 

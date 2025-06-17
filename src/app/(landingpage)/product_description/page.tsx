@@ -1,3 +1,5 @@
+"use client";
+import React, { useState } from "react";
 import Image from "next/image";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import { IoChatboxOutline } from "react-icons/io5";
@@ -8,6 +10,9 @@ import treeImage from "../../../../public/figma images/0fee51f546b9f6d8a608af5d0
 import bagImage from "../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
 
 const ProductDescription = () => {
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [review, setReview] = useState("");
+    const [rating, setRating] = useState(0);
     return (
     <>
     <div className="max-w-[1536px]">
@@ -84,12 +89,45 @@ const ProductDescription = () => {
                        Upgrade your travel gear with our bronze and black twin suitcase set and embark on your next adventure with confidence and sophistication. Get yours now and travel in style with this exquisite suitcase set!</p>
                        
                     </div>
-
-
+                   
                 
                 </div>
 
             </div>
+            <div className="w-[95%] mx-auto mt-[30px] px-17">
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                onClick={() => setShowReviewForm(!showReviewForm)}
+                            >
+                                {showReviewForm ? "Cancel Review" : "Leave a Review"}
+                            </button>
+
+                            {showReviewForm && (
+                                <div className="mt-4 p-4 bg-gray-100 rounded-md">
+                                    <textarea
+                                        placeholder="Write your review..."
+                                        value={review}
+                                        onChange={(e) => setReview(e.target.value)}
+                                        className="w-full h-[100px] p-2 border rounded mb-2"
+                                    />
+                                    <div className="flex gap-1 mb-4">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <span
+                                                key={star}
+                                                onClick={() => setRating(star)}
+                                                className={`cursor-pointer text-2xl ${rating >= star ? "text-yellow-500" : "text-gray-400"}`}
+                                            >
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <button className="bg-green-600 text-white px-6 py-2 rounded">
+                                        Submit Review
+                                    </button>
+                                </div>
+                            )}
+                            </div>
+
 
             
            <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
