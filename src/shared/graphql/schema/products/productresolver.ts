@@ -1,9 +1,11 @@
 import cloudinary from '@/shared/utils/cloudinary';
 import slugify from 'slugify';
 import { productModel } from '@/shared/database/model/product.model'
+import { vendormodel } from '@/shared/database/model/vendor.model';
 import { handleError } from '@/shared/utils/handleError';
 
 type product = {
+    id: string;
     name: string;
     category: string;
     description: string;
@@ -127,4 +129,92 @@ export const productresolver = {
         }
 
     },
-}
+    Mutation: {
+        createProduct: async (_: any, {name, category, description, subCategory, color, condition, minimumOrder, price, images}: product, context: any) => {
+            try {
+                const {vendorId} = context 
+                console.log(vendorId);
+                    if (!vendorId) {
+                        throw new Error("Unauthorized: Only vendors can create products.");
+                    }
+                    const pictures = await Promise.all(images.map(async(image)=>{
+                    const cloudimages = await cloudinary.uploader.upload(image)
+                    return cloudimages.secure_url
+                }))
+                console.log(pictures);
+                if (!name || !category || !description || !subCategory || !color || !condition || !minimumOrder || pictures.length === 0) {
+                    throw new Error("input fields cannot be empty")
+                    
+                }
+                const slug = await slugify(name, {
+                    replacement: "-",
+                    lower: true,
+                    strict: false,
+                    trim: true
+                })
+                const seller = await vendormodel.findOne({email:vendorId.email})
+                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, seller: seller?._id})
+                return newproduct
+            } catch (error) {
+                handleError(error);
+                
+            }
+        },
+        updateProduct: async (_: any, arg: product, context: any) => {
+            const  {id, name, category, description, subCategory, color, condition, minimumOrder, price, images} = arg
+            try {
+              const {vendorId} = context 
+              console.log(vendorId);
+                    if (!vendorId) {
+                        throw new Error("Unauthorized: Only vendors can update products.");
+                    }
+                    const existingProduct = await productModel.findById(id);
+
+                    if (!existingProduct) {
+                      throw new Error("Product not found");
+                    }
+                
+                    if (existingProduct.seller.toString() !== context.vendor.id) {
+                      throw new Error("You are not authorized to update this product");
+                    }
+              const updatedproduct = await productModel.findByIdAndUpdate(id, {
+                name,
+                category,
+                description,
+                subCategory,
+                color,
+                condition,
+                minimumOrder,
+                price,
+                images
+              }, { new: true})
+              return updatedproduct
+            } catch (error) {
+                handleError(error);
+                
+            }
+        },
+        deleteProduct: async (_: any, { id }: { id: string }, context: any) => {
+            try {
+                const {vendorId} = context 
+                console.log(vendorId);
+                    if (!vendorId) {
+                        throw new Error("Unauthorized: Only vendors can delete products.");
+                    }
+                    const existingProduct = await productModel.findById(id);
+
+                    if (!existingProduct) {
+                      throw new Error("Product not found");
+                    }
+                
+                    if (existingProduct.seller.toString() !== context.vendor.id) {
+                      throw new Error("You are not authorized to delete this product");
+                    }
+                const deletedproduct = await productModel.findByIdAndDelete(id)
+                return !!deletedproduct
+            } catch (error) {
+                handleError(error);
+                
+            }
+        }
+}}
