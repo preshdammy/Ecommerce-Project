@@ -9,41 +9,51 @@ const ProductUpload = () => {
 
                     <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Main Image Upload */}
-                        <div className="md:col-span-2">
-                            <label htmlFor="mainImage" className="cursor-pointer border-2 border-blue-400 border-dashed rounded-md flex justify-center items-center h-48 bg-blue-50 relative">
-                                <input
-                                    id="mainImage"
-                                    type="file"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                />
-                                <div className="text-center text-gray-500 pointer-events-none">
-                                    <svg
-                                        className="mx-auto h-6 w-6"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a1 1 0 001 1h3m10-2a1 1 0 001-1v-1m0-4a4 4 0 00-8 0m8 0a4 4 0 01-8 0m0 0V4m0 12H5a1 1 0 01-1-1v-1" />
-                                    </svg>
-                                    <p className="mt-2 text-sm">Upload Image</p>
-                                </div>
-                            </label>
-                        </div>
+  {/* Main Image Upload */}
+ <div className="md:col-span-2">
+  <label
+    htmlFor="mainImage"
+    className="cursor-pointer flex flex-col justify-center items-center h-48 bg-blue-50 relative rounded-xl  hover:bg-blue-100 transition-all duration-200"
+  >
+    <input
+      id="mainImage"
+      type="file"
+      className="absolute inset-0 opacity-0 cursor-pointer"
+    />
+    <div className="text-center text-gray-500 pointer-events-none">
+      <img
+        src="/figma images/share.png"
+        alt=""
+        className="mx-auto h-8 w-8 mb-3"
+      />
+      <p className="text-black ">Upload Image</p>
+    </div>
+  </label>
+</div>
 
-                        {/* 4 Additional Thumbnails */}
-                        <div className="grid grid-cols-2 gap-2">
-                            {Array.from({ length: 4 }).map((_, idx) => (
-                                <label key={idx} className="h-20 w-full border border-gray-300 rounded-md flex items-center justify-center bg-gray-100 cursor-pointer relative">
-                                    <input
-                                        type="file"
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                    />
-                                    <svg className="h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                </label>
-                            ))}
-                        </div>
+
+             {/* 4 Additional Thumbnails */}
+<div className="grid grid-cols-2 gap-2">
+  {Array.from({ length: 4 }).map((_, idx) => (
+    <label
+      key={idx}
+      className="h-20 w-full border border-gray-300 rounded-md flex items-center justify-center bg-gray-100 cursor-pointer relative"
+    >
+      <input
+        type="file"
+        className="absolute inset-0 opacity-0 cursor-pointer"
+      />
+      <div className="pointer-events-none text-center">
+        <img
+          src="/figma images/image-03.png"
+          alt="Thumbnail placeholder"
+          className="h-6 w-6 mx-auto"
+        />
+      </div>
+    </label>
+  ))}
+</div>
+
 
                         {/* Input Fields */}
                         <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
