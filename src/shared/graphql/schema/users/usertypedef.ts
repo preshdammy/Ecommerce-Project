@@ -1,25 +1,12 @@
-export const usertypedef =` {
-    type User {
+export const usertypedef = `
+  type User {
     id: ID!
-    username: String!
+    name: String!
     email: String!
-  }
-    
-
-  type Token {
-    id: ID!
-    email: String!
-    password:String!
-    token: String!
+    role: String!
   }
 
   type Query {
- users: [User!]!
- user(id: ID!): User
-}
-  type Mutation {
-    createuser(username: String!, email: String!, password: String!): User!
-    loginuser(email: String!, password: String!): Token!
+    users: [User!]!
   }
-`
-;
+`;

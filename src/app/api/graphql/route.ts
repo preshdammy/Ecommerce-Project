@@ -4,9 +4,16 @@ import { typeDefs, resolvers } from "@/shared/graphql/schema";
 import { connect } from "@/shared/database/db.connect";
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
+import { handleError } from "@/shared/utils/handleError";
+
+interface ContextType {
+  admin?: { id: string; email: string };
+  vendor?: { id: string; email: string };
+  user?: { id: string; email: string };
+}
 
 
-const server = new ApolloServer<object>({
+const server = new ApolloServer<ContextType>({
   typeDefs,
   resolvers
 })
@@ -19,7 +26,7 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
         const token = authHeader?.split(" ")[1];
   
         if (!token) {
-          return {};
+          return {}; // Return an empty object if no token is provided
         }
   
         const decoded: any = jwt.verify(token, process.env.SECRETKEY!);
@@ -27,15 +34,16 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
         if (decoded.role === "admin") {
           return { admin: { id: decoded.id, email: decoded.email }, role: "admin" };
         } else if (decoded.role === "vendor") {
-          return { vendor: { id: decoded.id, email: decoded.email }, role: "vendor" };
+          return { vendor: { id: decoded.id, email: decoded.email, name: decoded.name }, role: "vendor" };
         } else if (decoded.role === "user") {
-          return { user: { id: decoded.id, email: decoded.email }, role: "user" };
+          return { user: { id: decoded.id, email: decoded.email, name: decoded.name }, role: "user" };
         } else {
-          return {};
+          return {}; // Return an empty object for unrecognized roles
         }
       } catch (error) {
         console.log("JWT error:", error);
-        return {};
+        handleError(error);
+        return {}; // Ensure an object is always returned in case of an error
       }
     },
   });

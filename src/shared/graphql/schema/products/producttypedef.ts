@@ -1,4 +1,4 @@
-import { vendortypedef } from "../vendor/vendortypedef"
+
 
 export const producttypedef = `
     type Product {
@@ -7,15 +7,15 @@ export const producttypedef = `
         category: String!
         description: String!
         subCategory: String!
-        color: String!
+        color: String
         condition: String!
-        minimumOrder: Int!
+        minimumOrder: Int
         price: Float!
         images: [String!]!
         createdAt: DateTime!
         updatedAt: DateTime!
         slug: String!
-        seller: Vendor!
+        seller: Vendor
         averageRating: Float
         totalReviews: Int
     }
@@ -36,7 +36,7 @@ export const producttypedef = `
 
     type Mutation {
         createProduct(name: String!, category: String!, description: String!, subCategory: String!, color: String!, condition: String!, minimumOrder: Int!, price: Float!, images: [String!]!): Product!
-        updateProduct(id: ID!, name: String, category: String, description: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String!]): Product
+        updateProduct(id: ID!, name: String, category: String, description: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String!]!): Product
         deleteProduct(id: ID!): Boolean!  
     }
 `

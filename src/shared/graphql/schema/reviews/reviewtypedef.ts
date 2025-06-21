@@ -1,4 +1,5 @@
 
+
 export const reviewtypedef = `
   type Review {
     id: ID!
@@ -6,10 +7,10 @@ export const reviewtypedef = `
     product: Product!
     rating: Int!
     comment: String!
-    createdAt: String!
-    updatedAt: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
-
+    scalar DateTime
   type Query {
     productReviews(productId: ID!): [Review!]!
   }

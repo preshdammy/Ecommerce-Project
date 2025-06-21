@@ -22,8 +22,9 @@ export const resolvers = mergeResolvers([
 ])
 export const typeDefs = mergeTypeDefs([
     usertypedef,
-    admintypedef,
+    // admintypedef,
     vendortypedef,
     producttypedef,
     reviewtypedef
-])
+  ])
+  

@@ -1,7 +1,7 @@
 import cloudinary from '@/shared/utils/cloudinary';
 import slugify from 'slugify';
 import { productModel } from '@/shared/database/model/product.model'
-import { vendormodel } from '@/shared/database/model/vendor.model';
+import { Vendor } from '@/shared/database/model/vendor.model';
 import { handleError } from '@/shared/utils/handleError';
 
 type product = {
@@ -53,7 +53,7 @@ export const productresolver = {
                 handleError(error);
             }
         },
-        productsBySubcategory: async (_: any, { subCategory }: { subCategory: string }) => {
+        productsBySubCategory: async (_: any, { subCategory }: { subCategory: string }) => {
             try {
                 const productsbysubcategory = await productModel.find({ subCategory })
                 if (!productsbysubcategory || productsbysubcategory.length === 0) {
@@ -132,9 +132,9 @@ export const productresolver = {
     Mutation: {
         createProduct: async (_: any, {name, category, description, subCategory, color, condition, minimumOrder, price, images}: product, context: any) => {
             try {
-                const {vendorId} = context 
-                console.log(vendorId);
-                    if (!vendorId) {
+                const {vendor} = context 
+                console.log(vendor);
+                    if (!vendor) {
                         throw new Error("Unauthorized: Only vendors can create products.");
                     }
                     const pictures = await Promise.all(images.map(async(image)=>{
@@ -152,10 +152,15 @@ export const productresolver = {
                     strict: false,
                     trim: true
                 })
-                const seller = await vendormodel.findOne({email:vendorId.email})
-                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, seller: seller?._id})
+                const seller = await Vendor.findOne({email:vendor.email, name: vendor.name})
+                if (!seller) {
+                    throw new Error("Vendor not found");
+                  }
+                  
+                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, seller: seller?._id}) 
                 return newproduct
             } catch (error) {
+                console.error("Product creation error:", error);
                 handleError(error);
                 
             }
