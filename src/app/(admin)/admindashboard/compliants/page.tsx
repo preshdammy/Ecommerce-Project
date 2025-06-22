@@ -10,7 +10,7 @@ const Compliants = () => {
             <div className="w-[95%] mx-auto mt-[5vh] border-[#D4D3D3] border-[1px] h-[100px] justify-center  items-center flex">
 
                 <p className=" w-[85%] mx">
-                I tried logging into my account, but they were telling me Error 898. I have no idea what that means and I was supposed to deliver an order in the next 24 hours. Please I need your assistance.
+                I tried logging into m account, but they were telling me Error 898. I have no idea what that means and I was supposed to deliver an order in the next 24 hours. Please I need your assistance.
                 </p>
                
                <div className="w-[10%]">
