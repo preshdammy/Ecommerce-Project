@@ -9,7 +9,7 @@ export const producttypedef = `
         subCategory: String!
         color: String
         condition: String!
-        minimumOrder: Int
+        minimumOrder: Int!
         price: Float!
         images: [String!]!
         createdAt: DateTime!
@@ -18,6 +18,7 @@ export const producttypedef = `
         seller: Vendor
         averageRating: Float
         totalReviews: Int
+        stock: Int
     }
         scalar DateTime
 

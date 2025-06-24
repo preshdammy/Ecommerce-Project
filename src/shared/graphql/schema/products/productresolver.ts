@@ -13,6 +13,7 @@ type product = {
     color: string;
     condition: string;
     minimumOrder: number;
+    stock: number;
     price: number;
     images: [string];
 }
@@ -130,7 +131,7 @@ export const productresolver = {
 
     },
     Mutation: {
-        createProduct: async (_: any, {name, category, description, subCategory, color, condition, minimumOrder, price, images}: product, context: any) => {
+        createProduct: async (_: any, {name, category, description, subCategory, color, condition, minimumOrder, price, images, stock}: product, context: any) => {
             try {
                 const {vendor} = context 
                 console.log(vendor);
@@ -142,7 +143,7 @@ export const productresolver = {
                     return cloudimages.secure_url
                 }))
                 console.log(pictures);
-                if (!name || !category || !description || !subCategory || !color || !condition || !minimumOrder || pictures.length === 0) {
+                if (!name || !category || !description || !subCategory || !color || !condition || !minimumOrder || !stock || pictures.length === 0) {
                     throw new Error("input fields cannot be empty")
                     
                 }
@@ -157,7 +158,7 @@ export const productresolver = {
                     throw new Error("Vendor not found");
                   }
                   
-                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, seller: seller?._id}) 
+                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, stock, seller: seller?._id}) 
                 return newproduct
             } catch (error) {
                 console.error("Product creation error:", error);
