@@ -14,6 +14,7 @@ interface ContextType {
 
 
 const server = new ApolloServer<ContextType>({
+
   typeDefs,
   resolvers
 })
@@ -27,6 +28,7 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   
         if (!token) {
           return {}; // Return an empty object if no token is provided
+
         }
   
         const decoded: any = jwt.verify(token, process.env.SECRETKEY!);
@@ -44,6 +46,7 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
         console.log("JWT error:", error);
         handleError(error);
         return {}; // Ensure an object is always returned in case of an error
+
       }
     },
   });

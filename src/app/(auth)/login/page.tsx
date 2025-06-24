@@ -4,9 +4,51 @@ import Image from 'next/image'
 import google from '../../../../public/figma images/Frame 78.png'
 import eyeclosed from '../../../../public/figma images/eye-closed.png'
 import { IoEyeOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation"; 
+import Cookies from "js-cookie";
+import { gql, useMutation } from "@apollo/client";
+import { handleError } from '@/shared/utils/handleError'
+
+const LOGINUSER = gql`
+  mutation loginuser($email: String!, $password: String!) {
+    loginuser(email: $email, password: $password) {
+      id
+      email,
+      password,
+      token
+    }
+  }
+`;
 
 const Login = () => {
     const [showpassword, setshowpassword] = useState(false)
+    const Login = () => {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+
+  const [loginUser, { loading, error, data }] = useMutation(LOGINUSER);
+
+  const handleLogin = async () => {
+    try {
+      const response = await loginUser({ variables: { ...formData } });
+      console.log("Login success:", response.data);
+        if(response.data?.login?.token){
+            Cookies.set("token",response.data?.login?.token)
+        }
+      // Example: Redirect after login
+      router.push("/landingpage");
+    } catch (err) {
+      console.error("Login error:", err);
+    }
+  };
+  if (error) {
+    // return error.message
+    return handleError(error.message)
+  }
+}
   return (
     <>
         <div className=' bg-[rgba(0,0,0,0.3)] w-full h-screen flex items-center justify-center'>
