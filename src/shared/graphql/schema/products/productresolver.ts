@@ -32,6 +32,21 @@ export const productresolver = {
                 handleError(error)
            }
         },
+        myProducts: async (_: any, context: any) => {
+            try {
+                const { vendor } = context;
+                if (!vendor) {
+                    throw new Error("Unauthorized: Only vendors can view their products.")
+                }
+                const myproducts = await productModel.find({ seller: vendor?._id })
+                if (!myproducts || myproducts.length === 0) {
+                    throw new Error("No products found for this vendor")
+                }
+                return myproducts;
+            } catch (error) {
+                handleError(error);
+            }
+        },
         product: async (_: any, arg: { id: string }) => {
             try {
                 const oneProduct = await productModel.findById(arg.id)
@@ -158,7 +173,7 @@ export const productresolver = {
                     throw new Error("Vendor not found");
                   }
                   
-                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, stock, seller: seller?._id}) 
+                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, stock, seller: vendor?._id}) 
                 return newproduct
             } catch (error) {
                 console.error("Product creation error:", error);

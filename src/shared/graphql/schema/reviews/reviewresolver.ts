@@ -1,21 +1,23 @@
-import {reviewModel} from '@/shared/database/model/reviews.model';
-import {productModel} from '@/shared/database/model/product.model';
+import { reviewModel } from '@/shared/database/model/reviews.model';
+import { productModel } from '@/shared/database/model/product.model';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { handleError } from '@/shared/utils/handleError';
+import mongoose from 'mongoose';
 
 export const reviewresolver = {
   Query: {
     productReviews: async (_: any, { productId }: { productId: string }) => {
       try {
-        const reviews = await reviewModel.find({ product: productId })
+        const reviews = await reviewModel
+          .find({ product: productId })
           .populate('user')
           .populate('product')
-          .sort({ createdAt: -1 }); 
+          .sort({ createdAt: -1 });
         return reviews;
       } catch (error) {
         handleError(error);
       }
-    }
+    },
   },
 
   Mutation: {
@@ -40,19 +42,39 @@ export const reviewresolver = {
         // Create review
         const review = await reviewModel.create({
           user: context.user._id,
+          username: context.user.username,
           product: productId,
           rating,
-          comment
+          comment,
         });
 
         // Add review ID to product
         product.reviews.push(review._id);
+
+        // 🔥 Aggregate to get the new average rating and total reviews
+        const aggregation = await reviewModel.aggregate([
+          { $match: { product: new mongoose.Types.ObjectId(productId) } },
+          {
+            $group: {
+              _id: '$product',
+              averageRating: { $avg: '$rating' },
+              totalReviews: { $sum: 1 },
+            },
+          },
+        ]);
+
+        const { averageRating = 0, totalReviews = 0 } = aggregation[0] || {};
+
+        // Update product fields
+        product.averageRating = averageRating;
+        product.totalReviews = totalReviews;
+
         await product.save();
 
         return await review.populate('user').populate('product');
       } catch (error) {
         handleError(error);
       }
-    }
-  }
+    },
+  },
 };

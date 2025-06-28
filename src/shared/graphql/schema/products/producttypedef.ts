@@ -25,6 +25,7 @@ export const producttypedef = `
 
     type Query {
         allProducts(limit: Int!, offset: Int!): [Product!]!
+        myProducts: [Product!]!
         product(id: ID!): Product
         productsByCategory(category: String!): [Product!]!
         productsBySubCategory(subCategory: String!): [Product!]!

@@ -12,6 +12,8 @@ const productSchema = new mongoose.Schema({
     images: [{type: String, required: true}],
     stock: {type: Number, required: true, default: 0, min: 0},
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'vendor', required: true },
+    averageRating: { type: Number, default: 0 },
+    totalReviews: { type: Number, default: 0 },
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'review' }]
 
 }, {timestamps: true})
