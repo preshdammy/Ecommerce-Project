@@ -1,11 +1,112 @@
-import React from 'react';
+"use client"
+import React, { useState } from 'react';
 import Image from 'next/image';
 import share from '../../../../public/figma images/share.png'
-import image from '../../../../public/figma images/image-03.png';
+import placeholder from '../../../../public/figma images/image-03.png';
+import { gql, useMutation } from '@apollo/client';
+import { useRouter } from 'next/navigation';
+
+const create_products = gql`
+  mutation createProduct ($name:String!, $category:String!, $description:String!, $subCategory:String!, $color:String!, $condition:String!, $minimumOrder:Int!, $stock:Int! $price:Float!, $images: [String!]!) {
+    createProduct (name: $name, category: $category, description: $description, subCategory: $subCategory, color: $color, condition: $condition, minimumOrder: $minimumOrder, stock: $stock, price: $price, images: $images) {
+    name,
+    category,
+    description,
+    subCategory,
+    color,
+    condition,
+    minimumOrder,
+    stock,
+    price,
+    images
+  }
+}
+`
+
+
 
 const ProductUpload = () => {
+  const router = useRouter()
+  const [productData, setProductData] = useState({
+    name: '',
+    category: '',
+    description: '',
+    subCategory: '',
+    color: '',
+    stock: 0,
+    condition: '',
+    minimumOrder: 0,
+    price: 0,
+    images: [] as String[]
+  })
+
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+
+  const [createProduct, {loading, data, error}] = useMutation(create_products)
+  const handleImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const readers = Array.from(files).slice(0, 4).map((file) => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject("Failed to read file");
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then((base64Images) => {
+      setProductData((prev) => ({
+        ...prev,
+        images: base64Images,
+      }));
+      setPreviewImages(base64Images);
+    });
+  };
+
+  const handleUpload = async () => {
+    try {
+      const res = await createProduct({ variables: { ...productData } });
+      console.log("Product created:", res.data.createProduct);
+
+      setProductData({
+        name: '',
+        category: '',
+        description: '',
+        subCategory: '',
+        color: '',
+        stock: 0,
+        condition: '',
+        minimumOrder: 0,
+        price: 0,
+        images: [],
+      });
+      setPreviewImages([]);
+      router.push("/VendorDashboard");
+    } catch (error) {
+      console.error("Error creating product:", error);
+    }
+  };
+
   return (
     <>
+    {loading && (
+  <div className="flex justify-center mt-6">
+    <p className="bg-blue-100 text-blue-700 px-6 py-3 rounded-md shadow-md text-xl font-medium animate-pulse">
+      Loading...
+    </p>
+  </div>
+)}
+
+{error && (
+  <div className="flex justify-center mt-6">
+    <p className="bg-red-100 text-red-700 px-6 py-3 rounded-md shadow-md text-xl font-medium">
+      {error.message}
+    </p>
+  </div>
+)}
+
     <div className="">
       <div className="min-h-screen py-8 bg-gray-100">
         <div className="w-full mx-auto min-h-[240vh] ">
@@ -15,24 +116,24 @@ const ProductUpload = () => {
             </h2>
 
             <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Main Image Upload */}
-              <div className="md:col-span-2">
+               {/* Main Image Upload */}
+               <div className="md:col-span-2">
                 <label
                   htmlFor="mainImage"
                   className="cursor-pointer flex flex-col justify-center items-center h-[365px] md:h-[265px] lg:h-[365px] w-full bg-blue-50 rounded-[16px] hover:bg-blue-100 transition-all duration-200"
                 >
                   <input
+                    onChange={handleImages}
                     id="mainImage"
                     type="file"
+                    accept="image/*"
+                    multiple
                     className="absolute inset-0 opacity-0 cursor-pointer"
                   />
                   <div className="text-center text-gray-500 pointer-events-none">
-                    <Image
-                      src={share}
-                      alt=""
-                      className="mx-auto h-10 w-10 mb-3"
-                    />
-                    <p className="text-black text-lg">Upload Image</p>
+                    <Image src={share} alt="Upload Icon" className="mx-auto h-10 w-10 mb-3" />
+                    <p className="text-black text-lg">Upload Images</p>
+                    <p className="text-sm text-gray-400">(Max 4 images)</p>
                   </div>
                 </label>
               </div>
@@ -40,22 +141,20 @@ const ProductUpload = () => {
               {/* Thumbnails */}
               <div className="grid grid-cols-2 gap-4">
                 {Array.from({ length: 4 }).map((_, idx) => (
-                  <label
+                  <div
                     key={idx}
-                    className="h-[150px] sm:h-[175px] md:h-[125px] lg:h-[175px]  w-full rounded-[16px] flex items-center justify-center bg-white cursor-pointer relative"
+                    className="h-[150px] sm:h-[175px] md:h-[125px] lg:h-[175px] w-full rounded-[16px] flex items-center justify-center bg-white overflow-hidden relative"
                   >
-                    <div
-                  
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    ></div>
-                    <div className="pointer-events-none text-center">
-                      <Image
-                        src={image}
-                        alt="Thumbnail"
-                        className="h-10 w-10 mx-auto"
+                    {previewImages[idx] ? (
+                      <img
+                        src={previewImages[idx]}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className="h-full w-full object-cover"
                       />
-                    </div>
-                  </label>
+                    ) : (
+                      <Image src={placeholder} alt="Placeholder" className="h-10 w-10 mx-auto" />
+                    )}
+                  </div>
                 ))}
               </div>
 
@@ -67,6 +166,8 @@ const ProductUpload = () => {
                       Product Name
                     </label>
                     <input
+                     value={productData.name}
+                      onChange={(e)=>setProductData({...productData, name: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
@@ -76,6 +177,8 @@ const ProductUpload = () => {
                       Category
                     </label>
                     <input
+                      value={productData.category}
+                      onChange={(e)=>setProductData({...productData, category: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
@@ -88,6 +191,8 @@ const ProductUpload = () => {
                       Product Description
                     </label>
                     <input
+                      value={productData.description}
+                      onChange={(e)=>setProductData({...productData, description: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[176px] rounded-[16px] px-4"
                     />
@@ -97,6 +202,8 @@ const ProductUpload = () => {
                       Sub-category
                     </label>
                     <input
+                      value={productData.subCategory}
+                      onChange={(e)=>setProductData({...productData, subCategory: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[176px] rounded-[16px] px-4"
                     />
@@ -109,6 +216,8 @@ const ProductUpload = () => {
                       Color
                     </label>
                     <input
+                      value={productData.color}
+                      onChange={(e)=>setProductData({...productData, color: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
@@ -118,6 +227,8 @@ const ProductUpload = () => {
                       Stock
                     </label>
                     <input
+                      value={productData.stock}
+                      onChange={(e)=>setProductData({...productData, stock: Number(e.target.value)})}
                       type="number"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
@@ -127,6 +238,8 @@ const ProductUpload = () => {
                       Condition
                     </label>
                     <input
+                      value={productData.condition}
+                      onChange={(e)=>setProductData({...productData, condition: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
@@ -139,6 +252,8 @@ const ProductUpload = () => {
                       Minimum order
                     </label>
                     <input
+                    value={productData.minimumOrder}
+                    onChange={(e)=>setProductData({...productData, minimumOrder: Number(e.target.value)})}
                       type="number"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
@@ -148,16 +263,19 @@ const ProductUpload = () => {
                       Price
                     </label>
                     <input
+                      value={productData.price}
+                      onChange={(e)=>setProductData({...productData, price: Number(e.target.value)})}
                       type="number"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />
                   </div>
                   <div className="flex items-end">
                     <button
-                      type="submit"
+                      onClick={handleUpload}
+                      type="button"
                       className="w-full h-[92px] rounded-[100px] text-[20px] font-semibold bg-[#FF4C3B] text-white hover:bg-red-600 transition-all"
                     >
-                      Upload product
+                      {loading? "Uploading..." : "Upload product"}
                     </button>
                   </div>
                 </div>
