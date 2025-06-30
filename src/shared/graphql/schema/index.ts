@@ -1,5 +1,6 @@
 import {mergeResolvers } from "@graphql-tools/merge";
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import { usertypedef } from './users/usertypedef';
 import { userresolver } from './users/userresolver';
 import { adminresolver } from './admin/adminresolver';
 import { admintypedef } from './admin/admintypedef';
@@ -15,15 +16,14 @@ import { reviewtypedef } from './reviews/reviewtypedef';
 export const resolvers = mergeResolvers([
     userresolver,
     adminresolver,
-
-    vendorResolver,
+    VendorResolver,
     productresolver,
     reviewresolver
 ])
 export const typeDefs = mergeTypeDefs([
     usertypedef,
     // admintypedef,
-    vendorTypedefs,
+    vendorTypeDefs,
     producttypedef,
     reviewtypedef
   ])
