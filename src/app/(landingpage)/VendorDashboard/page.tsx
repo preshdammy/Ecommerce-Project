@@ -1,8 +1,9 @@
 "use client"
-import React from 'react';
+import React, { useEffect} from 'react';
 import { useQuery, gql } from '@apollo/client';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from 'react-toastify';
 
 
 export const get_my_products = gql`
@@ -60,25 +61,39 @@ type Product = {
 const vendor = () => {
   const router = useRouter();
   const { loading, error, data } = useQuery(get_my_products);
+
+  useEffect(() => {
+    let toastId: any;
+
+    if (loading) {
+      toastId = toast.loading("Fetching your products...");
+    }
+
+    if (error) {
+      toast.update(toastId, {
+        render: `Error: ${error.message}`,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
+
+    if (!loading && data) {
+      toast.update(toastId, {
+        render: "Products fetched successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+    }
+  }, [loading, error, data]);
+
+
+
   const handleEdit = () => {}
   const handleDelete = () => {}
     return ( 
         <div className="bg-gray-100 min-h-screen">
-          {loading && (
-  <div className="flex justify-center mt-6">
-    <p className="bg-blue-100 text-blue-700 px-6 py-3 rounded-md shadow-md text-xl font-medium animate-pulse">
-      Loading...
-    </p>
-  </div>
-)}
-
-{error && (
-  <div className="flex justify-center mt-6">
-    <p className="bg-red-100 text-red-700 px-6 py-3 rounded-md shadow-md text-xl font-medium">
-      {error.message}
-    </p>
-  </div>
-)}
       <section className="bg-blue-50 py-10 text-center ">
         <div className="max-w-xl mx-auto  bg-blue">
 

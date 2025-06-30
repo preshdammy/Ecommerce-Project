@@ -5,6 +5,7 @@ import share from '../../../../public/figma images/share.png'
 import placeholder from '../../../../public/figma images/image-03.png';
 import { gql, useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 const create_products = gql`
   mutation createProduct ($name:String!, $category:String!, $description:String!, $subCategory:String!, $color:String!, $condition:String!, $minimumOrder:Int!, $stock:Int! $price:Float!, $images: [String!]!) {
@@ -66,9 +67,17 @@ const ProductUpload = () => {
   };
 
   const handleUpload = async () => {
+    const toastId = toast.loading("Uploading product...");
     try {
       const res = await createProduct({ variables: { ...productData } });
       console.log("Product created:", res.data.createProduct);
+      toast.update(toastId, {
+        render: "Product uploaded successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeOnClick: true,
+      });
 
       setProductData({
         name: '',
@@ -83,29 +92,26 @@ const ProductUpload = () => {
         images: [],
       });
       setPreviewImages([]);
-      router.push("/VendorDashboard");
+      setTimeout(() => {
+        router.push("/VendorDashboard");
+      }, 1000);
     } catch (error) {
-      console.error("Error creating product:", error);
+      toast.update(toastId, {
+        render: `Error creating product: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+        closeOnClick: true,
+      });
+      
     }
   };
 
   return (
     <>
-    {loading && (
-  <div className="flex justify-center mt-6">
-    <p className="bg-blue-100 text-blue-700 px-6 py-3 rounded-md shadow-md text-xl font-medium animate-pulse">
-      Loading...
-    </p>
-  </div>
-)}
-
-{error && (
-  <div className="flex justify-center mt-6">
-    <p className="bg-red-100 text-red-700 px-6 py-3 rounded-md shadow-md text-xl font-medium">
-      {error.message}
-    </p>
-  </div>
-)}
+ 
 
     <div className="">
       <div className="min-h-screen py-8 bg-gray-100">
