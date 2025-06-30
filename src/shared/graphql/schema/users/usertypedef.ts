@@ -1,3 +1,4 @@
+
 export const usertypedef = `
   type User {
     id: ID!
@@ -8,3 +9,4 @@ export const usertypedef = `
     users: [User!]!
   }
 `;
+

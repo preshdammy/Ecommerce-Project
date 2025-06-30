@@ -1,10 +1,10 @@
 import { LuSearch } from "react-icons/lu";
 
-const AdminDashboard  = () => {
+const Transactions  = () => {
 
     return ( 
         <div className="w-full font-sans">
-            <h1 className="font-[400] text-[32px] w-[95%] mx-auto mt-[20px] ">Welcome back, Daniel</h1>
+            <h1 className="font-[400] text-[32px] w-[95%] mx-auto mt-[20px] ">Transactions</h1>
             
 
             <div className=" w-[95%] mx-auto flex items-center justify-between mt-[40px]">
@@ -24,7 +24,6 @@ const AdminDashboard  = () => {
                 </div>
             </div>
 
-
             <div className="w-[95%] mx-auto mt-[10vh] ">
                 <div className="w-[380px] h-[56px] border-[#D4D3D3] border-[1px] rounded-[10px] flex items-center">
                 <LuSearch className="text-[24px] text-[#939090] ml-[15px]" />
@@ -32,23 +31,8 @@ const AdminDashboard  = () => {
                 </div>
             </div>
 
-            <div className="w-[95%] mx-auto mt-[30px] flex justify-between">
-
-                <div className="  border-[#CCE5FF] border-[1px] h-[215px] w-[235px] rounded-[10px]">
-
-                </div>
-                
-                <div className="  border-[#CCE5FF] border-[1px] h-[215px] w-[235px] rounded-[10px]">
-
-                </div>
-                
-                <div className="  border-[#CCE5FF] border-[1px] h-[215px] w-[235px] rounded-[10px]">
-
-                </div>
-
-            </div>
         </div>
     );
 }
 
-export default AdminDashboard;
+export default Transactions;

@@ -3,6 +3,7 @@ import { setContext } from "@apollo/client/link/context";
 import Cookies from "js-cookie";
 import { onError } from "@apollo/client/link/error";
 
+
 const errorLink = onError(({ graphQLErrors }) => {
   if (graphQLErrors) {
     for (const err of graphQLErrors) {
@@ -12,7 +13,6 @@ const errorLink = onError(({ graphQLErrors }) => {
         err.message.includes("jwt expired") ||
         err.extensions?.code === "UNAUTHENTICATED"
       ) {
-        // Redirect to login
         Cookies.remove("token");
         window.location.href = "/login";
       }
@@ -46,6 +46,7 @@ export function createApolloClient() {
     cache: new InMemoryCache(),
   });
 }
+
 
 
 

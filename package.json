@@ -24,7 +24,7 @@
     "js-cookies": "^1.0.4",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
-    "mongoose": "^8.15.0",
+    "mongoose": "^8.16.1",
     "next": "15.3.2",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
@@ -37,6 +37,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
+    "@types/bcryptjs": "^3.0.0",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
