@@ -42,17 +42,11 @@ const vendorTypeDefs = gql`
   }
 
   type Mutation {
-    createvendor(
-      name: String!
-      email: String!
-      password: String!
-      storeName: String
-      avatar: String
-      bio: String
-      phone: String
-      location: String
-      address: AddressInput
-    ): Vendor!
+   createVendor(
+    name: String!
+    email: String!
+    password: String!
+  ): Vendor!
 
     loginVendor(email: String!, password: String!): VendorAuthPayload!
 

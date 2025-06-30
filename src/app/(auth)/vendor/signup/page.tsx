@@ -1,15 +1,16 @@
-"use client"
+'use client'
 import React, { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
+import { useRouter } from 'next/navigation';
 
-// GraphQL mutation
+
 const CREATE_VENDOR = gql`
-  mutation CreateVendor(
+  mutation createVendor(
     $name: String!
     $email: String!
     $password: String!
   ) {
-    createvendor(
+    createVendor(
       name: $name
       email: $email
       password: $password
@@ -22,6 +23,8 @@ const CREATE_VENDOR = gql`
 `;
 
 const Signup = () => {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -52,6 +55,8 @@ const Signup = () => {
         },
       });
       alert("Vendor account created!");
+      setTimeout(() => router.push("/vendor/login"), 500);
+ 
       // Optionally redirect or reset form
     } catch (err) {
       console.error(err);
@@ -114,6 +119,7 @@ const Signup = () => {
               onChange={handleChange}
               className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
+            
             <button
               type="submit"
               disabled={loading}
@@ -128,7 +134,7 @@ const Signup = () => {
           )}
           {data && (
             <p className="text-green-600 text-sm mt-2">
-              Welcome, { data.createVendor.name}!
+              Welcome, {data.createVendor.name}!
             </p>
           )}
 
@@ -150,7 +156,7 @@ const Signup = () => {
 
           <p className="text-sm text-center mt-4">
             Have an account already?{" "}
-            <a href="#" className="text-blue-600 font-medium hover:underline">
+            <a href="/vendor/login" className="text-blue-600 font-medium hover:underline">
               Log in
             </a>
           </p>
