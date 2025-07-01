@@ -1,5 +1,6 @@
 import { vendorModel } from '@/shared/database/model/vendor.model';
 import bcrypt from 'bcryptjs';
+import cloudinary from '@/shared/utils/cloudinary';
 import jwt from 'jsonwebtoken';
 import { AuthenticationError } from 'apollo-server-express';
 
@@ -27,23 +28,30 @@ export const VendorResolver = {
   },
 
   Mutation: {
-    createvendor: async (_: any, args: any) => {
-      const existingVendor = await vendorModel.findOne({ email: args.email });
-      if (existingVendor) {
-        throw new Error('Vendor already exists with this email');
-      }
-
-      const hashedPassword = await bcrypt.hash(args.password, 10);
-
-      const newVendor = new vendorModel({
-        ...args,
-        password: hashedPassword,
-        createdAt: new Date().toISOString(),
-      });
-
-      const savedVendor = await newVendor.save();
-      return savedVendor;
-    },
+    createVendor: async (_: any, args: { name: string; email: string; password: string }) => {
+        const { name, email, password } = args;
+      
+        const existingVendor = await vendorModel.findOne({ email });
+        if (existingVendor) {
+          throw new Error('Vendor already exists with this email');
+        }
+      
+        const hashedPassword = await bcrypt.hash(password, 10);
+      
+        const newVendor = new vendorModel({
+          name,
+          email,
+          password: hashedPassword,
+          createdAt: new Date().toISOString(),
+        });
+      
+        const savedVendor = await newVendor.save();
+        return {
+          id: savedVendor._id,
+          name: savedVendor.name,
+          email: savedVendor.email,
+        };
+      },
 
     loginVendor: async (_: any, { email, password }: any) => {
       const vendor = await vendorModel.findOne({ email });
@@ -71,24 +79,36 @@ export const VendorResolver = {
     },
 
     updateVendorProfile: async (_: any, args: any) => {
-        //   if (!context.user) throw new AuthenticationError('Unauthorized');
-        const { email, ...rest } = args;
-
-        if (!email) {
-          throw new Error("Email is required for updating vendor");
-        }
+        const { email, avatar, ...rest } = args;
       
-        const allowedFields = [
-          'name',
-          'storeName',
-          'avatar',
-          'bio',
-          'phone',
-          'location',
-          'address'
-        ];
+        if (!email) throw new Error("Email is required for updating vendor");
       
         const updateData: Record<string, any> = {};
+      
+        // Upload avatar to Cloudinary if it's a base64 or local file path
+        if (avatar && avatar.startsWith("data:image")) {
+          try {
+            const uploadResponse = await cloudinary.uploader.upload(avatar, {
+              folder: "vendor_avatars",
+            });
+            updateData.avatar = uploadResponse.secure_url;
+          } catch (err) {
+            throw new Error("Failed to upload avatar");
+          }
+        } else if (avatar) {
+          updateData.avatar = avatar; // assume it's already a valid URL
+        }
+      
+        // Merge other updatable fields
+        const allowedFields = [
+          "name",
+          "storeName",
+          "bio",
+          "phone",
+          "location",
+          "address",
+        ];
+      
         for (const key of allowedFields) {
           if (rest[key] !== undefined) {
             updateData[key] = rest[key];
@@ -101,9 +121,7 @@ export const VendorResolver = {
           { new: true }
         );
       
-        if (!updatedVendor) {
-          throw new Error('Vendor not found');
-        }
+        if (!updatedVendor) throw new Error("Vendor not found");
       
         return updatedVendor;
       },

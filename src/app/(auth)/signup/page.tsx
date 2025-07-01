@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -150,8 +151,6 @@ const Signup = () => {
     </div>
   </div>
 </div>
-
-    
   );
 };
 
