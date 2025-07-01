@@ -5,6 +5,7 @@ import Image from "next/image";
 import { IoEyeOutline } from "react-icons/io5";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 import google from "../../../../../public/figma images/Frame 78.png";
 import eyeclosed from "../../../../../public/figma images/eye-closed.png";
@@ -41,8 +42,22 @@ const Login = () => {
         },
       });
 
-      localStorage.setItem("vendor_token", data.loginVendor.token);
-      router.push("/vendor/dashboard");
+      Cookies.set(
+        "vendor",
+        JSON.stringify({
+          id: data.loginVendor.id,
+          name: data.loginVendor.name,
+          email: data.loginVendor.email,
+        }),
+        { expires: 7 }
+      );
+            if (data?.loginVendor?.token) {
+              Cookies.set("token", data.loginVendor.token);
+              router.push("/vendor/dashboard");
+            } else {
+              console.error("Login failed: No token returned.");
+            }
+      
     } catch (err) {
       console.error("Login error:", err);
     }
@@ -52,7 +67,7 @@ const Login = () => {
     <div className="bg-[rgba(0,0,0,0.3)] w-full h-screen flex items-center justify-center">
       <div className="bg-white lg:w-[583px] lg:p-[50px] flex flex-col border-[1px] border-[#cce5ff] lg:gap-[25px] items-center text-[#272222] lg:h-[651px] rounded-[32px] sm:w-[304px] w-[304px] sm:h-[458px] h-[458px] sm:p-[20px] p-[20px] sm:gap-[20px] gap-[20px]">
         <h2 className="lg:text-[40px] lg:font-normal text-[#55a7ff] sm:text-[24px] text-[24px] sm:font-normal font-normal">
-          Log in
+          Vendor Login
         </h2>
 
         <div className="w-full flex border-[1px] border-[rgba(0,0,0,0.1)] lg:rounded-[16px] lg:py-3 justify-center items-center lg:gap-[15px] lg:text-[20px] sm:rounded-[100px] rounded-[100px] sm:text-[12px] text-[12px] sm:font-normal font-normal sm:gap-[5px] gap-[5px] sm:py-2 py-2">

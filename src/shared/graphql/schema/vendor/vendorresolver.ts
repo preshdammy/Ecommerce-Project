@@ -4,7 +4,7 @@ import cloudinary from '@/shared/utils/cloudinary';
 import jwt from 'jsonwebtoken';
 import { AuthenticationError } from 'apollo-server-express';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_SECRET = process.env.secret_key!;
 
 export const VendorResolver = {
   Query: {
@@ -13,8 +13,8 @@ export const VendorResolver = {
     },
 
     getVendorProfile: async (_: any, __: any, context: any) => {
-      if (!context.user) throw new AuthenticationError('Unauthorized');
-      const vendor = await vendorModel.findById(context.user.id);
+      if (!context.vendor) throw new AuthenticationError('Unauthorized');
+      const vendor = await vendorModel.findById(context.vendor.id);
       return vendor;
     },
 

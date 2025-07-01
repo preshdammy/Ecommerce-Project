@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import google from "../../../../public/figma images/Frame 78.png";
-import eyeclosed from "../../../../public/figma images/eye-closed.png";
+import google from "../../../../../public/figma images/Frame 78.png";
+import eyeclosed from "../../../../../public/figma images/eye-closed.png";
 import { IoEyeOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";

@@ -65,35 +65,30 @@ const Signup = () => {
 
   return (
     <div className="bg-gray-100">
-      <div className="bg-gray-200 text-center py-4">
-        <h1 className="text-2xl font-bold">Sign up</h1>
-      </div>
-
-      <div className="flex justify-center items-center min-h-screen px-4">
-        <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md border border-blue-300">
-          <h2 className="text-xl font-semibold text-center text-blue-600 mb-6">
-            Join Time Shoppy
-          </h2>
-
-          <button className="w-full flex items-center justify-center border border-gray-300 py-2 rounded-md mb-4 hover:bg-gray-50">
+    <div className="flex justify-center items-center min-h-screen px-4">
+      <div className="bg-white p-8 rounded-xl shadow-md w-[584px] h-[90%] border border-blue-300">
+        <div className="w-full">
+          <h2 className="text-[30px] font-semibold text-center text-[#55A7FF] mb-[10px]">Join Time Shoppy as a vendor</h2>
+  
+          <button className="w-full h-[58px] rounded-[16px] flex items-center justify-center border border-gray-300 py-0 mb-4 hover:bg-gray-50">
             <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              src="/figma images/google.png"
               alt="Google"
               className="w-5 h-5 mr-2"
             />
-            <span>Sign up with Google</span>
+            <span className="text-[20px] ml-2">Sign up with Google</span>
           </button>
-
-          <div className="text-center text-sm text-gray-500 mb-4">OR</div>
-
-          <form onSubmit={handleSubmit}>
+  
+          <div className="text-center text-[20px] text-gray-500 mb-4">OR</div>
+  
+          <form onSubmit={handleSubmit} className="text-[16px] space-y-3">
             <input
               name="name"
               type="text"
               placeholder="Enter full name"
               value={form.name}
               onChange={handleChange}
-              className="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full h-[51px] px-6 py-2 border border-gray-300 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <input
               name="email"
@@ -101,7 +96,7 @@ const Signup = () => {
               placeholder="Enter email address"
               value={form.email}
               onChange={handleChange}
-              className="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full h-[51px] px-4 py-2 border border-gray-300 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <input
               name="password"
@@ -109,7 +104,7 @@ const Signup = () => {
               placeholder="Enter password"
               value={form.password}
               onChange={handleChange}
-              className="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full h-[51px] px-4 py-2 border border-gray-300 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <input
               name="confirmPassword"
@@ -117,45 +112,37 @@ const Signup = () => {
               placeholder="Confirm password"
               value={form.confirmPassword}
               onChange={handleChange}
-              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full h-[51px] px-4 py-2 border border-gray-300 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            
+  
+            {error && (
+              <p className="text-red-500 text-sm mt-1">{error.message}</p>
+            )}
+            {data && (
+              <p className="text-green-600 text-sm mt-1">
+                Welcome, {data.createVendor?.name}!
+              </p>
+            )}
+  
             <button
               type="submit"
+              className="w-full h-[51px] bg-[#007BFF] text-white text-[16px] py-2 rounded-[16px] hover:bg-blue-700 transition"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
             >
               {loading ? "Registering..." : "Register"}
             </button>
           </form>
-
-          {error && (
-            <p className="text-red-500 text-sm mt-2">{error.message}</p>
-          )}
-          {data && (
-            <p className="text-green-600 text-sm mt-2">
-              Welcome, {data.createVendor.name}!
-            </p>
-          )}
-
-          <p className="text-xs text-center text-gray-500 mt-4">
-            By clicking register, you agree to the{" "}
-            <a href="#" className="text-blue-600 underline">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" className="text-blue-600 underline">
-              Privacy Policy
-            </a>
-            , including{" "}
-            <a href="#" className="text-blue-600 underline">
-              Cookie Use
-            </a>
-            .
+  
+          <p className="text-[16px] text-center text-gray-500 mt-4">
+            By clicking register, you agree to the
+            <a href="#" className="text-blue-600 underline"> Terms of Service </a>
+            and
+            <a href="#" className="text-blue-600 underline"> Privacy Policy </a>, including
+            <a href="#" className="text-blue-600 underline"> Cookie Use</a>.
           </p>
-
-          <p className="text-sm text-center mt-4">
-            Have an account already?{" "}
+  
+          <p className="text-[16px] text-center mt-4">
+            Have an account already?
             <a href="/vendor/login" className="text-blue-600 font-medium hover:underline">
               Log in
             </a>
@@ -163,6 +150,8 @@ const Signup = () => {
         </div>
       </div>
     </div>
+  </div>
+  
   );
 };
 
