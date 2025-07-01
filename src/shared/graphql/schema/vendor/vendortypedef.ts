@@ -6,6 +6,7 @@ const vendorTypeDefs = gql`
     id: ID!
     name: String!
     email: String!
+    password: String!
     storeName: String
     avatar: String
     bio: String

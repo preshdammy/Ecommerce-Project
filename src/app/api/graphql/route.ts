@@ -9,8 +9,8 @@ import { handleError } from "@/shared/utils/handleError";
 
 interface ContextType {
   admin?: { id: string; email: string };
-  vendor?: { id: string; email: string };
-  user?: { id: string; email: string };
+  vendor?: { id: string; email: string; name: string };
+  user?: { id: string; email: string; name: string };
 }
 
 

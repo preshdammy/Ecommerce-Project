@@ -1,7 +1,7 @@
 import cloudinary from '@/shared/utils/cloudinary';
 import slugify from 'slugify';
 import { productModel } from '@/shared/database/model/product.model'
-import { Vendor } from '@/shared/database/model/vendor.model';
+import { vendorModel } from '@/shared/database/model/vendor.model';
 import { handleError } from '@/shared/utils/handleError';
 
 type product = {
@@ -168,7 +168,7 @@ export const productresolver = {
                     strict: false,
                     trim: true
                 })
-                const seller = await Vendor.findOne({email:vendor.email, name: vendor.name})
+                const seller = await vendorModel.findOne({email:vendor.email, name: vendor.name})
                 if (!seller) {
                     throw new Error("Vendor not found");
                   }

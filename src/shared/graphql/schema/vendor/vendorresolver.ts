@@ -61,6 +61,8 @@ export const VendorResolver = {
         JWT_SECRET,
         { expiresIn: '7d' }
       );
+      console.log(token);
+      
 
       return {
         ...vendor.toObject(),
