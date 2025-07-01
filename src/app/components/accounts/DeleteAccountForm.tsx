@@ -1,15 +1,45 @@
 'use client';
 
 import { useState } from 'react';
+import { gql, useMutation } from '@apollo/client';
+import Cookies from 'js-cookie';
+
+const DELETE_USER = gql`
+  mutation DeleteUser($id: ID!) {
+    deleteuser(id: $id)
+  }
+`;
 
 export default function DeleteAccountForm() {
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [deleteUser] = useMutation(DELETE_USER);
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!confirmChecked) return;
-    // Add your actual delete account logic here, like API call
-    alert('Your account has been deleted. We’re sorry to see you go.');
-    // Redirect or further action here
+
+    const userCookie = Cookies.get('user');
+    if (!userCookie) {
+      alert('User not found or not logged in.');
+      return;
+    }
+
+    const user = JSON.parse(userCookie);
+    const id = user.id;
+
+    try {
+      const { data } = await deleteUser({ variables: { id } });
+      if (data?.deleteuser) {
+        alert('Your account has been deleted. We’re sorry to see you go.');
+        Cookies.remove('user');
+        // Optionally redirect
+        window.location.href = '/landingpage';
+      } else {
+        alert('Failed to delete account.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('An error occurred while deleting your account.');
+    }
   }
 
   return (

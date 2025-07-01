@@ -15,7 +15,6 @@ interface ContextType {
 
 
 const server = new ApolloServer<ContextType>({
-
   typeDefs,
   resolvers
 })
@@ -32,10 +31,9 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   
         if (!token) {
           return {}; 
-
         }
   
-        const decoded: any = jwt.verify(token, process.env.SECRETKEY!);
+        const decoded: any = jwt.verify(token, process.env.secret_key!);
   
         if (decoded.role === "admin") {
           return { admin: { id: decoded.id, email: decoded.email }, role: "admin" };
@@ -50,7 +48,6 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
         console.log("JWT error:", error);
         handleError(error);
         return {}; 
-
       }
     },
   });
