@@ -45,27 +45,8 @@ const CategoryPage = () => {
   );
 
   return (
-    <div className="bg-white min-h-screen relative">
+    <div className="bg-[#F8F8F8] min-h-screen relative">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-[#007BFF] text-2xl md:text-3xl font-normal mb-6">
-          Furniture Products
-        </h1>
-
-        {/* Locations */}
-        <div className="flex items-center mb-6 overflow-x-auto overflow-hidden pb-2 w-full">
-          <IoIosArrowBack className="text-[#007BFF] text-2xl mr-2" />
-          <div className="flex space-x-2">
-            {locations.map((loc, i) => (
-              <button
-                key={i}
-                className="px-3 py-1 bg-[#F1F1F1] rounded-full text-[#007BFF] text-xs hover:bg-[#007BFF] hover:text-white whitespace-nowrap"
-              >
-                {loc}
-              </button>
-            ))}
-          </div>
-          <IoIosArrowForward className="text-[#007BFF] text-2xl ml-2" />
-        </div>
 
 
          <div className="md:hidden flex gap-4 mb-4">
@@ -84,15 +65,15 @@ const CategoryPage = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {products.map((product, index) => (
             <div
               key={index}
               onClick={() => setSelectedProduct(product)}
-              className="bg-white rounded-md p-3 border border-gray-200 cursor-pointer hover:shadow"
+              className="bg-white rounded-md p-3 cursor-pointer hover:shadow"
             >
               <div className="flex">
-                <div className="w-[90%] h-40 relative">
+                <div className="w-[80%] h-40 relative">
                   <Image
                     src={watch}
                     alt={product.title}
@@ -157,41 +138,6 @@ const CategoryPage = () => {
           </div>
         </div>
       </div>
-
-      {/* See More Modal */}
-      {selectedProduct && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl w-[90%] max-w-md p-6 shadow-xl overflow-y-auto max-h-[90vh] relative">
-            <button
-              onClick={() => setSelectedProduct(null)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-black"
-            >
-              ✕
-            </button>
-            <Image
-              src={watch}
-              alt="Preview"
-              width={300}
-              height={200}
-              className="mx-auto rounded-md"
-            />
-            <h2 className="text-lg font-semibold mt-4">
-              {selectedProduct.title}
-            </h2>
-            <p className="text-sm text-gray-500">{selectedProduct.seller}</p>
-            <div className="my-2">{renderStars(selectedProduct.rating)}</div>
-            <p className="text-[#007BFF] font-bold text-lg">
-              {selectedProduct.price}
-            </p>
-            <p className="text-xs mt-2">{selectedProduct.location}</p>
-            <p className="text-xs mt-1 text-[#FF4C3B] font-semibold">
-              {selectedProduct.sold}
-            </p>
-          </div>
-        </div>
-      )}
-
-  
 
       {/* Mobile Filter Drawer */}
       {isFilterOpen && (

@@ -1,28 +1,126 @@
-import Link from 'next/link'
-import React from 'react'
-import Image from 'next/image'
-import logo from '../../../../public/figma images/WhatsApp Image 2022-11-27 at 14.35 1.png'
+'use client';
+
+import Link from 'next/link';
+import React from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import logo from '../../../../public/figma images/WhatsApp Image 2022-11-27 at 14.35 1.png';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, loginSchemaType } from '../../../shared/lib/admindefinition';
+ 
 
 const Adminlogin = () => {
-  return (
-    <>
-     <div className=' bg-[rgba(0,0,0,0.1)] w-full h-screen flex items-center justify-center'>
-      <div className='flex flex-col w-[544px] h-[599px] justify-center border-[1px] border-[#d4d3d3] items-center bg-white px-[80px]'>
-        <Image className=' mb-[10px]' src={logo} alt='logo' />
-        <h1 className='text-[32px] text-[#939090] font-[300]'>Admin Dashboard</h1>
-        <p className='text-[24px] text-[#007bff] mt-[10px] font-normal'>Log in</p>
-        <div className='flex flex-col gap-[20px] mt-[30px] w-full mb-[30px]'>
-            <input className='border-[1px] px-[10px] w-full h-[40px] border-[#d4d3d3] rounded-[8px] py-3' placeholder='Email Address' type="text" />
-            <input className='border-[1px] px-[10px] w-full h-[40px] border-[#d4d3d3] rounded-[8px] py-3' placeholder='Password' type="text" />
-        </div>
-        <button className='text-[16px]  rounded-[8px] text-white bg-[#007bff] font-[600] w-full py-3'>Log in</button>
-        <Link className='text-[16px] text-[#939090] font-[500] mt-[15px]' href="">
-          forgot your password?
-        </Link>
-      </div>
-      </div>
-    </>
-  )
-}
+  const router = useRouter();
 
-export default Adminlogin
+  
+
+const {
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitting },
+} = useForm<loginSchemaType>({
+  resolver: zodResolver(loginSchema),
+});
+
+
+  const onSubmit = async (data: loginSchemaType) => {
+    try {
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `
+            mutation LoginAdmin($email: String!, $password: String!) {
+              loginAdmin(email: $email, password: $password) {
+                token
+                admin {
+                  id
+                  name
+                  email
+                  role
+                }
+              }
+            }
+          `,
+          variables: {
+            email: data.email,
+            password: data.password,
+          },
+        }),
+      });
+
+      const result = await res.json();
+    if (result.errors) throw new Error(result.errors[0].message);
+
+    // ✅ Save token and admin data
+    const { token, admin } = result.data.loginAdmin;
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminData', JSON.stringify(admin));
+
+    alert('Login successful!');
+    if (admin.role === 'ADMIN') {
+      router.push('/admindashboard');
+    } else {
+      alert('Access denied! Not an admin');
+    }
+  } catch (err: any) {
+    alert(err.message || 'Login failed!');
+  }
+};
+
+
+  return (
+    <div className="bg-[rgba(0,0,0,0.1)] w-full h-screen flex items-center justify-center">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col w-[544px] h-[599px] justify-center border border-[#d4d3d3] items-center bg-white px-[80px]"
+      >
+        <Image className="mb-[10px]" src={logo} alt="logo" />
+        <h1 className="text-[32px] text-[#939090] font-light">Admin Dashboard</h1>
+        <p className="text-[24px] text-[#007bff] mt-[10px] font-normal">Log in</p>
+
+        <div className="flex flex-col gap-[20px] mt-[30px] w-full mb-[30px]">
+          <div>
+            <input
+              {...register('email')}
+              className="border px-3 w-full h-[40px] border-[#d4d3d3] rounded-[8px] py-3"
+              placeholder="Email Address"
+              type="email"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div>
+            <input
+              {...register('password')}
+              className="border px-3 w-full h-[40px] border-[#d4d3d3] rounded-[8px] py-3"
+              placeholder="Password"
+              type="password"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+            )}
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="text-[16px] rounded-[8px] text-white bg-[#007bff] font-[600] w-full py-3 disabled:opacity-60"
+        >
+          {isSubmitting ? 'Logging in...' : 'Log in'}
+        </button>
+
+        <Link className="text-[16px] text-[#939090] font-[500] mt-[15px]" href="">
+          Forgot your password?
+        </Link>
+      </form>
+    </div>
+  );
+};
+
+export default Adminlogin;
