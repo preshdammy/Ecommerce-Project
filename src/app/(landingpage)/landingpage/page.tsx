@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image";
 import int98 from "../../../../public/figma images/INT (98) 1.png"
 import bagPexel from "../../../../public/figma images/pexels-george-dolgikh-1666067 1.png"
@@ -13,7 +15,10 @@ import starLogo from "../../../../public/figma images/Frame 498.png"
 import tamanna from "../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
 
 const LandingPage = () => {
+
+
     return ( 
+        
         <>
         <div className="max-w-[1536px] ">
 

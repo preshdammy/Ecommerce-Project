@@ -172,4 +172,4 @@ const vendor = () => {
 }
  
  
-export default vendor;
+export default vendor; 

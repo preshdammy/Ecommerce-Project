@@ -1,89 +1,141 @@
-"use client"
-import React, {useState} from 'react'
-import Image from 'next/image'
-import google from '../../../../public/figma images/Frame 78.png'
-import eyeclosed from '../../../../public/figma images/eye-closed.png'
+"use client";
+import React, { useState } from "react";
+import Image from "next/image";
+import google from "../../../../public/figma images/Frame 78.png";
+import eyeclosed from "../../../../public/figma images/eye-closed.png";
 import { IoEyeOutline } from "react-icons/io5";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { gql, useMutation } from "@apollo/client";
-import { handleError } from '@/shared/utils/handleError'
+import { handleError } from "@/shared/utils/handleError";
+import { log } from "console";
 
 const LOGINUSER = gql`
   mutation loginuser($email: String!, $password: String!) {
     loginuser(email: $email, password: $password) {
       id
-      email,
-      password,
+      email
       token
     }
   }
 `;
 
 const Login = () => {
-    const [showpassword, setshowpassword] = useState(false)
-    const Login = () => {
+  const [showpassword, setshowpassword] = useState(false);
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
+    password: "",
   });
 
-  const [loginUser, { loading, error, data }] = useMutation(LOGINUSER);
+  const [loginUser, { loading, error }] = useMutation(LOGINUSER);
 
   const handleLogin = async () => {
     try {
       const response = await loginUser({ variables: { ...formData } });
-      console.log("Login success:", response.data);
-        if(response.data?.login?.token){
-            Cookies.set("token",response.data?.login?.token)
-        }
-      // Example: Redirect after login
-      router.push("/landingpage");
-    } catch (err) {
+      const user = response.data?.loginuser;
+      console.log(user)
+    Cookies.set(
+  "user",
+  JSON.stringify({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  }),
+  { expires: 7 }
+);
+      if (user?.token) {
+        Cookies.set("token", user.token);
+        router.push("/landingpage");
+      } else {
+        console.error("Login failed: No token returned.");
+      }
+    } catch (err: any) {
       console.error("Login error:", err);
     }
   };
-  if (error) {
-    // return error.message
-    return handleError(error.message)
-  }
-}
-  return (
-    <>
-        <div className=' bg-[rgba(0,0,0,0.3)] w-full h-screen flex items-center justify-center'>
-            <div className='bg-white lg:w-[583px] lg:p-[50px] flex flex-col border-[1px] border-[#cce5ff]  lg:gap-[25px] items-center text-[#272222] lg:h-[651px] rounded-[32px] sm:w-[304px] w-[304px] sm:h-[458px] h-[458px] sm:p-[20px] p-[20px] sm:gap-[20px] gap-[20px]'>
-                <h2 className='lg:text-[40px] lg:font-normal text-[#55a7ff] sm:text-[24px] text-[24px] sm:font-normal font-normal'>Log in</h2>
-                <div className='w-full flex border-[1px] border-[rgba(0,0,0,0.1)] lg:rounded-[16px] lg:py-3 justify-center items-center lg:gap-[15px] lg:text-[20px] sm:rounded-[100px] rounded-[100px] sm:text-[12px] text-[12px] sm:font-normal font-normal sm:gap-[5px] gap-[5px] sm:py-2 py-2'>
-                    <Image className='sm:w-[16px] w-[16px] sm:h-[16px] h-[16px] lg:w-[24px] lg:h-[24px]' src={google} alt='' />
-                    <button>Sign in with Google</button>
-                </div>
-                <p className='lg:text-[16px] lg:font-normal sm:text-[12px] text-[12px] sm:font-[500] font-[500]'>OR</p>
-                <div className='flex w-full lg:gap-[20px] flex-col sm:gap-[10px] gap-[10px]'>
-                    <input className='w-full px-7 lg:py-3 border-[1px] border-[rgba(0,0,0,0.1)] lg:bg-white outline-[#4ff072] lg:rounded-[16px] lg:placeholder:text-[16px] sm:rounded-[100px] rounded-[100px] sm:placeholder:text-[12px] placeholder:text-[12px] sm:placeholder:font-normal placeholder:font-normal sm:bg-[#f8f8f8] bg-[#f8f8f8] sm:py-2 py-2' placeholder='Enter email address'  type="text" />
-                    <div tabIndex={0} className='w-full px-7 lg:py-3 flex justify-between focus-within:outline lg:bg-white focus-within:outline-[#4ff072] border-[1px] border-[rgba(0,0,0,0.1)] lg:rounded-[16px] sm:rounded-[100px] rounded-[100px] sm:bg-[#f8f8f8] bg-[#f8f8f8] sm:py-2 py-2'>
-                    <input className='outline-none w-full lg:placeholder:text-[16px] sm:placeholder:text-[12px] placeholder:text-[12px] sm:placeholder:font-normal placeholder:font-normal' placeholder='Enter password' type={showpassword? "text": "password"} />
-                    <button onClick={()=>setshowpassword(prev => !prev)}>
-                    {showpassword ? (
-                         <IoEyeOutline size={24} className='opacity-[20%] lg:w-[24px] lg:h-[24px] sm:w-[16px] w-[16px] sm:h-[16px] h-[16px]' />
-                    ) : (
-                        <Image className='lg:w-[26px] lg:h-[24px] sm:w-[18px] w-[18px] sm:h-[16px] h-[16px]' src={eyeclosed} alt='' />
-                    )}
-                    </button>
-                    </div>
-                </div>
-                <div className='flex w-full lg:gap-[20px] flex-col sm:gap-[10px] gap-[10px]'>
-                    <button className='w-full lg:py-3 bg-[#007bff] text-white lg:text-[16px] lg:font-normal lg:rounded-[16px] sm:rounded-[100px] rounded-[100px] sm:text-[12px] text-[12px] sm:font-[600] font-[600] sm:py-2 py-2'>Log in</button>
-                    <button className='w-full lg:py-3 border-[1px] border-[#007bff] text-[#007bff] lg:text-[16px] lg:font-normal  lg:rounded-[16px] sm:rounded-[100px] rounded-[100px] sm:text-[12px] text-[12px] sm:font-normal font-normal sm:py-2 py-2'>Forgot Password?</button>
-                </div>
-            <div className='flex lg:text-[16px] lg:mt-[20px] lg:font-normal gap-2 sm:text-[12px] text-[12px] sm:font-normal font-normal sm:mt-[10px] mt-[10px]'>
-                <p>Don't have an account?</p>
-                <a className='text-[#007bff] font-bold'>Sign up</a>
-            </div>
-            </div>
-        </div>
-    </>
-  )
-}
 
-export default Login
+  return (
+    <div className="bg-[rgba(0,0,0,0.3)] w-full h-screen flex items-center justify-center">
+      <div className="bg-white lg:w-[583px] lg:p-[50px] flex flex-col border-[1px] border-[#cce5ff] lg:gap-[25px] items-center text-[#272222] lg:h-[651px] rounded-[32px] sm:w-[304px] w-[304px] sm:h-[458px] h-[458px] sm:p-[20px] p-[20px] sm:gap-[20px] gap-[20px]">
+        <h2 className="lg:text-[40px] text-[#55a7ff] sm:text-[24px]">Log in</h2>
+
+        <div className="w-full flex border-[1px] border-[rgba(0,0,0,0.1)] lg:rounded-[16px] lg:py-3 justify-center items-center lg:gap-[15px] text-[12px] sm:rounded-[100px] rounded-[100px] sm:py-2 py-2">
+          <Image className="w-[16px] h-[16px] lg:w-[24px] lg:h-[24px]" src={google} alt="" />
+          <button>Sign in with Google</button>
+        </div>
+
+        <p className="lg:text-[16px] sm:text-[12px]">OR</p>
+
+        <div className="flex w-full flex-col gap-[10px] lg:gap-[20px]">
+          <input
+            className="w-full px-7 py-2 sm:py-2 lg:py-3 border-[1px] border-[rgba(0,0,0,0.1)] bg-[#f8f8f8] lg:bg-white outline-[#4ff072] rounded-[100px] lg:rounded-[16px] placeholder:text-[12px] lg:placeholder:text-[16px]"
+            placeholder="Enter email address"
+            type="email"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+          />
+
+          <div
+            tabIndex={0}
+            className="w-full px-7 py-2 sm:py-2 lg:py-3 flex justify-between items-center focus-within:outline focus-within:outline-[#4ff072] border-[1px] border-[rgba(0,0,0,0.1)] bg-[#f8f8f8] lg:bg-white rounded-[100px] lg:rounded-[16px]"
+          >
+            <input
+              className="outline-none w-full placeholder:text-[12px] lg:placeholder:text-[16px] bg-transparent"
+              placeholder="Enter password"
+              type={showpassword ? "text" : "password"}
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+            />
+            <button onClick={() => setshowpassword((prev) => !prev)}>
+              {showpassword ? (
+                <IoEyeOutline
+                  size={24}
+                  className="opacity-[20%] lg:w-[24px] lg:h-[24px] sm:w-[16px] h-[16px]"
+                />
+              ) : (
+                <Image
+                  className="lg:w-[26px] lg:h-[24px] sm:w-[18px] sm:h-[16px]"
+                  src={eyeclosed}
+                  alt=""
+                />
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col gap-[10px] lg:gap-[20px]">
+          <button
+            onClick={handleLogin}
+            className="w-full py-2 sm:py-2 lg:py-3 bg-[#007bff] text-white text-[12px] lg:text-[16px] font-[600] lg:font-normal rounded-[100px] lg:rounded-[16px]"
+          >
+            {loading ? "Logging in..." : "Log in"}
+          </button>
+
+          <button className="w-full py-2 sm:py-2 lg:py-3 border-[1px] border-[#007bff] text-[#007bff] text-[12px] lg:text-[16px] font-normal rounded-[100px] lg:rounded-[16px]">
+            Forgot Password?
+          </button>
+        </div>
+
+        <div className="flex text-[12px] lg:text-[16px] gap-2 mt-[10px] lg:mt-[20px]">
+          <p>Don't have an account?</p>
+          <a href="/signup" className="text-[#007bff] font-bold">
+            Sign up
+          </a>
+        </div>
+
+        {error && (
+          <p className="text-red-500 text-[12px] mt-2">
+              {error.message}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Login;
