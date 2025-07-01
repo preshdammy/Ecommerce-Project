@@ -60,9 +60,9 @@ const Login = () => {
       <div className="bg-white lg:w-[583px] lg:p-[50px] flex flex-col border-[1px] border-[#cce5ff] lg:gap-[25px] items-center text-[#272222] lg:h-[651px] rounded-[32px] sm:w-[304px] w-[304px] sm:h-[458px] h-[458px] sm:p-[20px] p-[20px] sm:gap-[20px] gap-[20px]">
         <h2 className="lg:text-[40px] text-[#55a7ff] sm:text-[24px]">Log in</h2>
 
-        <div className="w-full flex border-[1px] border-[rgba(0,0,0,0.1)] lg:rounded-[16px] lg:py-3 justify-center items-center lg:gap-[15px] text-[12px] sm:rounded-[100px] rounded-[100px] sm:py-2 py-2">
+        <div className="w-full flex border-[1px] border-[rgba(0,0,0,0.1)] lg:rounded-[16px] lg:py-3 justify-center items-center gap-[6px] lg:gap-[15px] text-[12px] sm:rounded-[100px] rounded-[100px] sm:py-2 py-2">
           <Image className="w-[16px] h-[16px] lg:w-[24px] lg:h-[24px]" src={google} alt="" />
-          <button>Sign in with Google</button>
+          <button className="text-[12px] lg:text-[18px]">Sign in with Google</button>
         </div>
 
         <p className="lg:text-[16px] sm:text-[12px]">OR</p>

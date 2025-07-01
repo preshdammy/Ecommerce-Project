@@ -57,17 +57,17 @@ const Signup = () => {
       },
     });
 
-    if (data?.createuser) {
-      // ✅ Save user info to cookie
-      Cookies.set("user", JSON.stringify({
-        id: data.createuser.id,
-        name: data.createuser.name,
-        email: data.createuser.email,
-      }));
+    // if (data?.createuser) {
+    //   // ✅ Save user info to cookie
+    //   Cookies.set("user", JSON.stringify({
+    //     id: data.createuser.id,
+    //     name: data.createuser.name,
+    //     email: data.createuser.email,
+    //   }));
 
       // Redirect to landing page
       router.push("/login"); // or wherever your landing page is
-    }
+    // }
   } catch (err: any) {
     console.error("Signup error:", err);
     setformerror({ general: err.message });
@@ -78,11 +78,11 @@ const Signup = () => {
   return (
   <div className="bg-gray-100">
   <div className="flex justify-center items-center min-h-screen px-4">
-    <div className="bg-white p-8 rounded-xl shadow-md w-[584px] h-[753px] border border-blue-300">
+    <div className="bg-white p-8 rounded-xl shadow-md w-[584px] h-[90%] border border-blue-300">
       <div className="w-full">
-        <h2 className="text-[40px] font-semibold text-center text-[#55A7FF]">Join Time Shoppy</h2>
+        <h2 className="text-[40px] font-semibold text-center text-[#55A7FF] mb-[10px]">Join Time Shoppy</h2>
 
-        <button className="w-full h-[64px] rounded-[16px] flex items-center justify-center border border-gray-300 py-2 mb-4 hover:bg-gray-50">
+        <button className="w-full h-[58px] rounded-[16px] flex items-center justify-center border border-gray-300 py-0 mb-4 hover:bg-gray-50">
           <img src="/figma images/google.png" alt="Google" className="w-5 h-5 mr-2" />
           <span className="text-[20px] ml-2">Sign up with Google</span>
         </button>
