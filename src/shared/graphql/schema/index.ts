@@ -11,6 +11,10 @@ import { producttypedef } from './products/producttypedef';
 import { productresolver } from './products/productresolver';
 import { reviewresolver } from './reviews/reviewresolver';
 import { reviewtypedef } from './reviews/reviewtypedef';
+import { notificationresolver } from './notifcations/notifresolvers'
+import { notificationTypeDef } from './notifcations/notiftypedefs'
+import { orderResolvers } from './orders/orderresolver';
+import { orderTypeDef } from './orders/ordertypedef';
 
 
 
@@ -19,14 +23,18 @@ export const resolvers = mergeResolvers([
     adminresolver,
     VendorResolver,
     productresolver,
-    reviewresolver
+    reviewresolver,
+    notificationresolver,
+    orderResolvers
 ])
 export const typeDefs = mergeTypeDefs([
     usertypedef,
     // admintypedef,
     vendorTypeDefs,
     producttypedef,
-    reviewtypedef
+    reviewtypedef,
+    notificationTypeDef,
+    orderTypeDef
   ])
   
 

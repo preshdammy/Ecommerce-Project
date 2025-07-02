@@ -5,6 +5,7 @@ import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import ApolloProvider from "@/shared/provider/apolloProvider";
+import { NotificationsProvider } from "@/shared/provider/notificationsProvider";
 
 
 
@@ -42,6 +43,7 @@ export default function RootLayout({
        
       >
         <ApolloProvider>
+          <NotificationsProvider>
         <ToastContainer
           position="top-right"
           autoClose={3000}
@@ -55,6 +57,7 @@ export default function RootLayout({
           theme="light"
         />
         {children}
+        </NotificationsProvider>
         </ApolloProvider>
         
       </body>

@@ -67,7 +67,7 @@ const Signup = () => {
     //   }));
 
       // Redirect to landing page
-      router.push("/login"); // or wherever your landing page is
+      router.push("/user/login"); // or wherever your landing page is
     // }
   } catch (err: any) {
     console.error("Signup error:", err);
