@@ -14,6 +14,7 @@ interface ContextType {
 }
 
 
+
 const server = new ApolloServer<ContextType>({
   typeDefs,
   resolvers
@@ -38,6 +39,7 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
         if (decoded.role === "admin") {
           return { admin: { id: decoded.id, email: decoded.email }, role: "admin" };
         } else if (decoded.role === "vendor") {
+          console.log("Returning vendor context.");
           return { vendor: { id: decoded.id, email: decoded.email, name: decoded.name }, role: "vendor" };
         } else if (decoded.role === "user") {
           return { user: { id: decoded.id, email: decoded.email, name: decoded.name }, role: "user" };

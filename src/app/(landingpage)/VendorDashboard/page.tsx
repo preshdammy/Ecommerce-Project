@@ -60,33 +60,45 @@ type Product = {
 
 const vendor = () => {
   const router = useRouter();
-  const { loading, error, data } = useQuery(get_my_products);
+  const { loading, error, data } = useQuery(get_my_products,  {
+    onError: (err) => {
+      console.error("GraphQL Error:", err);
+    },});
 
   useEffect(() => {
     let toastId: any;
-
+  
     if (loading) {
       toastId = toast.loading("Fetching your products...");
     }
-
+  
     if (error) {
-      toast.update(toastId, {
-        render: `Error: ${error.message}`,
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      if (toastId) {
+        toast.update(toastId, {
+          render: `Error: ${error.message}`,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      } else {
+        toast.error(`Error: ${error.message}`);
+      }
     }
-
+  
     if (!loading && data) {
-      toast.update(toastId, {
-        render: "Products fetched successfully!",
-        type: "success",
-        isLoading: false,
-        autoClose: 2000,
-      });
+      if (toastId) {
+        toast.update(toastId, {
+          render: "Products fetched successfully!",
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      } else {
+        toast.success("Products fetched successfully!");
+      }
     }
   }, [loading, error, data]);
+  
 
 
 
@@ -109,7 +121,7 @@ const vendor = () => {
       <img src="/figma images/Frame 240 (1).png" alt="message" />
       <img src="/figma images/Frame 241.png" alt="" />
           </div>
-          <button className="mt-5 font-semibold font-Work-Sans text-2xl w-[349px] h-[60px] bg-[#FF4C3B] text-[#FFFFFF] text-[24px] px-[56px] py-[10px] rounded-full">
+          <button onClick={()=>router.push("/product-upload")} className="mt-5 font-semibold font-Work-Sans text-2xl w-[349px] h-[60px] bg-[#FF4C3B] text-[#FFFFFF] text-[24px] px-[56px] py-[10px] rounded-full">
             ADD NEW PRODUCT
           </button>
         </div>

@@ -8,6 +8,7 @@ const productSchema = new mongoose.Schema({
     minimumOrder: { type: Number, required: true, default: 1 },
     color: { type: String },
     subCategory: { type: String },
+    slug: {type:String, required: true},
     condition: { type: String, enum: ['new', 'used'], required: true },
     images: [{type: String, required: true}],
     stock: {type: Number, required: true, default: 0, min: 0},

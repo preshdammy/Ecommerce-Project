@@ -1,15 +1,43 @@
 "use client";
 import React, { useState } from "react";
+import {gql, useQuery} from "@apollo/client"
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Carousel } from "react-responsive-carousel";
 import Image from "next/image";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import { IoChatboxOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
-import { ProductFrame } from "../landingpage/page";
+import { ProductFrame } from "../../page"
 
-import treeImage from "../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
-import bagImage from "../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
+import treeImage from "../../../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
+import bagImage from "../../../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
 
-const ProductDescription = () => {
+
+const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
+    productBySlug(slug: $slug) {
+      id
+      name
+      slug
+      description
+      price
+      images
+      seller {
+        id
+        name
+      }
+    }
+  }`
+  
+const ProductDescriptionClient = ({slug}:{slug: string}) => {
+    const {data, loading, error} = useQuery(get_products_by_slug, {variables:{slug: slug}})
+    console.log("Product Data:", data);
+    
+    loading && <p>Loading...</p>
+    error && <p>Error: {error.message}</p>
+    if (!loading && !data?.productBySlug) {
+        return <p>Product not found</p>;
+      }
+      
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [review, setReview] = useState("");
     const [rating, setRating] = useState(0);
@@ -134,30 +162,13 @@ const ProductDescription = () => {
             <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Related Products</h1>
             <div className=" bg-[#F8F8F8] w-[85%] flex-wrap gap-y-[30px] mx-auto mt-[20px] flex  justify-between">
 
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
+        
+                   <ProductFrame data={{ allProducts: [] }}/>
+                   <ProductFrame data={{ allProducts: [] }}/>
+                   <ProductFrame data={{ allProducts: [] }}/>
+                   <ProductFrame data={{ allProducts: [] }}/>
+                
+                
             </div>
            </div>
 
@@ -169,4 +180,4 @@ const ProductDescription = () => {
     </> );
 }
  
-export default ProductDescription;
+export default ProductDescriptionClient;

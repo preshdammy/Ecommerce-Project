@@ -4,6 +4,7 @@ import { productModel } from '@/shared/database/model/product.model'
 import { vendorModel } from '@/shared/database/model/vendor.model';
 import { handleError } from '@/shared/utils/handleError';
 
+
 type product = {
     id: string;
     name: string;
@@ -21,32 +22,76 @@ type product = {
 
 export const productresolver = {
     Query: {
-        allProducts: async (_: any, {limit, offset}:{limit:number, offset:number}) => {
-           try {
-                const products = await productModel.find()
-                    .limit(limit)
-                    .skip(offset)
-                    .sort({ createdAt: -1 })
-                 return products;
-           } catch (error) {
-                handleError(error)
-           }
-        },
-        myProducts: async (_: any, context: any) => {
+        allProducts: async (_: any, { limit, offset }: { limit: number; offset: number }) => {
             try {
-                const { vendor } = context;
-                if (!vendor) {
-                    throw new Error("Unauthorized: Only vendors can view their products.")
-                }
-                const myproducts = await productModel.find({ seller: vendor?._id })
-                if (!myproducts || myproducts.length === 0) {
-                    throw new Error("No products found for this vendor")
-                }
-                return myproducts;
-            } catch (error) {
-                handleError(error);
+              const products = await productModel
+                .find()
+                .populate("seller")
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .skip(offset);
+                
+          
+              console.log("Fetched products:", products);
+          
+              return products.map((p) => {
+                // Important: Convert toObject to safely access _id as string
+                const obj = p.toObject();
+                return {
+                  ...obj,
+                  id: obj._id ? obj._id.toString() : "", // fallback empty string to avoid null
+                };
+              });
+            } catch (error: any) {
+              handleError(error);
+              throw new Error(error);
             }
-        },
+          },
+          
+          
+        myProducts: async (_parent: any, _args: any, context: any) => {
+            try {
+              console.log("Context received in resolver:", context);
+              const { vendor } = context;
+              if (!vendor) {
+                throw new Error("Unauthorized: Only vendors can view their products.");
+              }
+          
+              // Fetch products AND populate seller
+              const myproducts = await productModel
+                .find({ seller: vendor.id })
+                .populate("seller");
+          
+              if (!myproducts || myproducts.length === 0) {
+                throw new Error("No products found for this vendor.");
+              }
+          
+              // Map each product into a plain object and fix IDs
+              return myproducts.map((p) => {
+                const obj = p.toObject();
+                // Convert _id to id string
+                obj.id = p._id.toString();
+          
+                // If seller is populated, convert its _id as well
+                if (obj.seller && obj.seller._id) {
+                  obj.seller.id = obj.seller._id.toString();
+                } else {
+                  // If not populated, you can set it to null or remove it
+                  obj.seller = null;
+                }
+          
+     
+          
+                return obj;
+              });
+            } catch (error) {
+              handleError(error);
+              throw error
+            }
+          },
+       
+          
+          
         product: async (_: any, arg: { id: string }) => {
             try {
                 const oneProduct = await productModel.findById(arg.id)
@@ -58,6 +103,29 @@ export const productresolver = {
                 handleError(error);   
             }
     },
+    productBySlug: async (_: any, { slug }: { slug: string }) => {
+        try {
+          const product = await productModel.findOne({ slug }).populate("seller");
+          if (!product) {
+            throw new Error("Product not found");
+          }
+      
+          // Convert _id to id for consistency
+          const obj = product.toObject();
+          obj.id = product._id.toString();
+      
+          // Populate seller id if exists
+          if (obj.seller && obj.seller._id) {
+            obj.seller.id = obj.seller._id.toString();
+          }
+      
+          return obj;
+        } catch (error) {
+          handleError(error);
+          throw error;
+        }
+      },
+      
         productsByCategory: async (_: any, { category }: { category: string }) => {
             try {
                 const productsbycategory = await productModel.find({ category })
@@ -146,41 +214,96 @@ export const productresolver = {
 
     },
     Mutation: {
-        createProduct: async (_: any, {name, category, description, subCategory, color, condition, minimumOrder, price, images, stock}: product, context: any) => {
+        createProduct: async (_: any, args: any, context: any) => {
             try {
-                const {vendor} = context 
-                console.log(vendor);
-                    if (!vendor) {
-                        throw new Error("Unauthorized: Only vendors can create products.");
-                    }
-                    const pictures = await Promise.all(images.map(async(image)=>{
-                    const cloudimages = await cloudinary.uploader.upload(image)
-                    return cloudimages.secure_url
-                }))
-                console.log(pictures);
-                if (!name || !category || !description || !subCategory || !color || !condition || !minimumOrder || !stock || pictures.length === 0) {
-                    throw new Error("input fields cannot be empty")
-                    
-                }
-                const slug = await slugify(name, {
-                    replacement: "-",
-                    lower: true,
-                    strict: false,
-                    trim: true
+              const { vendor } = context;
+              console.log("Vendor in context:", vendor);
+          
+              if (!vendor) {
+                throw new Error("Unauthorized: Only vendors can create products.");
+              }
+          
+              // Extract fields from args
+              const {
+                name,
+                category,
+                description,
+                subCategory,
+                color,
+                condition,
+                minimumOrder,
+                price,
+                images,
+                stock,
+              } = args;
+          
+              if (
+                !name ||
+                !category ||
+                !description ||
+                !subCategory ||
+                !color ||
+                !condition ||
+                !minimumOrder ||
+                !stock ||
+                !images ||
+                images.length === 0
+              ) {
+                throw new Error("Input fields cannot be empty.");
+              }
+          
+              // Generate slug
+              const slug = slugify(name, {
+                replacement: "-",
+                lower: true,
+                strict: false,
+                trim: true,
+              });
+              console.log("Generated slug:", slug);
+          
+              // Upload images to Cloudinary
+              const pictures = await Promise.all(
+                images.map(async (image: string) => {
+                  const cloudimages = await cloudinary.uploader.upload(image);
+                  return cloudimages.secure_url;
                 })
-                const seller = await vendorModel.findOne({email:vendor.email, name: vendor.name})
-                if (!seller) {
-                    throw new Error("Vendor not found");
-                  }
-                  
-                const newproduct = await productModel.create({name, category, description, subCategory, color, condition, minimumOrder, price, images: pictures, slug, stock, seller: vendor?._id}) 
-                return newproduct
+              );
+          
+              // Get seller
+              const seller = await vendorModel.findOne({
+                email: vendor.email,
+                name: vendor.name,
+              });
+          
+              if (!seller) {
+                throw new Error("Vendor not found.");
+              }
+          
+              // Create product
+              const newproduct = await productModel.create({
+                name,
+                category,
+                description,
+                subCategory,
+                color,
+                condition,
+                minimumOrder,
+                price,
+                images: pictures,
+                slug,
+                stock,
+                seller: seller._id,
+              });
+          
+              return newproduct;
             } catch (error) {
-                console.error("Product creation error:", error);
-                handleError(error);
-                
+              console.error("Product creation error:", error);
+              handleError(error);
+              throw error;
             }
-        },
+          },
+          
+          
         updateProduct: async (_: any, arg: product, context: any) => {
             const  {id, name, category, description, subCategory, color, condition, minimumOrder, price, images} = arg
             try {
@@ -238,4 +361,27 @@ export const productresolver = {
                 
             }
         }
-}}
+},
+Product: {
+    seller: async (parent: any) => {
+      if (!parent.seller) return null;
+  
+      // If already populated (object), return it with string id
+      if (typeof parent.seller === "object" && parent.seller._id) {
+        return {
+          ...parent.seller,
+          id: parent.seller._id.toString(),
+        };
+      }
+  
+      // If it's just an ID, fetch from DB
+      const seller = await vendorModel.findById(parent.seller);
+      if (!seller) return null;
+      return {
+        ...seller.toObject(),
+        id: seller._id.toString(),
+      };
+    },
+  },
+  
+}

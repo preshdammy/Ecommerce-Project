@@ -35,17 +35,20 @@ const Login = () => {
       const response = await loginUser({ variables: { ...formData } });
       const user = response.data?.loginuser;
       console.log(user)
-    Cookies.set(
-  "user",
-  JSON.stringify({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-  }),
-  { expires: 7 }
-);
+   
       if (user?.token) {
-        Cookies.set("token", user.token);
+        Cookies.remove("vendortoken");
+        Cookies.remove("admintoken");
+        Cookies.set("usertoken", user.token, { expires: 7 });
+        Cookies.set(
+          "userinfo",
+          JSON.stringify({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          }),
+          { expires: 7 }
+        );
         router.push("/landingpage");
       } else {
         console.error("Login failed: No token returned.");

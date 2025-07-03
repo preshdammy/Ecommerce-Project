@@ -55,8 +55,8 @@ export const userresolver = {
         if (!isMatch) throw new Error("Invalid credentials");
 
         const token = Jwt.sign(
-          { id: user._id, email: user.email },
-          "fNTji_M6acuUmbNc9iOIsMKPVcc",
+          { id: user._id, email: user.email, name: user.name, role: "user" },
+          process.env.secret_key!,
           { expiresIn: "1d" }
         );
 

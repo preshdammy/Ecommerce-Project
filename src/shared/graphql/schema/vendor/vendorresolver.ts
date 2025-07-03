@@ -65,7 +65,7 @@ export const VendorResolver = {
       }
 
       const token = jwt.sign(
-        { id: vendor._id, email: vendor.email },
+        { id: vendor._id, email: vendor.email, name: vendor.name, role: 'vendor' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );

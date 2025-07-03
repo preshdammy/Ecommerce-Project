@@ -27,6 +27,7 @@ export const producttypedef = `
         allProducts(limit: Int!, offset: Int!): [Product!]!
         myProducts: [Product!]!
         product(id: ID!): Product
+        productBySlug(slug: String!): Product
         productsByCategory(category: String!): [Product!]!
         productsBySubCategory(subCategory: String!): [Product!]!
         productsBySeller(sellerId: ID!): [Product!]!

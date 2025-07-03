@@ -42,18 +42,25 @@ const Login = () => {
         },
       });
 
-      Cookies.set(
-        "vendor",
-        JSON.stringify({
-          id: data.loginVendor.id,
-          name: data.loginVendor.name,
-          email: data.loginVendor.email,
-        }),
-        { expires: 7 }
-      );
-            if (data?.loginVendor?.token) {
-              Cookies.set("token", data.loginVendor.token);
-              router.push("/vendor/dashboard");
+      if (data?.loginVendor?.token) {
+        Cookies.remove("usertoken");
+        Cookies.remove("admintoken");
+      
+        Cookies.set("vendortoken", data?.loginVendor?.token, { expires: 7 });
+      
+        Cookies.set(
+          "vendorinfo",
+          JSON.stringify({
+            id: data?.loginVendor?.id,
+            name: data?.loginVendor?.name,
+            email: data?.loginVendor?.email,
+          }),
+          { expires: 7 }
+        );
+      
+        router.push("/VendorDashboard");
+      
+      
             } else {
               console.error("Login failed: No token returned.");
             }
