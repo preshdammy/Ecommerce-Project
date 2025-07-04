@@ -2,8 +2,9 @@
 
 export const reviewtypedef = `
   type Review {
-    productId: ID!
+    id: ID!
     user: User!
+    username: String!
     product: Product!
     rating: Int!
     comment: String!

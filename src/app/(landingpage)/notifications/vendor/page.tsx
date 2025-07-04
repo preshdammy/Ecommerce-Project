@@ -47,12 +47,12 @@ export default Notification;
 // import { useQuery, gql } from "@apollo/client";
 
 // const GET_NOTIFICATIONS = gql`
-//   query GetNotifications {
+//   query myNotifications {
 //     getNotifications {
 //       id
 //       message
 //       createdAt
-//       read
+//       isRead
 //     }
 //   }
 // `;
@@ -102,7 +102,7 @@ export default Notification;
 //                   </div>
 //                 </div>
 //                 <p className="text-[14px] text-[#939090] mt-4">
-//                   {notif.read ? "Read" : "Unread"}
+//                   {notif.isRead ? "Read" : "Unread"}
 //                 </p>
 //               </div>
 //             ))}

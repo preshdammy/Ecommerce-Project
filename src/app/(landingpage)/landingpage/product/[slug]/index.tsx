@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import {gql, useQuery} from "@apollo/client"
+import {gql, useQuery, useMutation} from "@apollo/client"
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
 import Image from "next/image";
@@ -8,6 +8,7 @@ import { RiShoppingCart2Line } from "react-icons/ri";
 import { IoChatboxOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
 import { ProductFrame } from "../../page"
+import { toast } from "react-toastify"; 
 
 import treeImage from "../../../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
 import bagImage from "../../../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
@@ -27,22 +28,72 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
       }
     }
   }`
+
+
+  const create_review_mutation = gql`
+  mutation CreateReview($productId: ID!, $rating: Int!, $comment: String!) {
+    createReview(productId: $productId, rating: $rating, comment: $comment) {
+      id
+      comment
+      rating
+      createdAt
+      user {
+        id
+        name
+      }
+      product {
+        id
+        name
+      }
+    }
+  }
+`;
   
 const ProductDescriptionClient = ({slug}:{slug: string}) => {
     const {data, loading, error} = useQuery(get_products_by_slug, {variables:{slug: slug}})
     console.log("Product Data:", data);
+
+    const [createReview, {loading: creatingReview}] = useMutation(create_review_mutation)
     
-    loading && <p>Loading...</p>
-    error && <p>Error: {error.message}</p>
-    if (!loading && !data?.productBySlug) {
-        return <p>Product not found</p>;
-      }
       
     const [showReviewForm, setShowReviewForm] = useState(false);
-    const [review, setReview] = useState("");
+    const [review, setReview] = useState({
+        content: ""
+    });
     const [rating, setRating] = useState(0);
+    const handleReview = async () => {
+        if (rating === 0) {
+            toast.error("Please select a rating.");
+            return;
+          }
+          if (!review.content.trim()) {
+            toast.error("Please write a comment.");
+            return;
+          }
+          
+        try {
+            const res = await createReview({variables: {
+                productId: data.productBySlug.id,
+                rating: rating,
+                comment: review.content
+            }})
+            setReview({ content: "" });
+            setRating(0);
+            toast.success("Review sent successfully!");
+            console.log("Review created:", res.data.createReview);
+        } catch (error: any) {
+            console.log("Error creating review:", error?.message);
+            
+        }
+            
+            
+        }
+        
     return (
     <>
+     {loading && <p>Loading...</p>}
+      {error && <p>Error: {error.message}</p>}
+      {!loading && !error && (
     <div className="max-w-[1536px]">
 
         <div className="full bg-[#F8F8F8] py-[10vh]">
@@ -134,8 +185,8 @@ const ProductDescriptionClient = ({slug}:{slug: string}) => {
                                 <div className="mt-4 p-4 bg-gray-100 rounded-md">
                                     <textarea
                                         placeholder="Write your review..."
-                                        value={review}
-                                        onChange={(e) => setReview(e.target.value)}
+                                        value={review.content}
+                                        onChange={(e) => setReview({...review, content:e.target.value})}
                                         className="w-full h-[100px] p-2 border rounded mb-2"
                                     />
                                     <div className="flex gap-1 mb-4">
@@ -149,8 +200,8 @@ const ProductDescriptionClient = ({slug}:{slug: string}) => {
                                             </span>
                                         ))}
                                     </div>
-                                    <button className="bg-green-600 text-white px-6 py-2 rounded">
-                                        Submit Review
+                                    <button onClick={handleReview} className="bg-green-600 text-white px-6 py-2 rounded">
+                                        { creatingReview? "processing...": "Submit Review" }
                                     </button>
                                 </div>
                             )}
@@ -176,6 +227,7 @@ const ProductDescriptionClient = ({slug}:{slug: string}) => {
 
 
     </div>
+      )}
     
     </> );
 }

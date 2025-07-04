@@ -4,23 +4,21 @@ import { useQuery, gql } from "@apollo/client";
 
 const GET_NOTIFICATIONS = gql`
   query GetNotifications {
-    getNotifications {
+    myNotifications {
       id
       message
       createdAt
-      read
+      isRead
     }
   }
 `;
-
 
 type NotificationType = {
   id: string;
   message: string;
   createdAt: string;
-  read: boolean;
+  isRead: boolean;
 };
-
 
 const UserNotifications = () => {
   const { data, loading, error } = useQuery(GET_NOTIFICATIONS);
@@ -46,7 +44,7 @@ const UserNotifications = () => {
           </h2>
 
           <div className="space-y-4">
-            {data.getNotifications.map((notif: NotificationType) => (
+            {data.myNotifications.map((notif: NotificationType) => (
               <div
                 key={notif.id}
                 className="w-[816px] min-h-[100px] flex items-start justify-between px-4 py-3 rounded-[16px] border bg-[#F5FAFF] border-[#CCE5FF]"
@@ -67,7 +65,7 @@ const UserNotifications = () => {
                   </div>
                 </div>
                 <p className="text-[14px] text-[#939090] mt-4">
-                  {notif.read ? "Read" : "Unread"}
+                  {notif.isRead ? "Read" : "Unread"}
                 </p>
               </div>
             ))}

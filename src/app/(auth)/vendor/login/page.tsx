@@ -45,6 +45,8 @@ const Login = () => {
       if (data?.loginVendor?.token) {
         Cookies.remove("usertoken");
         Cookies.remove("admintoken");
+        Cookies.remove("admininfo");
+        Cookies.remove("userinfo");
       
         Cookies.set("vendortoken", data?.loginVendor?.token, { expires: 7 });
       

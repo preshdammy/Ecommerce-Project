@@ -7,16 +7,16 @@ type NotificationType = {
   id: string;
   message: string;
   createdAt: string;
-  read: boolean;
+  isRead: boolean;
 };
 
 const GET_NOTIFICATIONS = gql`
   query GetNotifications {
-    getNotifications {
+    myNotifications {
       id
       message
       createdAt
-      read
+      isRead
     }
   }
 `;
@@ -28,7 +28,7 @@ const NotificationsContext = createContext<{ notifications: NotificationType[] }
 export const useNotifications = () => useContext(NotificationsContext);
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
-  const { data, loading, error } = useQuery<{ getNotifications: NotificationType[] }>(
+  const { data, loading, error } = useQuery<{ myNotifications: NotificationType[] }>(
     GET_NOTIFICATIONS,
     {
       pollInterval: 15000, // poll every 15 sec
@@ -38,8 +38,8 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const [seenIds, setSeenIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (data?.getNotifications) {
-      const newNotifs = data.getNotifications.filter((n) => !seenIds.includes(n.id));
+    if (data?.myNotifications) {
+      const newNotifs = data.myNotifications.filter((n) => !seenIds.includes(n.id));
       newNotifs.forEach((n) => {
         toast.info(n.message, {
           position: "top-right",
@@ -53,7 +53,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   return (
     <NotificationsContext.Provider
       value={{
-        notifications: data?.getNotifications || [],
+        notifications: data?.myNotifications || [],
       }}
     >
       {children}

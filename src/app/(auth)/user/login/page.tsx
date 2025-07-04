@@ -39,6 +39,8 @@ const Login = () => {
       if (user?.token) {
         Cookies.remove("vendortoken");
         Cookies.remove("admintoken");
+        Cookies.remove("admininfo");
+        Cookies.remove("vendorinfo");
         Cookies.set("usertoken", user.token, { expires: 7 });
         Cookies.set(
           "userinfo",
