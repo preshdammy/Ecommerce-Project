@@ -1,93 +1,123 @@
-import Admin from "../../../database/model/admin.model";
-import Vendor from "../../../database/model/vendor.model";
-import User from "../../../database/model/user.model";
-import Order from "../../../database/model/order.model";
-import Product from "../../../database/model/product.model";
+import adminModel from "../../../database/model/admin.model";
+import { vendorModel } from "../../../database/model/vendor.model";
+import { usermodel } from "../../../database/model/user.model";
+import { OrderModel } from "../../../database/model/order.model";
+import { productModel } from "../../../database/model/product.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { ContextType } from "../../../../types/context";
+import crypto from "crypto";
+import { resetModel } from '../../../database/model/resetpassword.model';
+import nodemailer from 'nodemailer';
+import { complaintModel } from "@/shared/database/model/complaint.model";
 
-import { ContextType } from "../../../../types/context"; // Update path as needed
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 export const adminresolver = {
   Query: {
     adminProfile: async (_: any, __: any, context: ContextType) => {
-  if (!context.admin) throw new Error("Unauthorized");
-  return context.admin;
-  },
+      if (!context.admin?.id) throw new Error("Unauthorized");
+      const admin = await adminModel
+        .findById(context.admin.id)
+        .select("-password")
+        .lean();
+      if (!admin) throw new Error("Admin not found");
+      return admin;
+    },
 
+    allAdmins: async () => {
+      return await adminModel.find().select('-password').lean();
+    },
 
+    allVendors: async () => {
+      return await vendorModel
+        .find()
+        .select("name email storeName avatar phone location createdAt")
+        .lean();
+    },
 
-    allAdmins: async () => await Admin.find(),
+    allProducts: async () => await productModel.find(),
 
-    allVendors: async () => await Vendor.find(),
+    allOrders: async () =>
+      await OrderModel.find()
+        .populate('buyer')
+        .populate('product')
+        .populate('vendor'),
 
-    allUsers: async () => await User.find(),
+    allUsers: async () => {
+      return await usermodel
+        .find()
+        .select("name email profilePicture city state gender dateOfBirth")
+        .lean();
+    },
+
+    complaints: async () => {
+      // find all, populate both possible relations
+      return complaintModel
+        .find()
+        .populate("user")    // pulls in the User doc
+        .populate("vendor"); 
+      },
 
     getDashboardMetrics: async () => {
-      const totalUsers = await User.countDocuments();
-      const totalVendors = await Vendor.countDocuments();
-      const totalOrders = await Order.countDocuments();
-      const totalSales = await Order.aggregate([
+      const totalUsers = await usermodel.countDocuments();
+      const totalVendors = await vendorModel.countDocuments();
+      const totalOrders = await OrderModel.countDocuments();
+      const totalSalesAgg = await OrderModel.aggregate([
         { $match: { status: "DELIVERED" } },
-        { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
       ]);
       return {
         totalUsers,
         totalVendors,
         totalOrders,
-        totalSales: totalSales[0]?.total || 0
+        totalSales: totalSalesAgg[0]?.total || 0,
       };
     },
+
   },
 
   Mutation: {
+    loginAdmin: async (_: any, { email, password }: { email: string; password: string }) => {
+      const normalizedEmail = email.toLowerCase().trim();
+      const admin = await adminModel.findOne({ email: normalizedEmail });
+      if (!admin) throw new Error("Invalid credentials");
 
-    loginAdmin: async (_: any, args: { email: string; password: string }) => {
-      
-  const adminDoc = await Admin.findOne({ email: args.email });
+      const isValid = await bcrypt.compare(password, admin.password);
+      if (!isValid) throw new Error("Invalid credentials");
 
-  if (!adminDoc || !(await bcrypt.compare(args.password, adminDoc.password))) {
-    throw new Error("Access denied! Please input valid credentials");
-  }
+      const token = jwt.sign(
+        { id: admin.id, email: admin.email, role: admin.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: '1d' }
+      );
 
-    console.log("🔍 Raw AdminDoc:", adminDoc);
-
-  // Safely extract fields (especially name)
-  const admin = {
-    id: adminDoc._id.toString(),
-    name: adminDoc.name,
-    email: adminDoc.email,
-    role: adminDoc.role,
-  };
-
-  if (!admin.name) {
-    throw new Error("Admin name is missing");
-  }
-
-  const token = jwt.sign(
-    {
-      id: admin.id,
-      email: admin.email,
-      role: admin.role,
+      return {
+        token,
+        admin: {
+          id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          role: admin.role,
+        },
+      };
     },
-    process.env.JWT_SECRET!
-  );
-
-  return {
-    token,
-    admin, // Return safe plain object
-  };
-  console.log("✅ Returned admin from login:", admin);
-
-},
-
-
 
     seedAdmin: async (_: any, args: { secret: string }) => {
       if (args.secret !== process.env.ADMIN_SEED_SECRET) throw new Error("Unauthorized");
-      const hashedPassword = await bcrypt.hash("admin123", 10);
-      await Admin.create({
-        email: "admin@example.com",
+      const exists = await adminModel.findOne({ email: "admins@example.com" });
+      if (exists) return "Admin already exists";
+      const hashedPassword = await bcrypt.hash("admin123##", 10);
+      await adminModel.create({
+        name: "Precious",
+        email: "Preciousdammy02@gmail.com",
         role: "ADMIN",
         password: hashedPassword,
       });
@@ -95,45 +125,85 @@ export const adminresolver = {
     },
 
     updateAdminRole: async (_: any, args: { id: string; role: string }) =>
-      await Admin.findByIdAndUpdate(args.id, { role: args.role }, { new: true }),
+      await adminModel.findByIdAndUpdate(args.id, { role: args.role }, { new: true }),
 
     deleteAdmin: async (_: any, args: { id: string }) => {
-      await Admin.findByIdAndDelete(args.id);
+      await adminModel.findByIdAndDelete(args.id);
       return "Admin deleted";
     },
 
     addVendor: async (_: any, args: { name: string; email: string }) =>
-      await Vendor.create({ name: args.name, email: args.email, isBanned: false }),
+      await vendorModel.create({ name: args.name, email: args.email, isBanned: false }),
 
     deleteVendor: async (_: any, args: { id: string }) => {
-      await Vendor.findByIdAndDelete(args.id);
+      await vendorModel.findByIdAndDelete(args.id);
       return "Vendor deleted";
     },
 
     banVendor: async (_: any, args: { id: string }) =>
-      await Vendor.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
+      await vendorModel.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
 
     deleteUser: async (_: any, args: { id: string }) => {
-      await User.findByIdAndDelete(args.id);
+      await usermodel.findByIdAndDelete(args.id);
       return "User deleted";
     },
 
     banUser: async (_: any, args: { id: string }) =>
-      await User.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
+      await usermodel.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
 
     deleteProduct: async (_: any, args: { id: string }) => {
-      await Product.findByIdAndDelete(args.id);
+      await productModel.findByIdAndDelete(args.id);
       return "Product deleted";
     },
 
     markOrderAsDelivered: async (_: any, args: { orderId: string }) => {
-      await Order.findByIdAndUpdate(args.orderId, { status: "DELIVERED" });
+      await OrderModel.findByIdAndUpdate(args.orderId, { status: "DELIVERED" });
       return "Order marked as delivered";
     },
 
     refundOrder: async (_: any, args: { orderId: string }) => {
-      await Order.findByIdAndUpdate(args.orderId, { status: "REFUNDED" });
+      await OrderModel.findByIdAndUpdate(args.orderId, { status: "REFUNDED" });
       return "Order refunded";
     },
-  },
+
+    requestPasswordReset: async (_: any, { email }: { email: string }) => {
+      const admin = await adminModel.findOne({ email });
+      if (!admin) return false;
+
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const hashed = crypto.createHash('sha256').update(rawToken).digest('hex');
+      const expires = Date.now() + 5 * 60 * 1000;  // 5 minutes
+
+      await resetModel.findOneAndUpdate(
+        { adminId: admin._id },
+        { token: hashed, expires },
+        { upsert: true }
+      );
+
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+      await transporter.sendMail({
+        from: '"E‑Commerce" <no-reply@ecommerce.com>',
+        to: admin.email,
+        subject: 'Password Reset Request',
+        html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. Link expires in 5 minutes.</p>`
+      });
+
+      return true;
+    },
+
+    resetPassword: async (_: any, { token, newPassword }: { token: string; newPassword: string }) => {
+      const hashed = crypto.createHash('sha256').update(token).digest('hex');
+      const record = await resetModel.findOne({ token: hashed, expires: { $gt: Date.now() } });
+      if (!record) throw new Error('Token invalid or expired');
+
+      const admin = await adminModel.findById(record.adminId);
+      if (!admin) throw new Error('Admin not found');
+
+      admin.password = await bcrypt.hash(newPassword, 10);
+      await admin.save();
+      await resetModel.deleteOne({ adminId: admin._id });
+
+      return true;
+    },
+  },  
 };

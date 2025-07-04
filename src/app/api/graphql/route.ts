@@ -1,64 +1,37 @@
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
-import { typeDefs, resolvers } from "@/shared/graphql/schema";
+import { typeDefs } from "../../../shared/graphql/schema";
+import { resolvers } from "../../../shared/graphql/schema";
+import { NextRequest } from "next/server";
 import { connect } from "@/shared/database/db.connect";
 import jwt from "jsonwebtoken";
-import { NextRequest, NextResponse } from "next/server";
+import { ContextType } from "@/types/context"; // ✅ import context type
 
-connect();
+await connect()
 
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer<ContextType>({
+  typeDefs,
+  resolvers,
+});
 
-const handler = startServerAndCreateNextHandler<NextRequest>(server, {
-  context: async (req) => {
+
+const handler = startServerAndCreateNextHandler<NextRequest, ContextType>(server, {
+  context: async (req: NextRequest): Promise<ContextType> => {
+    await connect();
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) return {};
+
+    const token = authHeader.split(" ")[1];
+
     try {
-      const authHeader = req.headers.get("authorization");
-      const token = authHeader?.split(" ")[1];
-      if (!token) return {};
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
-
-      if (decoded.role === "admin") {
-        return { admin: { id: decoded.id, email: decoded.email }, role: "admin" };
-      } else if (decoded.role === "vendor") {
-        return { vendor: { id: decoded.id, email: decoded.email }, role: "vendor" };
-      } else if (decoded.role === "user") {
-        return { user: { id: decoded.id, email: decoded.email }, role: "user" };
-      } else {
-        return {};
-      }
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as ContextType["admin"];
+      return { admin: decoded };
     } catch (error) {
-      console.error("JWT error:", error);
+      console.error("Invalid token:", error);
       return {};
     }
   }
 });
 
+export { handler as GET, handler as POST };
 
-// Handle CORS preflight
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
-}
-
-// Wrap GET and POST with CORS headers
-async function handleRequest(req: Request) {
-  const res = await handler(req as any);
-  res.headers.set("Access-Control-Allow-Origin", "*");
-  return res;
-}
-
-export async function GET(req: Request) {
-  await connect();
-  return handleRequest(req);
-}
-
-export async function POST(req: Request) {
-  await connect();
-  return handleRequest(req);
-}

@@ -29,7 +29,7 @@ const  Sidebar  = () => {
 
                 <div className="flex gap-[16px] items-center">
                     <BsPeople className="text-[26px]" />
-                    <Link  href="/admindashboard/compliants" className="text-[24px] font-[300]">Compliants</Link>
+                    <Link  href="/admindashboard/complaints" className="text-[24px] font-[300]">Complaints</Link>
                 </div>
 
                 <div className="flex gap-[16px] items-center">

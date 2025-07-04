@@ -1,12 +1,17 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, model, models } from "mongoose";
 
-const UserSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    isBanned: { type: Boolean, default: false },
-  },
-  { timestamps: true }
-);
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  password: { type: String, required: true },
+  profilePicture: { type: String },
+  address: { type: String },
+  state: { type: String },
+  city: { type: String },
+  gender: { type: String },
+  dateOfBirth: { type: Date} 
+}, { timestamps: true });
 
-export default mongoose.models.User || mongoose.model('User', UserSchema);
+
+
+export const usermodel = models.usercollection || model("usercollection", userSchema);

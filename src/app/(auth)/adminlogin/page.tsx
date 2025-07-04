@@ -5,59 +5,59 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import logo from '../../../../public/figma images/WhatsApp Image 2022-11-27 at 14.35 1.png';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, loginSchemaType } from '../../../shared/lib/admindefinition';
+import Cookies from "js-cookie"
  
 
 const Adminlogin = () => {
   const router = useRouter();
 
-  
-
-const {
-  register,
-  handleSubmit,
-  formState: { errors, isSubmitting },
-} = useForm<loginSchemaType>({
+const {register, handleSubmit, formState: { errors, isSubmitting }, } = 
+  useForm<loginSchemaType>({
   resolver: zodResolver(loginSchema),
 });
 
 
   const onSubmit = async (data: loginSchemaType) => {
-    try {
-      const res = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: `
-            mutation LoginAdmin($email: String!, $password: String!) {
-              loginAdmin(email: $email, password: $password) {
-                token
-                admin {
-                  id
-                  name
-                  email
-                  role
-                }
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          mutation LoginAdmin($email: String!, $password: String!) {
+            loginAdmin(email: $email, password: $password) {
+              token
+              admin {
+                id
+                name
+                email
+                role
               }
             }
-          `,
-          variables: {
-            email: data.email,
-            password: data.password,
-          },
-        }),
-      });
+          }
+        `,
+        variables: {
+          email: data.email,
+          password: data.password,
+        },
+      }),
+    });
 
-      const result = await res.json();
+    const result = await res.json();
     if (result.errors) throw new Error(result.errors[0].message);
 
-    // ✅ Save token and admin data
     const { token, admin } = result.data.loginAdmin;
-    localStorage.setItem('adminToken', token);
-    localStorage.setItem('adminData', JSON.stringify(admin));
+
+    
+    Cookies.set("token", token, {
+      path: '/',
+      expires: 1, 
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production', 
+    });
 
     alert('Login successful!');
     if (admin.role === 'ADMIN') {
@@ -69,7 +69,6 @@ const {
     alert(err.message || 'Login failed!');
   }
 };
-
 
   return (
     <div className="bg-[rgba(0,0,0,0.1)] w-full h-screen flex items-center justify-center">
@@ -115,7 +114,7 @@ const {
           {isSubmitting ? 'Logging in...' : 'Log in'}
         </button>
 
-        <Link className="text-[16px] text-[#939090] font-[500] mt-[15px]" href="">
+        <Link href="/forgot-password" className="text-[16px] text-[#939090] font-[500] mt-[15px] hover:text-black">
           Forgot your password?
         </Link>
       </form>

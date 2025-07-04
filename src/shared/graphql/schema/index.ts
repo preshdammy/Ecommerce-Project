@@ -4,29 +4,29 @@ import { userresolver } from './users/userresolver';
 import { usertypedef } from './users/usertypedef';
 import { adminresolver } from './admin/adminresolver';
 import { adminTypeDefs } from './admin/admintypedefs';
-import { vendortypedef } from './vendor/vendortypedef';
-import { vendorresolver } from './vendor/vendorresolver';
+import vendorTypeDefs from './vendor/vendortypedef';
+import { VendorResolver } from './vendor/vendorresolver';
 import { producttypedef } from './products/producttypedef';
 import { productresolver } from './products/productresolver';
 
 export const resolvers = mergeResolvers([
   userresolver,
   adminresolver,
-  vendorresolver,
+  VendorResolver,
   productresolver
 ]);
 
 console.log('TypeDef types:', {
   usertypedef: typeof usertypedef,
   adminTypeDefs: typeof adminTypeDefs,
-  vendortypedef: typeof vendortypedef,
+  vendortypedef: typeof vendorTypeDefs,
   producttypedef: typeof producttypedef
 });
 
 export const typeDefs = mergeTypeDefs([
   usertypedef,
   adminTypeDefs,  
-  vendortypedef,
+  vendorTypeDefs,
   producttypedef
 ], {
   throwOnConflict: true

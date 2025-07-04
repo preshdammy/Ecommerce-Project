@@ -21,7 +21,7 @@ const Purchases = () => {
       {/* Header & Summary */}
       <section className="w-3/4 space-y-6">
         <div className="space-y-2">
-          <h1 className="text-[#55A7FF] text-[24px] md:text-[40px] font-light">My Purshases</h1>
+          <h1 className="text-[#55A7FF] text-[24px] md:text-[40px] font-light">My Purchases</h1>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6 md:gap-10 w-full">
