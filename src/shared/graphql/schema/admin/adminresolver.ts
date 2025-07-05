@@ -5,13 +5,12 @@ import { OrderModel } from "../../../database/model/order.model";
 import { productModel } from "../../../database/model/product.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { ContextType } from "../../../../types/context";
 import { complaintModel } from "@/shared/database/model/complaint.model";
 
 
 export const adminresolver = {
   Query: {
-    adminProfile: async (_: any, __: any, context: ContextType) => {
+    adminProfile: async (_: any, __: any, context: any) => {
       if (!context.admin?.id) throw new Error("Unauthorized");
       const admin = await adminModel
         .findById(context.admin.id)

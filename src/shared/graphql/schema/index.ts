@@ -16,18 +16,10 @@ export const resolvers = mergeResolvers([
   productresolver
 ]);
 
-console.log('TypeDef types:', {
-  usertypedef: typeof usertypedef,
-  adminTypeDefs: typeof adminTypeDefs,
-  vendortypedef: typeof vendorTypeDefs,
-  producttypedef: typeof producttypedef
-});
 
 export const typeDefs = mergeTypeDefs([
   usertypedef,
   adminTypeDefs,  
   vendorTypeDefs,
   producttypedef
-], {
-  throwOnConflict: true
-});
+]);
