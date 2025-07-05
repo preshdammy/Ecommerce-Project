@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { LuSearch } from "react-icons/lu";
-import { IoIosArrowDown } from "react-icons/io";
-import Cookies from "js-cookie";
+import { useQuery, gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { IoIosArrowDown } from "react-icons/io";
 
 type Complaint = {
   id: string;
@@ -14,51 +13,44 @@ type Complaint = {
   vendor?: { id: string; name: string; email: string };
 };
 
-export default function ComplaintsPage() {
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchComplaints = async () => {
-      const token = Cookies.get("token");
-      if (!token) return router.replace("/adminlogin");
-
-      const res = await fetch("/api/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          query: `
-            query {
-              complaints {
-                id
-                message
-                createdAt
-                user { id name email }
-                vendor { id name email }
-              }
-            }
-          `,
-        }),
-      });
-
-      const { data, errors } = await res.json();
-      if (errors) {
-        console.error(errors);
-        return;
+// GraphQL query defined directly on the page
+const GET_COMPLAINTS = gql`
+  query {
+    complaints {
+      id
+      message
+      createdAt
+      user {
+        id
+        name
+        email
       }
+      vendor {
+        id
+        name
+        email
+      }
+    }
+  }
+`;
 
-      setComplaints(data.complaints);
-      setLoading(false);
-    };
+export default function ComplaintsPage() {
+  const router = useRouter();
+  const token = Cookies.get("token");
 
-    fetchComplaints();
-  }, [router]);
+  if (!token) {
+    router.replace("/adminlogin");
+  }
+
+  const { data, loading, error } = useQuery(GET_COMPLAINTS);
 
   if (loading) return <div>Loading complaints…</div>;
+  if (error) {
+    console.error(error);
+    return <div>Error fetching complaints</div>;
+  }
+
+  const complaints: Complaint[] = data.complaints;
 
   return (
     <div className="w-full font-sans p-8">

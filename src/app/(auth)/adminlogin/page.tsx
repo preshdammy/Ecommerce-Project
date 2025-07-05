@@ -7,68 +7,60 @@ import { useRouter } from 'next/navigation';
 import logo from '../../../../public/figma images/WhatsApp Image 2022-11-27 at 14.35 1.png';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signupSchema, signupSchematype} from '../../../shared/lib/definitions';
-import Cookies from "js-cookie"
- 
+import { signupSchema, signupSchematype } from '../../../shared/lib/definitions';
+import Cookies from "js-cookie";
+import { gql, useMutation } from "@apollo/client";
+
+const LOGIN_ADMIN = gql`
+  mutation LoginAdmin($email: String!, $password: String!) {
+    loginAdmin(email: $email, password: $password) {
+      token
+      admin {
+        id
+        name
+        email
+        role
+      }
+    }
+  }
+`;
 
 const Adminlogin = () => {
   const router = useRouter();
 
-const {register, handleSubmit, formState: { errors, isSubmitting }, } = 
-  useForm<signupSchematype>({
-  resolver: zodResolver(signupSchema),
-});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<signupSchematype>({
+    resolver: zodResolver(signupSchema),
+  });
 
+  const [loginAdmin, { loading, error }] = useMutation(LOGIN_ADMIN);
 
   const onSubmit = async (data: signupSchematype) => {
-  try {
-    const res = await fetch('/api/graphql', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `
-          mutation LoginAdmin($email: String!, $password: String!) {
-            loginAdmin(email: $email, password: $password) {
-              token
-              admin {
-                id
-                name
-                email
-                role
-              }
-            }
-          }
-        `,
-        variables: {
-          email: data.email,
-          password: data.password,
-        },
-      }),
-    });
+    try {
+      const { data: result } = await loginAdmin({ variables: data });
 
-    const result = await res.json();
-    if (result.errors) throw new Error(result.errors[0].message);
+      const { token, admin } = result.loginAdmin;
 
-    const { token, admin } = result.data.loginAdmin;
+      Cookies.set("token", token, {
+        path: "/",
+        expires: 1,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+      });
 
-    
-    Cookies.set("token", token, {
-      path: '/',
-      expires: 1, 
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production', 
-    });
-
-    alert('Login successful!');
-    if (admin.role === 'ADMIN') {
-      router.push('/admindashboard');
-    } else {
-      alert('Access denied! Not an admin');
+      alert("Login successful!");
+      if (admin.role === "ADMIN") {
+        router.push("/admindashboard");
+      } else {
+        alert("Access denied! Not an admin");
+      }
+    } catch (err: any) {
+      alert(err.message || "Login failed!");
     }
-  } catch (err: any) {
-    alert(err.message || 'Login failed!');
-  }
-};
+  };
 
   return (
     <div className="bg-[rgba(0,0,0,0.1)] w-full h-screen flex items-center justify-center">
@@ -108,15 +100,22 @@ const {register, handleSubmit, formState: { errors, isSubmitting }, } =
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || loading}
           className="text-[16px] rounded-[8px] text-white bg-[#007bff] font-[600] w-full py-3 disabled:opacity-60"
         >
-          {isSubmitting ? 'Logging in...' : 'Log in'}
+          {isSubmitting || loading ? 'Logging in...' : 'Log in'}
         </button>
 
-        <Link href="/forgot-password" className="text-[16px] text-[#939090] font-[500] mt-[15px] hover:text-black">
+        <Link
+          href="/forgot-password"
+          className="text-[16px] text-[#939090] font-[500] mt-[15px] hover:text-black"
+        >
           Forgot your password?
         </Link>
+
+        {error && (
+          <p className="text-red-500 text-sm mt-4">{error.message}</p>
+        )}
       </form>
     </div>
   );
