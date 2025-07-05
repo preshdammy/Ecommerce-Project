@@ -32,7 +32,7 @@ export const productresolver = {
                 .skip(offset);
                 
           
-              console.log("Fetched products:", products);
+              // console.log("Fetched products:", products);
           
               return products.map((p) => {
                 // Important: Convert toObject to safely access _id as string
@@ -51,7 +51,7 @@ export const productresolver = {
           
         myProducts: async (_parent: any, _args: any, context: any) => {
             try {
-              console.log("Context received in resolver:", context);
+              // console.log("Context received in resolver:", context);
               const { vendor } = context;
               if (!vendor) {
                 throw new Error("Unauthorized: Only vendors can view their products.");
@@ -217,7 +217,7 @@ export const productresolver = {
         createProduct: async (_: any, args: any, context: any) => {
             try {
               const { vendor } = context;
-              console.log("Vendor in context:", vendor);
+              // console.log("Vendor in context:", vendor);
           
               if (!vendor) {
                 throw new Error("Unauthorized: Only vendors can create products.");
@@ -297,7 +297,7 @@ export const productresolver = {
           
               return newproduct;
             } catch (error) {
-              console.error("Product creation error:", error);
+              // console.error("Product creation error:", error);
               handleError(error);
               throw error;
             }
@@ -308,7 +308,7 @@ export const productresolver = {
             const  {id, name, category, description, subCategory, color, condition, minimumOrder, price, images} = arg
             try {
               const {vendorId} = context 
-              console.log(vendorId);
+              // console.log(vendorId);
                     if (!vendorId) {
                         throw new Error("Unauthorized: Only vendors can update products.");
                     }
@@ -341,7 +341,7 @@ export const productresolver = {
         deleteProduct: async (_: any, { id }: { id: string }, context: any) => {
             try {
                 const {vendorId} = context 
-                console.log(vendorId);
+                // console.log(vendorId);
                     if (!vendorId) {
                         throw new Error("Unauthorized: Only vendors can delete products.");
                     }

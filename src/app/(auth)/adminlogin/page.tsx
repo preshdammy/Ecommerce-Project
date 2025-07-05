@@ -12,7 +12,6 @@ import { gql, useMutation } from "@apollo/client";
 const LOGIN_ADMIN = gql`
   mutation LoginAdmin($email: String!, $password: String!) {
     loginAdmin(email: $email, password: $password) {
-      token
       admin {
         id
         name
@@ -40,39 +39,57 @@ const Adminlogin = () => {
 
       const { token, admin } = result.loginAdmin;
 
-      Cookies.remove("usertoken");
-      Cookies.remove("vendortoken");
-      Cookies.remove("userinfo");
-      Cookies.remove("vendorinfo");
+      if(token){
+        Cookies.remove("usertoken");
+        Cookies.remove("vendortoken");
+        Cookies.remove("userinfo");
+        Cookies.remove("vendorinfo");
 
-      Cookies.set("admintoken", token, {
-        path: "/",
-        expires: 7,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-      });
-
-      Cookies.set(
-        "admininfo",
-        JSON.stringify({
-          id: admin.id,
-          name: admin.name,
-          email: admin.email,
-        }),
-        {
-          path: "/",
-          expires: 7,
-          sameSite: "strict",
-          secure: process.env.NODE_ENV === "production",
-        }
-      );
-
-      alert("Login successful!");
-      if (admin.role === "ADMIN") {
+        Cookies.set("admintoken",admin.token, {expires:7}) ,
+        Cookies.set("admininfo", JSON.stringify({id:admin.id, email:admin.email}), {expires:7})
         router.push("/admindashboard");
-      } else {
-        alert("Access denied! Not an admin");
+        
+      }else{
+        console.error("Login failed! No token returned");
       }
+
+      // Cookies.remove("usertoken");
+      // Cookies.remove("vendortoken");
+      // Cookies.remove("userinfo");
+      // Cookies.remove("vendorinfo");
+
+
+      // Cookies.set("admintoken", token, {
+      //  path: "/",
+      //  expires: 7,
+      //  sameSite: "lax", // Use lax instead of strict unless you know strict is needed
+      //  secure: false, // ⛔ Don't use `secure: true` on localhost!
+    ;
+
+
+
+      // Cookies.set(
+      //   "admininfo",
+      //   JSON.stringify({
+      //     id: admin.id,
+      //     name: admin.name,
+      //     email: admin.email,
+      //   }),
+      //   {
+      //     path: "/",
+      //     expires: 7,
+      //     sameSite: "strict",
+      //     secure: process.env.NODE_ENV === "production",
+      //   }
+      // );
+
+
+      // alert("Login successful!");
+      // if (admin.role === "ADMIN") {
+      //   router.push("/admindashboard");
+      // } else {
+      //   alert("Access denied! Not an admin");
+      // }
     } catch (err: any) {
       alert(err.message || "Login failed!");
     }

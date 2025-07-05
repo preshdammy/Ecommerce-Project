@@ -28,8 +28,8 @@ const GET_DASHBOARD_DATA = gql`
       status
       totalAmount
     }
-  }
-`;
+  }`
+;
 
 const AdminDashboard = () => {
   const router = useRouter();
@@ -45,29 +45,24 @@ const AdminDashboard = () => {
  }, [router]);
 
 
-  const { data, loading, error, refetch } = useQuery(GET_DASHBOARD_DATA, {
-    variables: { limit: 20, offset: 0 },
-    context: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+ const { data, loading, error } = useQuery(GET_DASHBOARD_DATA, {
+  skip: !token, // prevent query from running until token is set
+  variables: { limit: 20, offset: 0 },
+  context: {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-    onError: (err) => {
-      console.error("GraphQL Error:", err.message);
-      if (err.message.includes("Unauthorized")) {
-        Cookies.remove("admintoken");
-        router.replace("/adminlogin");
-      }
-    },
-  });
+  },
+  onError: (err) => {
+    console.error("GraphQL Error:", err.message);
+    if (err.message.includes("Unauthorized")) {
+      Cookies.remove("admintoken");
+      router.replace("/adminlogin");
+    }
+  },
+});
 
-  // Optional: Poll every 30 seconds
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     refetch();
-  //   }, 30000);
-  //   return () => clearInterval(interval);
-  // }, [refetch]);
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;

@@ -82,7 +82,7 @@ export const adminresolver = {
 
       const token = jwt.sign(
         { id: admin.id, email: admin.email, role: admin.role },
-        process.env.JWT_SECRET!,
+        process.env.secret_key!,
         { expiresIn: '1d' }
       );
 
