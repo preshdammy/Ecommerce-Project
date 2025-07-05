@@ -1,5 +1,5 @@
 import cloudinary from '@/shared/utils/cloudinary';
-// import slugify from 'slugify';
+import slugify from 'slugify';
 import { productModel } from '@/shared/database/model/product.model'
 import { vendorModel } from '@/shared/database/model/vendor.model';
 import { handleError } from '@/shared/utils/handleError';
@@ -32,7 +32,7 @@ export const productresolver = {
                 .skip(offset);
                 
           
-              // console.log("Fetched products:", products);
+              console.log("Fetched products:", products);
           
               return products.map((p) => {
                 // Important: Convert toObject to safely access _id as string
@@ -51,7 +51,7 @@ export const productresolver = {
           
         myProducts: async (_parent: any, _args: any, context: any) => {
             try {
-              // console.log("Context received in resolver:", context);
+              console.log("Context received in resolver:", context);
               const { vendor } = context;
               if (!vendor) {
                 throw new Error("Unauthorized: Only vendors can view their products.");
@@ -217,7 +217,7 @@ export const productresolver = {
         createProduct: async (_: any, args: any, context: any) => {
             try {
               const { vendor } = context;
-              // console.log("Vendor in context:", vendor);
+              console.log("Vendor in context:", vendor);
           
               if (!vendor) {
                 throw new Error("Unauthorized: Only vendors can create products.");
@@ -253,13 +253,13 @@ export const productresolver = {
               }
           
               // Generate slug
-              // const slug = slugify(name, {
-              //   replacement: "-",
-              //   lower: true,
-              //   strict: false,
-              //   trim: true,
-              // });
-              // console.log("Generated slug:", slug);
+              const slug = slugify(name, {
+                replacement: "-",
+                lower: true,
+                strict: false,
+                trim: true,
+              });
+              console.log("Generated slug:", slug);
           
               // Upload images to Cloudinary
               const pictures = await Promise.all(
@@ -290,14 +290,14 @@ export const productresolver = {
                 minimumOrder,
                 price,
                 images: pictures,
-                // slug,
+                slug,
                 stock,
                 seller: seller._id,
               });
           
               return newproduct;
             } catch (error) {
-              // console.error("Product creation error:", error);
+              console.error("Product creation error:", error);
               handleError(error);
               throw error;
             }
@@ -307,9 +307,9 @@ export const productresolver = {
         updateProduct: async (_: any, arg: product, context: any) => {
             const  {id, name, category, description, subCategory, color, condition, minimumOrder, price, images} = arg
             try {
-              const {vendorId} = context 
-              // console.log(vendorId);
-                    if (!vendorId) {
+              const {vendor} = context 
+              console.log(vendor);
+                    if (!vendor) {
                         throw new Error("Unauthorized: Only vendors can update products.");
                     }
                     const existingProduct = await productModel.findById(id);
@@ -340,9 +340,9 @@ export const productresolver = {
         },
         deleteProduct: async (_: any, { id }: { id: string }, context: any) => {
             try {
-                const {vendorId} = context 
-                // console.log(vendorId);
-                    if (!vendorId) {
+                const {vendor} = context 
+                console.log(vendor);
+                    if (!vendor) {
                         throw new Error("Unauthorized: Only vendors can delete products.");
                     }
                     const existingProduct = await productModel.findById(id);
@@ -362,26 +362,26 @@ export const productresolver = {
             }
         }
 },
-Product: {
-    seller: async (parent: any) => {
-      if (!parent.seller) return null;
-  
-      // If already populated (object), return it with string id
-      if (typeof parent.seller === "object" && parent.seller._id) {
-        return {
-          ...parent.seller,
-          id: parent.seller._id.toString(),
-        };
-      }
-  
-      // If it's just an ID, fetch from DB
-      const seller = await vendorModel.findById(parent.seller);
-      if (!seller) return null;
-      return {
-        ...seller.toObject(),
-        id: seller._id.toString(),
-      };
-    },
-  },
+      Product: {
+          seller: async (parent: any) => {
+            if (!parent.seller) return null;
+        
+            // If already populated (object), return it with string id
+            if (typeof parent.seller === "object" && parent.seller._id) {
+              return {
+                ...parent.seller,
+                id: parent.seller._id.toString(),
+              };
+            }
+        
+            // If it's just an ID, fetch from DB
+            const seller = await vendorModel.findById(parent.seller);
+            if (!seller) return null;
+            return {
+              ...seller.toObject(),
+              id: seller._id.toString(),
+            };
+          },
+        },
   
 }

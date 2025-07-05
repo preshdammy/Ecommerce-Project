@@ -21,3 +21,7 @@ const VendorSchema = new mongoose.Schema({
 
 export const vendorModel = models.vendor_collection || model("vendor_collection", VendorSchema);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> opemipo-branch

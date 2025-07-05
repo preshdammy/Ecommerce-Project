@@ -15,7 +15,11 @@ const policy = () => {
         </p>
       </div>
     </div>
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> opemipo-branch
 </div>
      );
 }

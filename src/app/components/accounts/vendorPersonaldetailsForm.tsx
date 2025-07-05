@@ -1,5 +1,5 @@
 import Image from "next/image";
-import camera from "../../../../public/camera.png";
+import camera from "../../../../public/figma images/camera.png";
 
 export default function PersonalDetailsForm() {
   return (
@@ -9,7 +9,7 @@ export default function PersonalDetailsForm() {
         {/* outer ring */}
         <div className="w-32 h-32 rounded-full border-1 border-[#939090] flex items-center justify-center">
           {/* inner colored circle */}
-          <div className="relative w-28 h-28 rounded-full bg-[#98CDFE] border-1 border-[#939090] overflow-hidden">
+          <div className="relative w-28 h-28 rounded-full bg-[white] border-1 border-[#939090] overflow-hidden">
             <Image
               src="/profilepic.png"
               alt="Avatar"

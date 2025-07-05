@@ -1,15 +1,99 @@
+"use client";
+import React, { useState } from "react";
+import {gql, useQuery, useMutation} from "@apollo/client"
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Carousel } from "react-responsive-carousel";
 import Image from "next/image";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import { IoChatboxOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
-import { ProductFrame } from "../landingpage/page";
+import { ProductFrame } from "../../page"
+import { toast } from "react-toastify"; 
 
-import treeImage from "../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
-import bagImage from "../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
+import treeImage from "../../../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
+import bagImage from "../../../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
 
-const ProductDescription = () => {
+
+const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
+    productBySlug(slug: $slug) {
+      id
+      name
+      slug
+      description
+      price
+      images
+      seller {
+        id
+        name
+      }
+    }
+  }`
+
+
+  const create_review_mutation = gql`
+  mutation CreateReview($productId: ID!, $rating: Int!, $comment: String!) {
+    createReview(productId: $productId, rating: $rating, comment: $comment) {
+      id
+      comment
+      rating
+      createdAt
+      user {
+        id
+        name
+      }
+      product {
+        id
+        name
+      }
+    }
+  }
+`;
+  
+const ProductDescriptionClient = ({slug}:{slug: string}) => {
+    const {data, loading, error} = useQuery(get_products_by_slug, {variables:{slug: slug}})
+    console.log("Product Data:", data);
+
+    const [createReview, {loading: creatingReview}] = useMutation(create_review_mutation)
+    
+      
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [review, setReview] = useState({
+        content: ""
+    });
+    const [rating, setRating] = useState(0);
+    const handleReview = async () => {
+        if (rating === 0) {
+            toast.error("Please select a rating.");
+            return;
+          }
+          if (!review.content.trim()) {
+            toast.error("Please write a comment.");
+            return;
+          }
+          
+        try {
+            const res = await createReview({variables: {
+                productId: data.productBySlug.id,
+                rating: rating,
+                comment: review.content
+            }})
+            setReview({ content: "" });
+            setRating(0);
+            toast.success("Review sent successfully!");
+            console.log("Review created:", res.data.createReview);
+        } catch (error: any) {
+            console.log("Error creating review:", error?.message);
+            
+        }
+            
+            
+        }
+        
     return (
     <>
+     {loading && <p>Loading...</p>}
+      {error && <p>Error: {error.message}</p>}
+      {!loading && !error && (
     <div className="max-w-[1536px]">
 
         <div className="full bg-[#F8F8F8] py-[10vh]">
@@ -84,42 +168,58 @@ const ProductDescription = () => {
                        Upgrade your travel gear with our bronze and black twin suitcase set and embark on your next adventure with confidence and sophistication. Get yours now and travel in style with this exquisite suitcase set!</p>
                        
                     </div>
-
-
+                   
                 
                 </div>
 
             </div>
+            <div className="w-[95%] mx-auto mt-[30px] px-17">
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                onClick={() => setShowReviewForm(!showReviewForm)}
+                            >
+                                {showReviewForm ? "Cancel Review" : "Leave a Review"}
+                            </button>
+
+                            {showReviewForm && (
+                                <div className="mt-4 p-4 bg-gray-100 rounded-md">
+                                    <textarea
+                                        placeholder="Write your review..."
+                                        value={review.content}
+                                        onChange={(e) => setReview({...review, content:e.target.value})}
+                                        className="w-full h-[100px] p-2 border rounded mb-2"
+                                    />
+                                    <div className="flex gap-1 mb-4">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <span
+                                                key={star}
+                                                onClick={() => setRating(star)}
+                                                className={`cursor-pointer text-2xl ${rating >= star ? "text-yellow-500" : "text-gray-400"}`}
+                                            >
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <button onClick={handleReview} className="bg-green-600 text-white px-6 py-2 rounded">
+                                        { creatingReview? "processing...": "Submit Review" }
+                                    </button>
+                                </div>
+                            )}
+                            </div>
+
 
             
            <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
             <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Related Products</h1>
             <div className=" bg-[#F8F8F8] w-[85%] flex-wrap gap-y-[30px] mx-auto mt-[20px] flex  justify-between">
 
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
+        
+                   <ProductFrame data={{ allProducts: [] }}/>
+                   <ProductFrame data={{ allProducts: [] }}/>
+                   <ProductFrame data={{ allProducts: [] }}/>
+                   <ProductFrame data={{ allProducts: [] }}/>
+                
+                
             </div>
            </div>
 
@@ -127,8 +227,9 @@ const ProductDescription = () => {
 
 
     </div>
+      )}
     
     </> );
 }
  
-export default ProductDescription;
+export default ProductDescriptionClient;

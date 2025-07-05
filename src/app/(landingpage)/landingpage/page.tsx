@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image";
 import int98 from "../../../../public/figma images/INT (98) 1.png"
 import bagPexel from "../../../../public/figma images/pexels-george-dolgikh-1666067 1.png"
@@ -11,9 +13,67 @@ import { IoCartOutline } from "react-icons/io5";
 import laptopLogo from "../../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
 import starLogo from "../../../../public/figma images/Frame 498.png"
 import tamanna from "../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
+import { gql, useQuery } from "@apollo/client";
+import { useRouter } from "next/navigation";
+import react, { useState } from "react";
+import Link from "next/link";
+
+const get_all_products = gql`query GetAllProducts($limit: Int!, $offset:Int!) {
+    allProducts(limit:$limit, offset:$offset) {
+      id
+      name
+      slug
+      description
+      price
+      images
+      category
+      subCategory
+      condition
+      averageRating
+      stock
+      createdAt
+      seller {
+        id
+        name
+        email
+      }
+    }
+  }`
+
+  type Product = {
+    id: string;
+    name: string;
+    category: string;
+    description: string;
+    subCategory: string;
+    color: string;
+    condition: string;
+    minimumOrder: number;
+    stock: number;
+    price: number;
+    images: string[];
+    slug: string;
+    createdAt: string;
+    seller: {
+      id: string;
+      name: string;
+      email: string;
+    };
+}
+  
 
 const LandingPage = () => {
+    const [page, setPage] = useState(1);
+    const limit = 8;
+    const offset = (page - 1) * limit;
+    const { data, loading, error } = useQuery(get_all_products, {variables:{limit, offset}});
+    const router = useRouter();
+    if (loading) return <p className="text-center">Loading...</p>;
+    if (error) return <p className="text-center text-red-500">Error: {error.message}</p>;
+    console.log(data);
+    
     return ( 
+        
         <>
         <div className="max-w-[1536px] ">
 
@@ -99,13 +159,11 @@ const LandingPage = () => {
 
            <div className="w-full bg-[#F8F8F8] pt-[12vh]">
             <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Best Deals</h1>
-            <div className=" bg-[#F8F8F8] w-[85%] mx-auto mt-[20px] flex  justify-between">
-            <ProductFrame/>
-            <ProductFrame/>
-            <ProductFrame/>
-            <ProductFrame/>
-
-            </div>
+            <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                {data?.allProducts?.slice(0, 4).map((product: Product) => (
+                    <ProductFrame key={product.id} data={{ allProducts: [product] }} />
+                ))}
+                </div>
            </div>
 
            <div className="w-full bg-[#F8F8F8] pt-[12vh]">
@@ -121,36 +179,11 @@ const LandingPage = () => {
 
            <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
             <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Featured Products</h1>
-            <div className=" bg-[#F8F8F8] w-[85%] flex-wrap gap-y-[30px] mx-auto mt-[20px] flex  justify-between">
-
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
+            <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                {data?.allProducts?.slice(0, 8).map((product: Product) => (
+                    <ProductFrame key={product.id} data={{ allProducts: [product] }} />
+                ))}
                 </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-                <div className="w-1/4 p-2">
-                   <ProductFrame/>
-                </div>
-        
-
-
-            </div>
            </div>
 
 
@@ -213,30 +246,41 @@ const LandingPage = () => {
 export default LandingPage;
 
 
-export const ProductFrame = () =>{
-    return(
-        <div className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
+export const ProductFrame = ({ data }: { data: { allProducts: Product[] } }) => {
+    return (
+        <>
+            {data?.allProducts?.map((product: Product) => (
+        <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
         <div className="flex h-[140px] justify-between ">
-            <div className="w-[205px] h-[140px]">
-            <Image className="w-[100%] h-[100%]" src={iphoneImage} alt="" />
+        <div className="w-[205px] h-[140px] relative">
+            <Image
+                src={product.images[0] || iphoneImage}
+                alt={product.name}
+                fill
+                className="object-cover"
+            />
             </div>
+
         <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
         <IoIosHeartEmpty />
         <AiOutlineEye />
         <IoCartOutline />
         </div>
         </div>
+        <Link href={`landingpage/product/${product.slug}`} className="cursor-pointer">
         <div className=" mx-auto w-[90%] ">
             
-            <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">Dele Electronics</p>
-            <p className="font-sans font-[400] text-[16px] mt-[10px]">iphone 14 Pro Max 256gb
-            ssd and 8gb ram...</p>
+            <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">{product.name}</p>
+            <p className="font-sans font-[400] text-[16px] mt-[10px]">{product.description.length > 62 ? product.description.slice(0, 62) + "..." : product.description}</p>
             <Image className=" w-[112px] h-[16px] mt-[8px]" src={starLogo} alt="" />
-            <p className="font-sans text-[16px] font-[600] mt-[15px]">₦ 768,000</p>
-            <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">20 sold</p>
+            <p className="font-sans text-[16px] font-[600] mt-[15px]">{"NGN" + product.price}</p>
+            <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">{product.stock + " " + "available"}</p>
 
 
         </div>
+        </Link>
     </div>
+    ))}
+    </>
     )
 }

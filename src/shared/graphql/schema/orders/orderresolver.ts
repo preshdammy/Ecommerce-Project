@@ -1,6 +1,6 @@
-import {OrderModel} from "@/shared/database/model/order.model";
+import {OrderModel} from "@/shared/database/model/orders.model";
 import { productModel } from "@/shared/database/model/product.model";
-import { usermodel } from "@/shared/database/model/user.model";
+import { usermodel } from "@/shared/database/model/usermodel";
 import { vendorModel } from "@/shared/database/model/vendor.model";
 import { NotificationModel } from "@/shared/database/model/notifications.model";
 

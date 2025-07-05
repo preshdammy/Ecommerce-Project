@@ -45,3 +45,4 @@ type Mutation {
   deleteuser(id: ID!): Boolean!
 }
 `;
+

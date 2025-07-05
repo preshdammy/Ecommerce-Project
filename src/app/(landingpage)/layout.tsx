@@ -6,6 +6,12 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 
 
+// pages/_app.tsx or layout.tsx
+
+
+
+
+
 
 
 
@@ -19,6 +25,7 @@ const merriweather = Merriweather({
   weight: ['400', '700'],
   variable: '--font-merriweather', 
 });
+
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
