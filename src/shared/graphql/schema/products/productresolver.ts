@@ -307,9 +307,9 @@ export const productresolver = {
         updateProduct: async (_: any, arg: product, context: any) => {
             const  {id, name, category, description, subCategory, color, condition, minimumOrder, price, images} = arg
             try {
-              const {vendorId} = context 
-              console.log(vendorId);
-                    if (!vendorId) {
+              const {vendor} = context 
+              console.log(vendor);
+                    if (!vendor) {
                         throw new Error("Unauthorized: Only vendors can update products.");
                     }
                     const existingProduct = await productModel.findById(id);
@@ -340,9 +340,9 @@ export const productresolver = {
         },
         deleteProduct: async (_: any, { id }: { id: string }, context: any) => {
             try {
-                const {vendorId} = context 
-                console.log(vendorId);
-                    if (!vendorId) {
+                const {vendor} = context 
+                console.log(vendor);
+                    if (!vendor) {
                         throw new Error("Unauthorized: Only vendors can delete products.");
                     }
                     const existingProduct = await productModel.findById(id);
@@ -362,26 +362,26 @@ export const productresolver = {
             }
         }
 },
-Product: {
-    seller: async (parent: any) => {
-      if (!parent.seller) return null;
-  
-      // If already populated (object), return it with string id
-      if (typeof parent.seller === "object" && parent.seller._id) {
-        return {
-          ...parent.seller,
-          id: parent.seller._id.toString(),
-        };
-      }
-  
-      // If it's just an ID, fetch from DB
-      const seller = await vendorModel.findById(parent.seller);
-      if (!seller) return null;
-      return {
-        ...seller.toObject(),
-        id: seller._id.toString(),
-      };
-    },
-  },
+      Product: {
+          seller: async (parent: any) => {
+            if (!parent.seller) return null;
+        
+            // If already populated (object), return it with string id
+            if (typeof parent.seller === "object" && parent.seller._id) {
+              return {
+                ...parent.seller,
+                id: parent.seller._id.toString(),
+              };
+            }
+        
+            // If it's just an ID, fetch from DB
+            const seller = await vendorModel.findById(parent.seller);
+            if (!seller) return null;
+            return {
+              ...seller.toObject(),
+              id: seller._id.toString(),
+            };
+          },
+        },
   
 }

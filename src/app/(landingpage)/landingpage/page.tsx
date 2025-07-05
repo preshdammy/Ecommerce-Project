@@ -64,7 +64,7 @@ const get_all_products = gql`query GetAllProducts($limit: Int!, $offset:Int!) {
 
 const LandingPage = () => {
     const [page, setPage] = useState(1);
-    const limit = 3;
+    const limit = 8;
     const offset = (page - 1) * limit;
     const { data, loading, error } = useQuery(get_all_products, {variables:{limit, offset}});
     const router = useRouter();
@@ -159,12 +159,11 @@ const LandingPage = () => {
 
            <div className="w-full bg-[#F8F8F8] pt-[12vh]">
             <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Best Deals</h1>
-            <div className=" bg-[#F8F8F8] w-[85%] mx-auto mt-[20px] flex  justify-between">
-            <ProductFrame data={data} />
-            <ProductFrame data={data} />
-           
-
-            </div>
+            <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                {data?.allProducts?.slice(0, 4).map((product: Product) => (
+                    <ProductFrame key={product.id} data={{ allProducts: [product] }} />
+                ))}
+                </div>
            </div>
 
            <div className="w-full bg-[#F8F8F8] pt-[12vh]">
@@ -180,17 +179,11 @@ const LandingPage = () => {
 
            <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
             <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Featured Products</h1>
-            <div className=" bg-[#F8F8F8] w-[85%] flex-wrap gap-y-[30px] mx-auto mt-[20px] flex  justify-between">
-
-            <ProductFrame data={data} />
-            <ProductFrame data={data} />
-            <ProductFrame data={data} />
-            <ProductFrame data={data} />
-             
-        
-
-
-            </div>
+            <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                {data?.allProducts?.slice(0, 8).map((product: Product) => (
+                    <ProductFrame key={product.id} data={{ allProducts: [product] }} />
+                ))}
+                </div>
            </div>
 
 
@@ -278,7 +271,7 @@ export const ProductFrame = ({ data }: { data: { allProducts: Product[] } }) => 
         <div className=" mx-auto w-[90%] ">
             
             <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">{product.name}</p>
-            <p className="font-sans font-[400] text-[16px] mt-[10px]">{product.description.length > 100 ? product.description.slice(0, 100) + "..." : product.description}</p>
+            <p className="font-sans font-[400] text-[16px] mt-[10px]">{product.description.length > 62 ? product.description.slice(0, 62) + "..." : product.description}</p>
             <Image className=" w-[112px] h-[16px] mt-[8px]" src={starLogo} alt="" />
             <p className="font-sans text-[16px] font-[600] mt-[15px]">{"NGN" + product.price}</p>
             <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">{product.stock + " " + "available"}</p>
