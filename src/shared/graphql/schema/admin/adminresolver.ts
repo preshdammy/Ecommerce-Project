@@ -12,6 +12,17 @@ import nodemailer from 'nodemailer';
 import { complaintModel } from "@/shared/database/model/complaint.model";
 
 
+<<<<<<< HEAD
+=======
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+>>>>>>> 47e93d3dd353694d0eae13fd75ed00a429d61477
 export const adminresolver = {
   Query: {
     adminProfile: async (_: any, __: any, context: ContextType) => {

@@ -9,6 +9,7 @@ import { VendorResolver } from './vendor/vendorresolver';
 import { producttypedef } from './products/producttypedef';
 import { productresolver } from './products/productresolver';
 
+<<<<<<< HEAD
 
 
 
@@ -44,3 +45,27 @@ export const typeDefs = mergeTypeDefs([
   ])
   
 
+=======
+export const resolvers = mergeResolvers([
+  userresolver,
+  adminresolver,
+  VendorResolver,
+  productresolver
+]);
+
+console.log('TypeDef types:', {
+  usertypedef: typeof usertypedef,
+  adminTypeDefs: typeof adminTypeDefs,
+  vendortypedef: typeof vendorTypeDefs,
+  producttypedef: typeof producttypedef
+});
+
+export const typeDefs = mergeTypeDefs([
+  usertypedef,
+  adminTypeDefs,  
+  vendorTypeDefs,
+  producttypedef
+], {
+  throwOnConflict: true
+});
+>>>>>>> 47e93d3dd353694d0eae13fd75ed00a429d61477
