@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import React from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import logo from '../../../../public/figma images/WhatsApp Image 2022-11-27 at 14.35 1.png';
-import { useForm } from 'react-hook-form';
+import Link from "next/link";
+import React from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import logo from "../../../../public/figma images/WhatsApp Image 2022-11-27 at 14.35 1.png";
+import { useForm } from "react-hook-form";
 import Cookies from "js-cookie";
 import { gql, useMutation } from "@apollo/client";
 
@@ -17,79 +17,51 @@ const LOGIN_ADMIN = gql`
         name
         email
         role
+        token
       }
     }
   }
 `;
 
+type FormData = {
+  email: string;
+  password: string;
+};
+
 const Adminlogin = () => {
   const router = useRouter();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm();
-
+  const { register, handleSubmit } = useForm<FormData>();
   const [loginAdmin, { loading, error }] = useMutation(LOGIN_ADMIN);
 
-  const onSubmit = async (data: any) => {
+  
+  const onSubmit = async (formData: FormData) => {
     try {
-      const { data: result } = await loginAdmin({ variables: data });
+      const { data } = await loginAdmin({
+        variables: {
+          email: formData.email,
+          password: formData.password,
+        },
+      });
 
-      const { token, admin } = result.loginAdmin;
+      const admin = data?.loginAdmin?.admin;
 
-      if(token){
+      if (admin?.token) {
         Cookies.remove("usertoken");
         Cookies.remove("vendortoken");
         Cookies.remove("userinfo");
         Cookies.remove("vendorinfo");
 
-        Cookies.set("admintoken",admin.token, {expires:7}) ,
-        Cookies.set("admininfo", JSON.stringify({id:admin.id, email:admin.email}), {expires:7})
+        Cookies.set("admintoken", admin.token, { expires: 7 });
+        Cookies.set(
+          "admininfo",
+          JSON.stringify({ id: admin.id, email: admin.email }),
+          { expires: 7 }
+        );
+
         router.push("/admindashboard");
-        
-      }else{
-        console.error("Login failed! No token returned");
+      } else {
+        alert("Login failed: No token returned.");
       }
-
-      // Cookies.remove("usertoken");
-      // Cookies.remove("vendortoken");
-      // Cookies.remove("userinfo");
-      // Cookies.remove("vendorinfo");
-
-
-      // Cookies.set("admintoken", token, {
-      //  path: "/",
-      //  expires: 7,
-      //  sameSite: "lax", // Use lax instead of strict unless you know strict is needed
-      //  secure: false, // ⛔ Don't use `secure: true` on localhost!
-    ;
-
-
-
-      // Cookies.set(
-      //   "admininfo",
-      //   JSON.stringify({
-      //     id: admin.id,
-      //     name: admin.name,
-      //     email: admin.email,
-      //   }),
-      //   {
-      //     path: "/",
-      //     expires: 7,
-      //     sameSite: "strict",
-      //     secure: process.env.NODE_ENV === "production",
-      //   }
-      // );
-
-
-      // alert("Login successful!");
-      // if (admin.role === "ADMIN") {
-      //   router.push("/admindashboard");
-      // } else {
-      //   alert("Access denied! Not an admin");
-      // }
     } catch (err: any) {
       alert(err.message || "Login failed!");
     }
@@ -102,18 +74,20 @@ const Adminlogin = () => {
         className="flex flex-col w-[544px] h-[599px] justify-center border border-[#d4d3d3] items-center bg-white px-[80px]"
       >
         <Image className="mb-[10px]" src={logo} alt="logo" />
-        <h1 className="text-[32px] text-[#939090] font-light">Admin Dashboard</h1>
+        <h1 className="text-[32px] text-[#939090] font-light">
+          Admin Dashboard
+        </h1>
         <p className="text-[24px] text-[#007bff] mt-[10px] font-normal">Log in</p>
 
         <div className="flex flex-col gap-[20px] mt-[30px] w-full mb-[30px]">
           <input
-            {...register('email')}
+            {...register("email", { required: true })}
             className="border px-3 w-full h-[40px] border-[#d4d3d3] rounded-[8px] py-3"
             placeholder="Email Address"
             type="email"
           />
           <input
-            {...register('password')}
+            {...register("password", { required: true })}
             className="border px-3 w-full h-[40px] border-[#d4d3d3] rounded-[8px] py-3"
             placeholder="Password"
             type="password"
@@ -122,10 +96,10 @@ const Adminlogin = () => {
 
         <button
           type="submit"
-          disabled={isSubmitting || loading}
           className="text-[16px] rounded-[8px] text-white bg-[#007bff] font-[600] w-full py-3 disabled:opacity-60"
+          disabled={loading}
         >
-         {isSubmitting || loading ? 'Logging in...' : 'Log in'}
+          {loading ? "Logging in..." : "Log in"}
         </button>
 
         <Link
