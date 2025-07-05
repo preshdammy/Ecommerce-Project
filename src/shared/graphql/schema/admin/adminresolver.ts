@@ -81,9 +81,9 @@ export const adminresolver = {
       if (!isValid) throw new Error("Invalid credentials");
 
       const token = jwt.sign(
-        { id: admin.id, email: admin.email, role: admin.role },
+        { id: admin.id, email: admin.email, role: admin.role.toLowerCase() },
         process.env.secret_key!,
-        { expiresIn: '1d' }
+        { expiresIn: '7d' }
       );
 
       return {
