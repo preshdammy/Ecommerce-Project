@@ -105,9 +105,10 @@ const Adminlogin = () => {
 
         <button
           type="submit"
-          className="text-[16px] rounded-[8px] text-white bg-[#007bff] font-[600] w-full py-3"
+          disabled={isSubmitting || loading}
+          className="text-[16px] rounded-[8px] text-white bg-[#007bff] font-[600] w-full py-3 disabled:opacity-60"
         >
-          {isSubmitting || loading ? 'Logging in...' : 'Log in'}
+         {isSubmitting || loading ? 'Logging in...' : 'Log in'}
         </button>
 
         <Link
