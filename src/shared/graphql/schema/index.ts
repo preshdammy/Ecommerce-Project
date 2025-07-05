@@ -9,43 +9,6 @@ import { VendorResolver } from './vendor/vendorresolver';
 import { producttypedef } from './products/producttypedef';
 import { productresolver } from './products/productresolver';
 
-<<<<<<< HEAD
-
-
-
-
-// import { reviewresolver } from './reviews/reviewresolver';
-// import { reviewtypedef } from './reviews/reviewtypedef';
-// import { notificationresolver } from './notifcations/notifresolvers'
-// import { notificationTypeDef } from './notifcations/notiftypedefs'
-// import { orderResolvers } from './orders/orderresolver';
-// import { orderTypeDef } from './orders/ordertypedef'
-
-
-export const resolvers = mergeResolvers([
-    userresolver,
-    adminresolver,
-    VendorResolver,
-    productresolver,
-    // reviewresolver,
-    // notificationresolver,
-    // orderResolvers,
-   
-])
-
-export const typeDefs = mergeTypeDefs([
-    usertypedef,
-    adminTypeDefs,
-    vendorTypeDefs,
-    producttypedef,
-    // reviewtypedef,
-    // notificationTypeDef,
-    // orderTypeDef,
-    
-  ])
-  
-
-=======
 export const resolvers = mergeResolvers([
   userresolver,
   adminresolver,
@@ -68,4 +31,3 @@ export const typeDefs = mergeTypeDefs([
 ], {
   throwOnConflict: true
 });
->>>>>>> 47e93d3dd353694d0eae13fd75ed00a429d61477

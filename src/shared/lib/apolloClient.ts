@@ -22,10 +22,7 @@ const errorLink = onError(({ graphQLErrors }) => {
 
 const httplink = new HttpLink({
   uri: "/api/graphql",
-<<<<<<< HEAD
-  credentials: "include", // optional: can leave or remove; doesn't hurt
-=======
->>>>>>> 47e93d3dd353694d0eae13fd75ed00a429d61477
+  credentials: "include", 
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -33,10 +30,6 @@ const authLink = setContext((_, { headers }) => {
   const vendortoken = Cookies.get("vendortoken");
   const admintoken = Cookies.get("admintoken");
   const token = usertoken || vendortoken || admintoken;
-<<<<<<< HEAD
-
-=======
->>>>>>> 47e93d3dd353694d0eae13fd75ed00a429d61477
   return {
     headers: {
       ...headers,

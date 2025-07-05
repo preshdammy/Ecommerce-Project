@@ -6,23 +6,9 @@ import { productModel } from "../../../database/model/product.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ContextType } from "../../../../types/context";
-import crypto from "crypto";
-import { resetModel } from '../../../database/model/resetpassword.model';
-import nodemailer from 'nodemailer';
 import { complaintModel } from "@/shared/database/model/complaint.model";
 
 
-<<<<<<< HEAD
-=======
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
-
->>>>>>> 47e93d3dd353694d0eae13fd75ed00a429d61477
 export const adminresolver = {
   Query: {
     adminProfile: async (_: any, __: any, context: ContextType) => {
@@ -62,10 +48,9 @@ export const adminresolver = {
     },
 
     complaints: async () => {
-      // find all, populate both possible relations
       return complaintModel
         .find()
-        .populate("user")    // pulls in the User doc
+        .populate("user")   
         .populate("vendor"); 
       },
 
@@ -169,44 +154,6 @@ export const adminresolver = {
       return "Order refunded";
     },
 
-    requestPasswordReset: async (_: any, { email }: { email: string }) => {
-      const admin = await adminModel.findOne({ email });
-      if (!admin) return false;
 
-      const rawToken = crypto.randomBytes(32).toString('hex');
-      const hashed = crypto.createHash('sha256').update(rawToken).digest('hex');
-      const expires = Date.now() + 5 * 60 * 1000;  // 5 minutes
-
-      await resetModel.findOneAndUpdate(
-        { adminId: admin._id },
-        { token: hashed, expires },
-        { upsert: true }
-      );
-
-      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
-      await transporter.sendMail({
-        from: '"E‑Commerce" <no-reply@ecommerce.com>',
-        to: admin.email,
-        subject: 'Password Reset Request',
-        html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. Link expires in 5 minutes.</p>`
-      });
-
-      return true;
-    },
-
-    resetPassword: async (_: any, { token, newPassword }: { token: string; newPassword: string }) => {
-      const hashed = crypto.createHash('sha256').update(token).digest('hex');
-      const record = await resetModel.findOne({ token: hashed, expires: { $gt: Date.now() } });
-      if (!record) throw new Error('Token invalid or expired');
-
-      const admin = await adminModel.findById(record.adminId);
-      if (!admin) throw new Error('Admin not found');
-
-      admin.password = await bcrypt.hash(newPassword, 10);
-      await admin.save();
-      await resetModel.deleteOne({ adminId: admin._id });
-
-      return true;
-    },
   },  
 };
