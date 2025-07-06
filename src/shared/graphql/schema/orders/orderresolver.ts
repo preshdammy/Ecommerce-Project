@@ -1,7 +1,8 @@
 import {OrderModel} from "@/shared/database/model/orders.model";
 import { productModel } from "@/shared/database/model/product.model";
-import { usermodel } from "@/shared/database/model/usermodel";
+import { usermodel } from "@/shared/database/model/user.model";
 import { vendorModel } from "@/shared/database/model/vendor.model";
+import  adminModel  from "@/shared/database/model/admin.model";
 import { NotificationModel } from "@/shared/database/model/notifications.model";
 
 
@@ -14,21 +15,24 @@ enum OrderStatus {
   }
 export const orderResolvers = {
   Query: {
-    async myOrders(_: any, context: any) {
+    async myOrders(_: any, __: any, context: any) {
+      console.log("MY ORDERS CONTEXT:", context);
+      
       if (!context.user) throw new Error("Unauthorized");
       return OrderModel.find({ buyer: context.user.id }).sort({ createdAt: -1 })
         .populate("product")
         .populate("vendor")
         .populate("buyer");
     },
-    async vendorOrders(_: any, context: any) {
+    async vendorOrders(_: any, __: any, context: any) {
       if (!context.vendor) throw new Error("Unauthorized");
       return OrderModel.find({ vendor: context.vendor.id }).sort({ createdAt: -1 })
         .populate("product")
         .populate("vendor")
         .populate("buyer");
     },
-    async allOrders(_: any, context: any) {
+    async allOrders(_: any, __: any, context: any) {
+      console.log("ALL ORDERS CONTEXT:", context);
       if (!context.admin) throw new Error("Unauthorized");
       return OrderModel.find().sort({ createdAt: -1 })
         .populate("product")

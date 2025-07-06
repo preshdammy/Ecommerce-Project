@@ -30,9 +30,6 @@ export const productresolver = {
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip(offset);
-                
-          
-              console.log("Fetched products:", products);
           
               return products.map((p) => {
                 // Important: Convert toObject to safely access _id as string

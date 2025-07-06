@@ -13,6 +13,8 @@ export const VendorResolver = {
     },
 
     getVendorProfile: async (_: any, __: any, context: any) => {
+      console.log("Context in getVendorProfile:", context);
+      
       if (!context.vendor) throw new AuthenticationError('Unauthorized');
       const vendor = await vendorModel.findById(context.vendor.id);
       return vendor;
@@ -53,7 +55,8 @@ export const VendorResolver = {
         };
       },
 
-    loginVendor: async (_: any, { email, password }: any) => {
+    loginVendor: async (_: any, { email, password }: any) => {;
+      
       const vendor = await vendorModel.findOne({ email });
       if (!vendor) {
         throw new Error('Invalid email or password');

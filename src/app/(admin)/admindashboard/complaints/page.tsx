@@ -4,6 +4,7 @@ import { useQuery, gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { IoIosArrowDown } from "react-icons/io";
+import { useEffect } from "react";
 
 type Complaint = {
   id: string;
@@ -35,11 +36,15 @@ const GET_COMPLAINTS = gql`
 
 export default function ComplaintsPage() {
   const router = useRouter();
-  const token = Cookies.get("token");
+  const token = Cookies.get("admintoken");
 
+
+useEffect(() => {
   if (!token) {
     router.replace("/adminlogin");
   }
+}, [token, router]);
+
 
   const { data, loading, error } = useQuery(GET_COMPLAINTS);
 

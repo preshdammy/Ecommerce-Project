@@ -12,7 +12,7 @@ type  Notification = {
   }
 export const notificationresolver = {
     Query: {
-      async myNotifications(_: any, context: any) {
+      async myNotifications(_: any, __:any, context: any) {
         let recipientId, recipientRole;
   
         if (context.admin) {

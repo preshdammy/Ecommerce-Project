@@ -5,7 +5,7 @@ import { IoWarningOutline } from "react-icons/io5";
 import { BsPeople } from "react-icons/bs";
 import { GoFileCode } from "react-icons/go";
 import Link from "next/link";
-import Link from "next/link";
+
 
 const  Sidebar  = () => {
     return ( 
@@ -18,16 +18,13 @@ const  Sidebar  = () => {
             </div>
 
             <div className="w-[100%] flex flex-col pl-[30px] gap-[30px]">
-            <div className="w-[100%] flex flex-col pl-[30px] gap-[30px]">
                 <div className="flex gap-[16px] items-center">
                     <PiHouse className="text-[26px]" />
-                    <Link href="/admindashboard" className="text-[24px] font-[300] ">Dashboard</Link>
                     <Link href="/admindashboard" className="text-[24px] font-[300] ">Dashboard</Link>
                 </div>
 
                 <div className="flex gap-[16px] items-center">
                     <IoWarningOutline  className="text-[26px]" />
-                    <Link href="/admindashboard/reports" className="text-[24px] font-[300]">Reports</Link>
                     <Link href="/admindashboard/reports" className="text-[24px] font-[300]">Reports</Link>
                 </div>
 
@@ -39,7 +36,6 @@ const  Sidebar  = () => {
                 <div className="flex gap-[16px] items-center">
                     <GoFileCode  className="text-[26px]" />
                     <Link href="/admindashboard/transaction" className="text-[24px] font-[300]">Transactions</Link>
-                    <Link href="/admindashboard/transaction" className="text-[24px] font-[300]">Transactions</Link>
                 </div>
 
             </div>
@@ -49,8 +45,7 @@ const  Sidebar  = () => {
         <div>
             <button className="font-[600] text-[24px] py-[16px] px-[100px] bg-[#FF4C3B] rounded-[10px] text-white">Log out</button>
         </div>
-
-    </div>
+        </div>
      );
 }
  
