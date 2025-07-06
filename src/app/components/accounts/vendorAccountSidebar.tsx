@@ -12,17 +12,18 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { IoIosLogOut } from "react-icons/io";
 
 const sidebarItems = [
-  { icon: <CiUser />, label: 'Personal Details', path: '/AccountSettings/vendor' },
-  { icon: <HiOutlineBuildingOffice2 />, label: 'Business Information', path: '/AccountSettings/vendor/Business-Information' },
-  { icon: <CiPhone />, label: 'Change Contact Details', path: '/AccountSettings/vendor/Change-Contactdetails' },
-  { icon: <CiLock />, label: 'Change Password', path: '/AccountSettings/vendor/Change-password' },
-  { icon: <BsCartCheck />, label: 'Orders', path: '/AccountSettings/vendor/Orders' },
-  { icon: <BsArrowCounterclockwise />, label: 'Refunds', path: '/AccountSettings/vendor/Refunds' },
-  { icon: <GoInbox />, label: 'Inbox', path: '/AccountSettings/vendor/Inbox' },
-  { icon: <PiClockClockwise />, label: 'Track Order', path: '/AccountSettings/vendor/Track-Order' },
-  { icon: <CiLocationOn />, label: 'Address', path: '/AccountSettings/vendor/Address' },
-  { icon: <AiOutlineDelete />, label: 'Delete My Account', path: '/AccountSettings/vendor/Delete-Account' },
-  { icon: <IoIosLogOut />, label: 'Log out', path: '/AccountSettings/vendor/Log-Out' },
+  { icon: <CiUser />, label: 'Personal Details', path: '/vendor/account-settings' },
+  { icon: <HiOutlineBuildingOffice2 />, label: 'Business Information', path: '/vendor/account-settings/business-information' },
+  { icon: <CiPhone />, label: 'Change Contact Details', path: '/vendor/account-settings/change-contact-details' },
+  { icon: <CiLock />, label: 'Change Password', path: '/vendor/account-settings/change-password' },
+  { icon: <BsCartCheck />, label: 'Orders', path: '/vendor/account-settings/orders' },
+  { icon: <BsArrowCounterclockwise />, label: 'Refunds', path: '/vendor/account-settings/refunds' },
+  { icon: <GoInbox />, label: 'Inbox', path: '/vendor/account-settings/inbox' },
+  { icon: <PiClockClockwise />, label: 'Track Order', path: '/vendor/account-settings/track-order' },
+  { icon: <CiCreditCard1 />, label: 'Payment Methods', path: '/vendor/account-settings/payment-methods' },
+  { icon: <CiLocationOn />, label: 'Address', path: '/vendor/account-settings/address' },
+  { icon: <AiOutlineDelete />, label: 'Delete My Account', path: '/vendor/account-settings/delete-account' },
+  { icon: <IoIosLogOut />, label: 'Log out', path: '/vendor/account-settings/log-out' },
 ];
 
 export default function AccountSidebar() {

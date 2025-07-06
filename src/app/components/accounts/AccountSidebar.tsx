@@ -12,17 +12,17 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { IoIosLogOut } from "react-icons/io";
 
 const sidebarItems = [
-  { icon: <CiUser />, label: 'Personal Details', path: '/AccountSettings/user' },
-  { icon: <CiPhone />, label: 'Change Contact Details', path: '/AccountSettings/user/Change-Contactdetails' },
-  { icon: <CiLock />, label: 'Change Password', path: '/AccountSettings/user/Change-password' },
-  { icon: <BsCartCheck />, label: 'Orders', path: '/AccountSettings/user/Orders' },
-  { icon: <BsArrowCounterclockwise />, label: 'Refunds', path: '/AccountSettings/user/Refunds' },
-  { icon: <GoInbox />, label: 'Inbox', path: '/AccountSettings/user/Inbox' },
-  { icon: <PiClockClockwise />, label: 'Track Order', path: '/AccountSettings/user/Track-Order' },
-  { icon: <CiCreditCard1 />, label: 'Payment Methods', path: '/AccountSettings/user/Payment-Methods' },
-  { icon: <CiLocationOn />, label: 'Address', path: '/AccountSettings/user/Address' },
-  { icon: <AiOutlineDelete />, label: 'Delete My Account', path: '/AccountSettings/user/Delete-Account' },
-  { icon: <IoIosLogOut />, label: 'Log out', path: '/AccountSettings/user/Log-Out' },
+  { icon: <CiUser />, label: 'Personal Details', path: '/user/account-settings' },
+  { icon: <CiPhone />, label: 'Change Contact Details', path: '/user/account-settings/change-contact-details' },
+  { icon: <CiLock />, label: 'Change Password', path: '/user/account-settings/change-password' },
+  { icon: <BsCartCheck />, label: 'Orders', path: '/user/account-settings/orders' },
+  { icon: <BsArrowCounterclockwise />, label: 'Refunds', path: '/user/account-settings/refunds' },
+  { icon: <GoInbox />, label: 'Inbox', path: '/user/account-settings/inbox' },
+  { icon: <PiClockClockwise />, label: 'Track Order', path: '/user/account-settings/track-order' },
+  { icon: <CiCreditCard1 />, label: 'Payment Methods', path: '/user/account-settings/payment-methods' },
+  { icon: <CiLocationOn />, label: 'Address', path: '/user/account-settings/address' },
+  { icon: <AiOutlineDelete />, label: 'Delete My Account', path: '/user/account-settings/delete-account' },
+  { icon: <IoIosLogOut />, label: 'Log out', path: '/user/account-settings/log-out' },
 ];
 
 export default function AccountSidebar() {

@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const menuItems = [
-  { label: "Personal Details", path: "/AccountSettings/user/Personal-details" },
-  { label: "Business Information", path: "/AccountSettings/user/Business-Information", doubleBorder: true },
-  { label: "Change contact details", path: "/AccountSettings/user/Change-Contactdetails" },
-  { label: "Change password", path: "/AccountSettings/user/Change-password", doubleBorder: true },
-  { label: "Delete my account", path: "/AccountSettings/user/Delete-Account" },
-  { label: "Log out", path: "/AccountSettings/user/Log-Out" },
+  { label: "Personal Details", path: "/user/account-settings/personal-details" },
+  { label: "Business Information", path: "/user/account-settings/business-information", doubleBorder: true },
+  { label: "Change contact details", path: "/user/account-settings/change-contact-details" },
+  { label: "Change password", path: "/user/account-settings/change-password", doubleBorder: true },
+  { label: "Delete my account", path: "/user/account-settings/delete-account" },
+  { label: "Log out", path: "/user/account-settings/log-out" },
 ];
 
 export default function MobileAccountSettings() {
