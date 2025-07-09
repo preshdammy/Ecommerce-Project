@@ -5,6 +5,7 @@ import Image from "next/image";
 import { IoEyeOutline } from "react-icons/io5";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
 import Cookies from "js-cookie";
 
 import google from "../../../../../public/figma images/Frame 78.png";
@@ -42,38 +43,36 @@ const Login = () => {
         },
       });
 
+      Cookies.set(
+        "vendor",
+        JSON.stringify({
+          id: data.loginVendor.id,
+          name: data.loginVendor.name,
+          email: data.loginVendor.email,
+        }),
+        { expires: 7 }
+      );
+
       if (data?.loginVendor?.token) {
-        Cookies.remove("usertoken");
-        Cookies.remove("admintoken");
-        Cookies.remove("admininfo");
-        Cookies.remove("userinfo");
-      
-        Cookies.set("vendortoken", data?.loginVendor?.token, { expires: 7 });
-      
-        Cookies.set(
-          "vendorinfo",
-          JSON.stringify({
-            id: data?.loginVendor?.id,
-            name: data?.loginVendor?.name,
-            email: data?.loginVendor?.email,
-          }),
-          { expires: 7 }
-        );
-      
+        Cookies.set("token", data.loginVendor.token);
         router.push("/VendorDashboard");
-      
-      
-            } else {
-              console.error("Login failed: No token returned.");
-            }
-      
+      } else {
+        console.error("Login failed: No token returned.");
+      }
+
     } catch (err) {
       console.error("Login error:", err);
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
   return (
     <div className="bg-[rgba(0,0,0,0.3)] w-full h-screen flex items-center justify-center">
+      <ToastContainer position="top-center" autoClose={3000} />
       <div className="bg-white lg:w-[583px] lg:p-[50px] flex flex-col border-[1px] border-[#cce5ff] lg:gap-[25px] items-center text-[#272222] lg:h-[651px] rounded-[32px] sm:w-[304px] w-[304px] sm:h-[458px] h-[458px] sm:p-[20px] p-[20px] sm:gap-[20px] gap-[20px]">
         <h2 className="lg:text-[40px] lg:font-normal text-[#55a7ff] sm:text-[24px] text-[24px] sm:font-normal font-normal">
           Vendor Login
