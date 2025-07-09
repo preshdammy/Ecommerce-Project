@@ -1,6 +1,6 @@
 import AccountLayout from '../../../../components/accounts/Accountlayout';
 import AccountSettingsHeader from '../../../../components/accounts/AccountSettingHeader';
-import BusinessInfoForm from '../../../../components/accounts/BusinessInfoForm';
+import BusinessInformationForm from '../../../../components/accounts/vendorBusinessinfoForm';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
@@ -17,7 +17,7 @@ export default function BusinessInfoPage() {
             </div>
 
       <AccountSettingsHeader title="Business Information" />
-      <BusinessInfoForm />
+      < BusinessInformationForm/>
     </AccountLayout>
   );
 }

@@ -15,7 +15,9 @@ const productSchema = new mongoose.Schema({
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'vendor_collection', required: true },
     averageRating: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 },
-    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'review' }]
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'review' }],
+    isFeatured: { type: Boolean, default: false },
+    originalPrice: { type: Number }
 
 }, {timestamps: true})
 

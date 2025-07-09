@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
 const create_products = gql`
-  mutation createProduct ($name:String!, $category:String!, $description:String!, $subCategory:String!, $color:String!, $condition:String!, $minimumOrder:Int!, $stock:Int! $price:Float!, $images: [String!]!) {
-    createProduct (name: $name, category: $category, description: $description, subCategory: $subCategory, color: $color, condition: $condition, minimumOrder: $minimumOrder, stock: $stock, price: $price, images: $images) {
+  mutation createProduct ($name:String!, $category:String!, $description:String!, $subCategory:String!, $color:String!, $condition:String!, $minimumOrder:Int!, $stock:Int! $price:Float!, $originalPrice:Float, $images: [String!]!) {
+    createProduct (name: $name, category: $category, description: $description, subCategory: $subCategory, color: $color, condition: $condition, minimumOrder: $minimumOrder, stock: $stock, price: $price, originalPrice: $originalPrice images: $images) {
     name,
     category,
     description,
@@ -19,7 +19,8 @@ const create_products = gql`
     minimumOrder,
     stock,
     price,
-    images
+    images,
+    originalPrice
   }
 }
 `
@@ -38,6 +39,7 @@ const ProductUpload = () => {
     condition: '',
     minimumOrder: 0,
     price: 0,
+    originalPrice: 0,
     images: [] as String[]
   })
 
@@ -89,11 +91,12 @@ const ProductUpload = () => {
         condition: '',
         minimumOrder: 0,
         price: 0,
+        originalPrice: 0,
         images: [],
       });
       setPreviewImages([]);
       setTimeout(() => {
-        router.push("/VendorDashboard");
+        router.push("/vendor/dashboard");
       }, 1000);
     } catch (error) {
       toast.update(toastId, {
@@ -271,6 +274,17 @@ const ProductUpload = () => {
                     <input
                       value={productData.price}
                       onChange={(e)=>setProductData({...productData, price: Number(e.target.value)})}
+                      type="number"
+                      className="bg-white w-full h-[88px] rounded-[16px] px-4"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[20px] font-medium text-gray-700 mb-1">
+                      original Price
+                    </label>
+                    <input
+                      value={productData.originalPrice}
+                      onChange={(e)=>setProductData({...productData, originalPrice: Number(e.target.value)})}
                       type="number"
                       className="bg-white w-full h-[88px] rounded-[16px] px-4"
                     />

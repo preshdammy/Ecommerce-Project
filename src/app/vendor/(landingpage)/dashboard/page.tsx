@@ -223,7 +223,7 @@ useEffect(() => {
       <img src="/figma images/Frame 240 (1).png" alt="message" />
       <img src="/figma images/Frame 241.png" alt="" />
           </div>
-          <button onClick={()=>router.push("/product-upload")} className="mt-5 font-semibold font-Work-Sans text-2xl w-[349px] h-[60px] bg-[#FF4C3B] text-[#FFFFFF] text-[24px] px-[56px] py-[10px] rounded-full">
+          <button onClick={()=>router.push("/vendor/product-upload")} className="mt-5 font-semibold font-Work-Sans text-2xl w-[349px] h-[60px] bg-[#FF4C3B] text-[#FFFFFF] text-[24px] px-[56px] py-[10px] rounded-full">
             ADD NEW PRODUCT
           </button>
         </div>

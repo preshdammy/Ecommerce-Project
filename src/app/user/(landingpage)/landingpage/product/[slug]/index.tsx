@@ -7,9 +7,14 @@ import Image from "next/image";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import { IoChatboxOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
-import { ProductFrame } from "../../page"
+import { ProductFrameOne, ProductFrameTwo } from "../../page"
 import { toast } from "react-toastify"; 
-
+import { IoIosHeartEmpty } from "react-icons/io";
+import { AiOutlineEye } from "react-icons/ai";
+import iphoneImage from "../../../../../../../public/figma images/Frame 479.png"
+import { IoCartOutline } from "react-icons/io5";
+import Link from "next/link";
+import starLogo from "../../../../../../../public/figma images/Frame 498.png"
 import treeImage from "../../../../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
 import bagImage from "../../../../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
 
@@ -48,10 +53,50 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
     }
   }
 `;
+
+const GET_RELATED_PRODUCTS = gql`
+  query GetRelatedProducts($productId: ID!, $limit: Int!) {
+    relatedProducts(productId: $productId, limit: $limit) {
+      id
+      name
+      slug
+      price
+      images
+      description
+      stock
+      averageRating
+      totalReviews
+    }
+  }
+`;
+
+type RelatedProduct = {
+    id: string;
+    name: string;
+    price: number;
+    images: string[];
+    slug: string;
+    description: string;
+    stock: number;
+    averageRating: number;
+    totalReviews: number;
+  };
+  
   
 const ProductDescriptionClient = ({slug}:{slug: string}) => {
     const {data, loading, error} = useQuery(get_products_by_slug, {variables:{slug: slug}})
     console.log("Product Data:", data);
+
+
+    const product = data?.productBySlug;
+
+    const { data: relatedData, loading: relatedLoading, error: relatedError } = useQuery(GET_RELATED_PRODUCTS, {
+    variables: {
+        productId: product?.id,
+        limit: 8
+    },
+    skip: !product?.id 
+    });
 
     const [createReview, {loading: creatingReview}] = useMutation(create_review_mutation)
     
@@ -88,6 +133,8 @@ const ProductDescriptionClient = ({slug}:{slug: string}) => {
             
             
         }
+        console.log("Related Products Data:", relatedData);
+        
         
     return (
     <>
@@ -209,19 +256,14 @@ const ProductDescriptionClient = ({slug}:{slug: string}) => {
 
 
             
-           <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
-            <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto ">Related Products</h1>
-            <div className=" bg-[#F8F8F8] w-[85%] flex-wrap gap-y-[30px] mx-auto mt-[20px] flex  justify-between">
+                            <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
+                                <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto">Related Products</h1>
 
-        
-                   <ProductFrame data={{ allProducts: [] }}/>
-                   <ProductFrame data={{ allProducts: [] }}/>
-                   <ProductFrame data={{ allProducts: [] }}/>
-                   <ProductFrame data={{ allProducts: [] }}/>
-                
-                
-            </div>
-           </div>
+                                <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                                    <ProductFrame data={{ relatedProducts: data?.relatedProducts?.slice(0, 8) || [] }} />
+                                </div>
+                                </div>
+
 
         </div>
 
@@ -233,3 +275,74 @@ const ProductDescriptionClient = ({slug}:{slug: string}) => {
 }
  
 export default ProductDescriptionClient;
+
+
+import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+
+export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct[] } }) => {
+    return (
+      <>
+        {data?.relatedProducts?.map((product: RelatedProduct) => {
+          const { averageRating = 0, price, stock } = product;
+          const fullStars = Math.floor(averageRating);
+          const hasHalfStar = averageRating % 1 >= 0.5;
+          const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  
+          return (
+            <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
+              <div className="flex h-[140px] justify-between ">
+                <div className="w-[205px] h-[140px] relative">
+                  <Image
+                    src={product.images[0] || iphoneImage}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+  
+                <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
+                  <IoIosHeartEmpty />
+                  <AiOutlineEye />
+                  <IoCartOutline />
+                </div>
+              </div>
+  
+              <Link href={`landingpage/product/${product.slug}`} className="cursor-pointer">
+                <div className="mx-auto w-[90%]">
+                  <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">
+                    {product.name}
+                  </p>
+                  <p className="font-sans font-[400] text-[16px] mt-[10px]">
+                    {product.description.length > 39
+                      ? product.description.slice(0, 39) + "..."
+                      : product.description}
+                  </p>
+  
+                  <div className="flex items-center text-[#FFB800] text-[16px] mt-[8px]">
+                    {Array(fullStars)
+                      .fill(0)
+                      .map((_, i) => (
+                        <AiFillStar key={`full-${i}`} />
+                      ))}
+                    {hasHalfStar && <AiFillStar className="opacity-50" />}
+                    {Array(emptyStars)
+                      .fill(0)
+                      .map((_, i) => (
+                        <AiOutlineStar key={`empty-${i}`} />
+                      ))}
+                    <span className="text-sm text-gray-600 ml-1">({product.totalReviews})</span>
+                  </div>
+  
+                  <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {price.toLocaleString()}</p>
+                  <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">
+                    {stock + " available"}
+                  </p>
+                </div>
+              </Link>
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+  
