@@ -209,11 +209,8 @@ useEffect(() => {
     return ( 
         <div className="bg-gray-100 min-h-screen">
       <section className="bg-blue-50 py-10 text-center ">
-        <div className="max-w-xl mx-auto  bg-blue">
-
-
-            
-            <img className="w-23.5 h-23.5 mx-auto " src="/figma images/Group 209.png" alt="" />
+        <div className="max-w-xl mx-auto  bg-blue">  
+          <img className="w-23.5 h-23.5 mx-auto " src="/figma images/Group 209.png" alt="" />
           
           <h2 className="text-[40px] leading-[100%] tracking-[0] font-bold font-Merriweather text-[#55A7FF] mt-4">Soothe & Tie</h2>
 

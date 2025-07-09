@@ -6,7 +6,7 @@ import MobileAccountSettings from "./MobileAccountSettings";
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isRootSettingsPage = pathname === "/AccountSettings";
+  const isRootSettingsPage = pathname === "/user/account-settings";
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">

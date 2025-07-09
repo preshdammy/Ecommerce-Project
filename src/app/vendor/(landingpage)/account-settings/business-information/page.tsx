@@ -1,4 +1,4 @@
-import AccountLayout from '../../../../components/accounts/Accountlayout';
+import VendorAccountLayout from '../../../../components/accounts/vendorAccountlayout';
 import AccountSettingsHeader from '../../../../components/accounts/AccountSettingHeader';
 import BusinessInformationForm from '../../../../components/accounts/vendorBusinessinfoForm';
 import Link from 'next/link';
@@ -7,7 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 
 export default function BusinessInfoPage() {
   return (
-    <AccountLayout>
+    <VendorAccountLayout>
 
       <div className=" flex items-center gap-2 mb-4 text-blue-600">
               <Link href="/vendor/account-settings" className="flex items-center gap-2">
@@ -18,6 +18,6 @@ export default function BusinessInfoPage() {
 
       <AccountSettingsHeader title="Business Information" />
       < BusinessInformationForm/>
-    </AccountLayout>
+    </VendorAccountLayout>
   );
 }
