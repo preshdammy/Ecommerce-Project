@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import AccountLayout from '../../../components/accounts/Accountlayout';
+import AccountLayout from '../../../components/accounts/vendorAccountlayout';
 import AccountSettingsHeader from '../../../components/accounts/AccountSettingHeader';
 import PersonalDetailsForm from '../../../components/accounts/PersonalDetailsForm';
 import MobileAccountSettings from '../../../components/accounts/MobileAccountSettings';

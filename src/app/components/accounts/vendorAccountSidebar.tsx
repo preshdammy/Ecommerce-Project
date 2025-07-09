@@ -33,7 +33,7 @@ export default function AccountSidebar() {
     <aside className="w-[250px] bg-white mt-4 pt-4 pb-6 px-4 rounded-xl shadow-sm border border-gray-200">
       <ul className="space-y-4">
         {sidebarItems.map((item, idx) => {
-          const isActive = pathname === item.path || (pathname === '/AccountSettings' && item.path === '/AccountSettings/Personal-details');
+          const isActive = pathname === item.path || (pathname === '/vendor/account-settings' && item.path === '/vendor/account-settings/personal-details');
           return (
             <li key={idx}>
               <Link
