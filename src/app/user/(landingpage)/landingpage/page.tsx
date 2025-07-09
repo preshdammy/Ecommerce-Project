@@ -308,8 +308,8 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
                 </p>
 
                 <p className="font-sans font-[400] text-[16px] mt-[10px]">
-                  {product.description.length > 62
-                    ? product.description.slice(0, 62) + "..."
+                  {product.description.length > 39
+                    ? product.description.slice(0, 39) + "..."
                     : product.description}
                 </p>
 
@@ -392,8 +392,8 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                     {product.name}
                   </p>
                   <p className="font-sans font-[400] text-[16px] mt-[10px]">
-                    {product.description.length > 62
-                      ? product.description.slice(0, 62) + "..."
+                    {product.description.length > 39
+                      ? product.description.slice(0, 39) + "..."
                       : product.description}
                   </p>
   

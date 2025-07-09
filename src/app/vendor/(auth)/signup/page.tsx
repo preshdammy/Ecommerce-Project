@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from "react-toastify";
+
 
 
 const CREATE_VENDOR = gql`
@@ -42,7 +44,7 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match");
+        toast.error("Passwords do not match");
       return;
     }
 
@@ -54,17 +56,19 @@ const Signup = () => {
           password: form.password,
         },
       });
-      alert("Vendor account created!");
+      toast.success("Vendor account created!");
       setTimeout(() => router.push("/vendor/login"), 500);
  
       // Optionally redirect or reset form
     } catch (err) {
       console.error(err);
+      toast.error("Failed to create vendor. Please try again.");
     }
   };
 
   return (
     <div className="bg-gray-100">
+        <ToastContainer position="top-center" />
     <div className="flex justify-center items-center min-h-screen px-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-[584px] h-[90%] border border-blue-300">
         <div className="w-full">
