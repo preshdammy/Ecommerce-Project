@@ -19,6 +19,8 @@ export const producttypedef = `
         averageRating: Float
         totalReviews: Int
         stock: Int
+        isFeatured: Boolean
+        originalPrice: Float
     }
         scalar DateTime
 
@@ -35,11 +37,14 @@ export const producttypedef = `
         productsByRating(rating: Int!): [Product!]!
         productsByCondition(condition: String!): [Product!]!
         productsByPriceRange(minPrice: Float!, maxPrice: Float!): [Product!]!
+        autoFeaturedProducts(limit: Int = 8): [Product!]!
+        bestDeals(limit: Int = 4): [Product!]!
+        relatedProducts(productId: ID!, limit: Int = 4): [Product!]!
     }
 
     type Mutation {
-        createProduct(name: String!, category: String!, description: String!, subCategory: String!, color: String!, condition: String!, minimumOrder: Int!, stock: Int! price: Float!, images: [String!]!): Product!
-        updateProduct(id: ID!, name: String, category: String, description: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String]): Product
+        createProduct(name: String!, category: String!, description: String!, subCategory: String!, color: String!, condition: String!, minimumOrder: Int!, stock: Int! price: Float!, images: [String!]!, originalPrice: Float): Product!
+        updateProduct(id: ID!, name: String, category: String, description: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String], originalPrice: Float): Product
         deleteProduct(id: ID!): Boolean!  
     }
 `

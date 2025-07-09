@@ -20,7 +20,7 @@ const errorLink = onError(({ graphQLErrors }) => {
         Cookies.remove("userinfo");
         Cookies.remove("vendorinfo");
         Cookies.remove("admininfo");
-        window.location.href = "/login";
+        window.location.href = "/user/login";
       }
     }
   }

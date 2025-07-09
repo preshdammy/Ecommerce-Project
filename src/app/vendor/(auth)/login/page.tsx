@@ -60,7 +60,7 @@ const Login = () => {
           { expires: 7 }
         );
       
-        router.push("/VendorDashboard");
+        router.push("/vendor/dashboard");
       
       
             } else {

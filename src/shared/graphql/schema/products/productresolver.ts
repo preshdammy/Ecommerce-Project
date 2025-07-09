@@ -17,6 +17,7 @@ type product = {
     stock: number;
     price: number;
     images: [string];
+
 }
 
 
@@ -28,7 +29,7 @@ export const productresolver = {
                 .find()
                 .populate("seller")
                 .sort({ createdAt: -1 })
-                .limit(limit)
+                .limit(limit || 0)
                 .skip(offset);
           
               return products.map((p) => {
@@ -145,17 +146,6 @@ export const productresolver = {
                 handleError(error);
             }
         },
-        productsBySeller: async (_: any, { sellerId }: { sellerId: string }) => {
-            try {
-                const productsbyseller = await productModel.find({ seller: sellerId })
-                if (!productsbyseller || productsbyseller.length === 0) {
-                    throw new Error("No products found for this seller");
-                }
-                return productsbyseller;
-            } catch (error) {
-                handleError(error);
-            }
-        },
         searchProducts: async (_: any, { query }: { query: string }) => {
             try {
                 const searchResults = await productModel.find({
@@ -207,7 +197,35 @@ export const productresolver = {
             } catch (error) {
                 handleError(error);
             }
-        }
+        },
+        autoFeaturedProducts: async (_: any, args: {limit?: number}) => {
+          const limit = args.limit || 8;
+          return await productModel.find({
+            averageRating: { $gte: 4.5 },
+            totalReviews: { $gte: 10 },
+          }).populate("seller").limit(limit).sort({ averageRating: -1 });
+        },
+    
+        bestDeals: async (_: any, args: { limit?: number }) => {
+          const limit = args.limit || 4;
+          return await productModel.find({
+            originalPrice: { $exists: true, $gt: 0 },
+            $expr: { $gt: ["$originalPrice", "$price"] }, 
+          }).limit(limit).sort({ price: 1 });
+        },
+        relatedProducts: async (_: any, { productId, limit }: {productId: string, limit?: number}) => {
+          const currentProduct = await productModel.findById(productId);
+          if (!currentProduct) throw new Error("Product not found");
+        
+          const related = await productModel.find({
+            _id: { $ne: productId }, 
+            category: currentProduct.category, 
+          })
+          .limit(limit || 0)
+          .sort({ createdAt: -1 }); 
+        
+          return related;
+        },
 
     },
     Mutation: {
@@ -230,6 +248,8 @@ export const productresolver = {
                 condition,
                 minimumOrder,
                 price,
+                originalPrice,
+                isFeatured,
                 images,
                 stock,
               } = args;
@@ -275,8 +295,7 @@ export const productresolver = {
               if (!seller) {
                 throw new Error("Vendor not found.");
               }
-          
-              // Create product
+
               const newproduct = await productModel.create({
                 name,
                 category,
@@ -286,6 +305,8 @@ export const productresolver = {
                 condition,
                 minimumOrder,
                 price,
+                originalPrice: typeof originalPrice === "number" ? originalPrice : price,
+                isFeatured: isFeatured || false,
                 images: pictures,
                 slug,
                 stock,
