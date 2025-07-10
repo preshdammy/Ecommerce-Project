@@ -69,6 +69,21 @@ export const adminresolver = {
         totalSales: totalSalesAgg[0]?.total || 0,
       };
     },
+   myComplaints: async (_: any, __: any, context: { user?: any; vendor?: any }) => {
+  const { user, vendor } = context;
+
+  if (!user && !vendor) throw new Error("Unauthorized");
+
+  const filter = user ? { user: user.id } : { vendor: vendor.id };
+
+  const complaints = await complaintModel.find(filter).sort({ createdAt: -1 });
+
+  return complaints  // 👈 Ensure it's a proper string
+  ;
+},
+
+
+    
 
   },
 
@@ -153,6 +168,41 @@ export const adminresolver = {
       await OrderModel.findByIdAndUpdate(args.orderId, { status: "REFUNDED" });
       return "Order refunded";
     },
+
+   addComplaint: async ( _: any, args: { message: string }, context: { user?: { id: string }; vendor?: { id: string } }) => {
+    const { user, vendor } = context;
+    const { message } = args;
+
+    if (!user && !vendor) {
+      throw new Error("Unauthorized");
+    }
+
+    const complaintData: any = {
+      message,
+      status: "Pending",
+      createdAt: new Date(),
+    };
+
+    if (user) complaintData.user = user.id;
+    if (vendor) complaintData.vendor = vendor.id;
+
+    const complaint = await complaintModel.create(complaintData);
+    return complaint;
+   },
+
+  updateComplaintStatus: async (_: any, { id, status }: { id: string; status: string }) => {
+    const validStatuses = ["Pending", "In Review", "Resolved", "Closed"];
+    if (!validStatuses.includes(status)) throw new Error("Invalid status");
+
+    const complaint = await complaintModel.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    ).populate("user").populate("vendor");
+
+    if (!complaint) throw new Error("Complaint not found");
+    return complaint;
+  },
 
 
   },  

@@ -6,6 +6,7 @@ import logo from '../../../../../public/figma images/WhatsApp Image 2022-11-27 a
 import { gql, useMutation } from '@apollo/client';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import { ToastContainer,toast } from 'react-toastify';
 
 const LOGIN_ADMIN = gql`
   mutation LoginAdmin($email: String!, $password: String!) {
@@ -31,17 +32,18 @@ const Adminlogin = () => {
     password: ''
   });
   const [loginAdmin, { loading, error }] = useMutation(LOGIN_ADMIN);
+  
   const handleSubmit = async () => {
     try {
       const response = await loginAdmin({ variables: { ...formData } });
       const { token, admin } = response.data?.loginAdmin || {};
-  
+
       if (token && admin) {
         Cookies.remove("usertoken");
         Cookies.remove("vendortoken");
         Cookies.remove("userinfo");
         Cookies.remove("vendorinfo");
-  
+
         Cookies.set("admintoken", token, { expires: 7 });
         Cookies.set(
           "admininfo",
@@ -53,16 +55,21 @@ const Adminlogin = () => {
           }),
           { expires: 7 }
         );
-  
-        router.push("/admindashboard");
+
+        toast.success("Login successful! Redirecting to dashboard...");
+        // wait a moment so toast shows before routing
+        setTimeout(() => {
+          router.push("/admin/admindashboard");
+        }, 1000); // 1 second delay
       } else {
-        alert("Login failed: No token returned.");
+        toast.error("Login failed: No token returned.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Login failed!");
+      toast.error("Login failed. Please check your credentials.");
     }
   };
+
   
     
   return (

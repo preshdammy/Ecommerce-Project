@@ -87,10 +87,12 @@ export const adminTypeDefs = `
   type Complaint {
   id: ID!
   message: String!
+  status: String!
   createdAt: DateTime!
   user: User
   vendor: Vendor
- }
+}
+
 
   type Query {
     adminProfile: Admin!
@@ -101,6 +103,7 @@ export const adminTypeDefs = `
     allOrders: [Order!]!
     getDashboardMetrics: Metrics!
     complaints: [Complaint!]!
+    myComplaints: [Complaint!]!
   }
 
   type Mutation {
@@ -117,5 +120,8 @@ export const adminTypeDefs = `
     refundOrder(orderId: ID!): String!
     requestPasswordReset(email: String!): Boolean!
     resetPassword(token: String!, newPassword: String!): Boolean!
+    addComplaint(message: String!): Complaint!
+    updateComplaintStatus(id: ID!, status: String!): Complaint!
+  
   }
 `;
