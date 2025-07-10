@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import AccountSidebar from "./vendorAccountSidebar";
 import MobileAccountSettings from "./vendorMobileaccountsettings";
 
-export default function AccountLayout({ children }: { children: React.ReactNode }) {
+export default function VendorAccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isRootSettingsPage = pathname === "/vendor/account-settings";
 
