@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useRef} from 'react';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import Link from "next/link";
+import Image from "next/image"
+import dummy from "../../../../../public/figma images/person-dummy.jpg"
 import { useRouter } from "next/navigation";
 import { toast } from 'react-toastify';
 import Swal from "sweetalert2";
@@ -66,6 +68,18 @@ const UPDATE_PRODUCT = gql`
   }
 `;
 
+const get_vendor_by_id = gql`
+    query GetVendorById($id: ID!) {
+    getVendorById(id: $id) {
+      id
+      profilePicture
+      businessName
+      businessDescription
+      businessAddress
+    }
+  }
+`
+
 
 type Product = {
   id: string;
@@ -94,6 +108,7 @@ type Product = {
 const vendor = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const router = useRouter();
   const { loading, error, data, networkStatus } = useQuery(get_my_products, {
     notifyOnNetworkStatusChange: true,
@@ -102,6 +117,11 @@ const vendor = () => {
       console.error("GraphQL Error:", err);
     },
   });
+  const vendorId = data?.myProducts?.[0]?.seller?.id;
+  const {data: vendorData, loading: vendorLoading, error: vendorError} = useQuery(get_vendor_by_id, {
+    variables: { id: vendorId },
+    skip: !vendorId,
+  })
   
   const toastId = useRef<string | number | null>(null);
 
@@ -208,23 +228,50 @@ useEffect(() => {
   
     return ( 
         <div className="bg-gray-100 min-h-screen">
-      <section className="bg-blue-50 py-10 text-center ">
-        <div className="max-w-xl mx-auto  bg-blue">  
-          <img className="w-23.5 h-23.5 mx-auto " src="/figma images/Group 209.png" alt="" />
-          
-          <h2 className="text-[40px] leading-[100%] tracking-[0] font-bold font-Merriweather text-[#55A7FF] mt-4">Soothe & Tie</h2>
+     <section className="bg-blue-50 py-10 text-center">
+            <div className="max-w-xl mx-auto bg-blue">
+              <div className="w-32 h-32 rounded-full border border-[#939090] flex items-center justify-center mx-auto">
+                <div className="relative w-30 h-30 rounded-full bg-white border border-[#939090] overflow-hidden">
+                  {vendorData?.getVendorById?.profilePicture ? (
+                    <Image
+                      src={vendorData.getVendorById.profilePicture}
+                      alt="Vendor Profile"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <Image src={dummy} alt="Default Profile" fill className="object-cover" />
+                  )}
+                </div>
+              </div>
 
-          <p className="text-[#939090] mt-2 text-[24px]">We design and deliver high quality luxury suits to people that want that easy life and comfort..</p>
-          <p className="text-[16px] text-[#272222] ">Herbert Macaulay way, Off Ikeja Road. Lagos</p>
-          <div className="mt-3 mx-auto space-x-7 flex ml-[200px] min-ml-screen">
-      <img src="/figma images/Frame 240 (1).png" alt="message" />
-      <img src="/figma images/Frame 241.png" alt="" />
-          </div>
-          <button onClick={()=>router.push("/vendor/product-upload")} className="mt-5 font-semibold font-Work-Sans text-2xl w-[349px] h-[60px] bg-[#FF4C3B] text-[#FFFFFF] text-[24px] px-[56px] py-[10px] rounded-full">
-            ADD NEW PRODUCT
-          </button>
-        </div>
-      </section>
+              <h2 className="text-[40px] leading-[100%] tracking-[0] font-bold font-Merriweather text-[#55A7FF] mt-4">
+                {vendorData?.getVendorById?.businessName || "Business Name Unavailable"}
+              </h2>
+
+              <p className="text-[#939090] mt-2 text-[24px]">
+                {vendorData?.getVendorById?.businessDescription ||
+                  "No business description available."}
+              </p>
+
+              <p className="text-[16px] text-[#272222]">
+                {vendorData?.getVendorById?.businessAddress || "No business address provided"}
+              </p>
+
+              <div className="mt-3 mx-auto space-x-7 flex ml-[200px] min-ml-screen">
+                <img src="/figma images/Frame 240 (1).png" alt="message" />
+                <img src="/figma images/Frame 241.png" alt="notification" />
+              </div>
+
+              <button
+                onClick={() => router.push("/vendor/product-upload")}
+                className="mt-5 font-semibold font-Work-Sans text-2xl w-[349px] h-[60px] bg-[#FF4C3B] text-[#FFFFFF] text-[24px] px-[56px] py-[10px] rounded-full"
+              >
+                ADD NEW PRODUCT
+              </button>
+            </div>
+          </section>
+
 
       {/* Products */}
       <section className="max-w-7xl mx-auto px-4 py-10 ml-[30px] ">

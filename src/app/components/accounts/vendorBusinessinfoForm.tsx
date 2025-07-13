@@ -152,16 +152,16 @@ export default function BusinessInformationForm() {
       <form onSubmit={handleSubmit} className="space-y-6 w-full">
         {/* Avatar Section */}
         <div className="relative w-32 h-32 mx-auto">
-  {/* Avatar Circle */}
-  <div className="w-32 h-32 rounded-full border border-[#939090] flex items-center justify-center">
-    <div className="relative w-28 h-28 rounded-full bg-white border border-[#939090] overflow-hidden">
-      {preview ? (
-        <Image src={preview} alt="Avatar" fill className="object-cover" />
-      ) : (
-        <Image src={dummy} alt="Avatar" fill className="object-cover" />
-      )}
-    </div>
-  </div>
+        {/* Avatar Circle */}
+        <div className="w-32 h-32 rounded-full border border-[#939090] flex items-center justify-center">
+          <div className="relative w-28 h-28 rounded-full bg-white border border-[#939090] overflow-hidden">
+            {preview ? (
+              <Image src={preview} alt="Avatar" fill className="object-cover" />
+            ) : (
+              <Image src={dummy} alt="Avatar" fill className="object-cover" />
+            )}
+          </div>
+        </div>
 
   {/* Camera Icon */}
   <label

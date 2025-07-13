@@ -1,24 +1,24 @@
 "use client"
 
 import Image from "next/image";
-import int98 from "../../../../../public/figma images/INT (98) 1.png"
-import bagPexel from "../../../../../public/figma images/pexels-george-dolgikh-1666067 1.png"
+import int98 from "../../../public/figma images/INT (98) 1.png"
+import bagPexel from "../../../public/figma images/pexels-george-dolgikh-1666067 1.png"
 import { BsCart3 } from "react-icons/bs";
 import { BsBookmarkCheck } from "react-icons/bs";
 import { LuRotateCw } from "react-icons/lu";
 import { IoIosHeartEmpty } from "react-icons/io";
 import { AiFillHeart } from "react-icons/ai";
 import { AiOutlineEye } from "react-icons/ai";
-import iphoneImage from "../../../../../public/figma images/Frame 479.png"
+import iphoneImage from "../../../public/figma images/Frame 479.png"
 import { IoCartOutline } from "react-icons/io5";
-import laptopLogo from "../../../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
-import starLogo from "../../../../../public/figma images/Frame 498.png"
-import tamanna from "../../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
-import cosmetics from "../../../../../public/figma images/Frame 493 2.png"
-import clothing from "../../../../../public/figma images/Frame 493 (1).png"
-import furniture from "../../../../../public/figma images/Frame 493 (2).png"
-import automobile from "../../../../../public/figma images/Frame 493 (3).png"
-import food from "../../../../../public/figma images/Frame 493 (4).png"
+import laptopLogo from "../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
+import starLogo from "../../../public/figma images/Frame 498.png"
+import tamanna from "../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
+import cosmetics from "../../../public/figma images/Frame 493 2.png"
+import clothing from "../../../public/figma images/Frame 493 (1).png"
+import furniture from "../../../public/figma images/Frame 493 (2).png"
+import automobile from "../../../public/figma images/Frame 493 (3).png"
+import food from "../../../public/figma images/Frame 493 (4).png"
 import { gql, useQuery } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import react, { useState } from "react";
@@ -97,11 +97,11 @@ const LandingPage = ({featuredLimit = 8, dealsLimit = 4}) => {
 
     const handleCategoryClick = (category: string) => {
       const slug = category
-        .replace(/&/g, "and") // VERY IMPORTANT
+        .replace(/&/g, "and") 
         .replace(/\s+/g, "-")
         .toLowerCase();
     
-      router.push(`/user/category/${slug}`);
+      router.push(`/category/${slug}`);
     };
 
     if (loading) return <p className="text-center">Loading...</p>;
@@ -374,7 +374,7 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
               </div>
             </div>
 
-            <Link href={`landingpage/product/${product.slug}`} className="cursor-pointer">
+            <Link href={`/product/${product.slug}`} className="cursor-pointer">
               <div className="mx-auto w-[90%]">
                 <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">
                   {product.name}
@@ -491,7 +491,7 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                 </div>
               </div>
   
-              <Link href={`landingpage/product/${product.slug}`} className="cursor-pointer">
+              <Link href={`/product/${product.slug}`} className="cursor-pointer">
                 <div className="mx-auto w-[90%]">
                   <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">
                     {product.name}

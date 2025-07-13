@@ -400,7 +400,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                     <div className="bg-[#f9f9f9] p-4 rounded-md shadow">
                       <p className="font-medium">{product.seller.businessName}</p>
                       <p>Email: {product.seller.email}</p>
-                      <p>Phone: {product.seller.phone}</p>
+                      <p>Phone: {product.seller.phone || "contact by Email only"}</p>
                       <p className="text-sm mt-2">
                         {product.seller.businessDescription}
                       </p>
