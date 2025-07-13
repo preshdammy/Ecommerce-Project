@@ -23,6 +23,7 @@ import { gql, useQuery } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import react, { useState } from "react";
 import Link from "next/link";
+import { toast } from "react-toastify"
 import { cartItemsVar } from "@/shared/lib/apolloClient";
 import { likedItemsVar } from "@/shared/lib/apolloClient";
 import { useReactiveVar } from "@apollo/client";
@@ -314,21 +315,26 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
     const alreadyExists = existing.find((item) => item.id === product.id);
   
     if (!alreadyExists) {
-      cartItemsVar([...existing, product]);
-    }
-  };
+            cartItemsVar([...existing, product]);
+            toast.success("Product added to cart!");
+            return
+          }
+          toast.info("Product already in cart")
+        };
 
-  const likedItems = useReactiveVar(likedItemsVar);
+        const likedItems = useReactiveVar(likedItemsVar);
 
-  const toggleLike = (product: DealProduct) => {
-    const isLiked = likedItems.some((item) => item.id === product.id);
-
-    likedItemsVar(
-      isLiked
-        ? likedItems.filter((item) => item.id !== product.id)
-        : [...likedItems, product]
-    );
-  };
+        const toggleLike = (product: DealProduct) => {
+          const isLiked = likedItems.some((item) => item.id === product.id);
+        
+          if (isLiked) {
+            likedItemsVar(likedItems.filter((item) => item.id !== product.id));
+            toast.info("Removed from Likes");
+          } else {
+            likedItemsVar([...likedItems, product]);
+            toast.success("Added to Likes");
+          }
+        };
 
   return (
     <>
@@ -432,20 +438,25 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
   
     if (!alreadyExists) {
       cartItemsVar([...existing, product]);
+      toast.success("Product added to cart!");
+      return
     }
+    toast.info("Product already in cart")
   };
 
-  const likedItems = useReactiveVar(likedItemsVar);
+        const likedItems = useReactiveVar(likedItemsVar);
 
-  const toggleLike = (product: FeaturedProduct) => {
-    const isLiked = likedItems.some((item) => item.id === product.id);
-
-    likedItemsVar(
-      isLiked
-        ? likedItems.filter((item) => item.id !== product.id)
-        : [...likedItems, product]
-    );
-  };
+        const toggleLike = (product: FeaturedProduct) => {
+          const isLiked = likedItems.some((item) => item.id === product.id);
+        
+          if (isLiked) {
+            likedItemsVar(likedItems.filter((item) => item.id !== product.id));
+            toast.info("Removed from Likes");
+          } else {
+            likedItemsVar([...likedItems, product]);
+            toast.success("Added to Likes");
+          }
+        };
 
     return (
       <>
