@@ -5,7 +5,9 @@ export const producttypedef = `
         id: ID!
         name: String!
         category: String!
+        categorySlug: String
         description: String!
+        extendedDescription: String
         subCategory: String!
         color: String
         condition: String!
@@ -24,12 +26,17 @@ export const producttypedef = `
     }
         scalar DateTime
 
+    type Category {
+        name: String!
+        slug: String!
+        }
 
     type Query {
         allProducts(limit: Int!, offset: Int!): [Product!]!
         myProducts: [Product!]!
         product(id: ID!): Product
         productBySlug(slug: String!): Product
+        allCategories: [Category!]!
         productsByCategory(category: String!): [Product!]!
         productsBySubCategory(subCategory: String!): [Product!]!
         productsBySeller(sellerId: ID!): [Product!]!
@@ -43,8 +50,8 @@ export const producttypedef = `
     }
 
     type Mutation {
-        createProduct(name: String!, category: String!, description: String!, subCategory: String!, color: String!, condition: String!, minimumOrder: Int!, stock: Int! price: Float!, images: [String!]!, originalPrice: Float): Product!
-        updateProduct(id: ID!, name: String, category: String, description: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String], originalPrice: Float): Product
+        createProduct(name: String!, category: String!, description: String!, extendedDescription: String, subCategory: String!, color: String!, condition: String!, minimumOrder: Int!, stock: Int! price: Float!, images: [String!]!, originalPrice: Float): Product!
+        updateProduct(id: ID!, name: String, category: String, description: String, extendedDescription: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String], originalPrice: Float): Product
         deleteProduct(id: ID!): Boolean!  
     }
 `
