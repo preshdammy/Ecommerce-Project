@@ -11,7 +11,7 @@ import { AiFillHeart } from "react-icons/ai";
 import { toast } from "react-toastify"; 
 import { IoIosHeartEmpty } from "react-icons/io";
 import { AiOutlineEye } from "react-icons/ai";
-import iphoneImage from "../../../../../../../public/figma images/Frame 479.png"
+import iphoneImage from "../../../../../public/figma images/Frame 479.png"
 import { IoCartOutline } from "react-icons/io5";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -400,7 +400,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                     <div className="bg-[#f9f9f9] p-4 rounded-md shadow">
                       <p className="font-medium">{product.seller.businessName}</p>
                       <p>Email: {product.seller.email}</p>
-                      <p>Phone: {product.seller.phone}</p>
+                      <p>Phone: {product.seller.phone || "contact by Email only"}</p>
                       <p className="text-sm mt-2">
                         {product.seller.businessDescription}
                       </p>
