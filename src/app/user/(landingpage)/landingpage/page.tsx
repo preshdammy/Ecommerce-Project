@@ -7,16 +7,25 @@ import { BsCart3 } from "react-icons/bs";
 import { BsBookmarkCheck } from "react-icons/bs";
 import { LuRotateCw } from "react-icons/lu";
 import { IoIosHeartEmpty } from "react-icons/io";
+import { AiFillHeart } from "react-icons/ai";
 import { AiOutlineEye } from "react-icons/ai";
 import iphoneImage from "../../../../../public/figma images/Frame 479.png"
 import { IoCartOutline } from "react-icons/io5";
 import laptopLogo from "../../../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
 import starLogo from "../../../../../public/figma images/Frame 498.png"
 import tamanna from "../../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
+import cosmetics from "../../../../../public/figma images/Frame 493 2.png"
+import clothing from "../../../../../public/figma images/Frame 493 (1).png"
+import furniture from "../../../../../public/figma images/Frame 493 (2).png"
+import automobile from "../../../../../public/figma images/Frame 493 (3).png"
+import food from "../../../../../public/figma images/Frame 493 (4).png"
 import { gql, useQuery } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import react, { useState } from "react";
 import Link from "next/link";
+import { cartItemsVar } from "@/shared/lib/apolloClient";
+import { likedItemsVar } from "@/shared/lib/apolloClient";
+import { useReactiveVar } from "@apollo/client";
 
 const GET_LANDING_PRODUCTS = gql`
   query GetLandingProducts($featuredLimit: Int!, $dealsLimit: Int!) {
@@ -84,6 +93,16 @@ const LandingPage = ({featuredLimit = 8, dealsLimit = 4}) => {
       });
     
     const router = useRouter();
+
+    const handleCategoryClick = (category: string) => {
+      const slug = category
+        .replace(/&/g, "and") // VERY IMPORTANT
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+    
+      router.push(`/user/category/${slug}`);
+    };
+
     if (loading) return <p className="text-center">Loading...</p>;
     if (error) return <p className="text-center text-red-500">Error: {error.message}</p>;
     
@@ -147,35 +166,56 @@ const LandingPage = ({featuredLimit = 8, dealsLimit = 4}) => {
 
            <div className="w-full bg-[#F8F8F8]">
 
-            <div className="w-[85%] mx-auto flex flex-wrap justify-between bg-white py-[30px] rounded-[20px] gap-y-[20px]">
+           <div className="w-[85%] mx-auto flex flex-wrap justify-between bg-white py-[30px] rounded-[20px] gap-y-[20px]">
+              <div
+                onClick={() => handleCategoryClick("Computers & Laptops")}
+                className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px] cursor-pointer"
+              >
+                <Image className="top-[-70px] w-[105px] h-[110px]" src={laptopLogo} alt="" />
+                <p className="text-[24px] font-[500] font-sans w-[190px]">Computers & Laptops</p>
+              </div>
 
-                <div className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px]">
-                    <Image className="top-[-70px] w-[105px] h-[110px]" src={ laptopLogo} alt="" />
-                    <p className="text-[24px] font-[500] font-sans w-[190px]">Computers & Laptops</p>
-                </div>
+              <div
+                onClick={() => handleCategoryClick("Cosmetics & Body care")}
+                className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px] border-x-[1px] border-[#e9e8e8] cursor-pointer"
+              >
+                <Image className="top-[-70px] w-[105px] h-[110px]" src={cosmetics} alt="" />
+                <p className="text-[24px] font-[500] font-sans w-[190px]">Cosmetics & Body care</p>
+              </div>
 
-                <div className="flex items-center  sm:w-1/2 md:w-1/3 gap-[10px] justify-center py-[12px] border-x-[1px] border-[#e9e8e8]">
-                    <Image className=" top-[-70px] w-[105px] h-[110px]" src={ laptopLogo} alt="" />
-                    <p className="text-[24px] font-[500] font-sans w-[190px]">Cosmetics & Body care</p>
-                </div>
-                <div className="flex items-center  sm:w-1/2 md:w-1/3 gap-[10px] justify-center py-[12px]">
-                    <Image className=" top-[-70px] w-[105px] h-[110px]" src={ laptopLogo} alt="" />
-                    <p className="text-[24px] font-[500] font-sans w-[190px]">Clothing & Shoes</p>
-                </div>
-                <div className="flex items-center  sm:w-1/2 md:w-1/3 gap-[10px] justify-center py-[12px]">
-                    <Image className=" top-[-70px]  w-[105px] h-[110px]" src={ laptopLogo} alt="" />
-                    <p className="text-[24px] font-[500] font-sans w-[190px]">Furniture & Outdoors</p>
-                </div>
-                <div className="flex items-center  sm:w-1/2 md:w-1/3 gap-[10px] justify-center py-[12px] border-x-[1px] border-[#e9e8e8]">
-                    <Image className=" top-[-70px]  w-[105px] h-[110px]" src={ laptopLogo} alt="" />
-                    <p className="text-[24px] font-[500] font-sans w-[190px]">Automobiles & Spare parts</p>
-                </div>
-                <div className="flex items-center  sm:w-1/2 md:w-1/3 gap-[10px] justify-center py-[12px]">
-                    <Image className=" top-[-70px] w-[105px] h-[110px]" src={ laptopLogo} alt="" />
-                    <p className="text-[24px] font-[500] font-sans w-[190px]">Food, Grocery & Beverages</p>
-                </div>
+              <div
+                onClick={() => handleCategoryClick("Clothing & Shoes")}
+                className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px] cursor-pointer"
+              >
+                <Image className="top-[-70px] w-[105px] h-[110px]" src={clothing} alt="" />
+                <p className="text-[24px] font-[500] font-sans w-[190px]">Clothing & Shoes</p>
+              </div>
 
+              <div
+                onClick={() => handleCategoryClick("Furniture & Outdoors")}
+                className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px] cursor-pointer"
+              >
+                <Image className="top-[-70px] w-[105px] h-[110px]" src={furniture} alt="" />
+                <p className="text-[24px] font-[500] font-sans w-[190px]">Furniture & Outdoors</p>
+              </div>
+
+              <div
+                onClick={() => handleCategoryClick("Automobiles & Spare parts")}
+                className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px] border-x-[1px] border-[#e9e8e8] cursor-pointer"
+              >
+                <Image className="top-[-70px] w-[105px] h-[110px]" src={automobile} alt="" />
+                <p className="text-[24px] font-[500] font-sans w-[190px]">Automobiles & Spare parts</p>
+              </div>
+
+              <div
+                onClick={() => handleCategoryClick("Food, Grocery & Beverages")}
+                className="flex items-center justify-center sm:w-1/2 md:w-1/3 gap-[10px] py-[12px] cursor-pointer"
+              >
+                <Image className="top-[-70px] w-[105px] h-[110px]" src={food} alt="" />
+                <p className="text-[24px] font-[500] font-sans w-[190px]">Food, Grocery & Beverages</p>
+              </div>
             </div>
+
 
            </div>
 
@@ -269,6 +309,27 @@ export default LandingPage;
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 
 export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }) => {
+  const handleAddToCart = (product: DealProduct) => {
+    const existing = cartItemsVar();
+    const alreadyExists = existing.find((item) => item.id === product.id);
+  
+    if (!alreadyExists) {
+      cartItemsVar([...existing, product]);
+    }
+  };
+
+  const likedItems = useReactiveVar(likedItemsVar);
+
+  const toggleLike = (product: DealProduct) => {
+    const isLiked = likedItems.some((item) => item.id === product.id);
+
+    likedItemsVar(
+      isLiked
+        ? likedItems.filter((item) => item.id !== product.id)
+        : [...likedItems, product]
+    );
+  };
+
   return (
     <>
       {data.bestDeals?.map((product: DealProduct) => {
@@ -295,9 +356,15 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
               </div>
 
               <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                <IoIosHeartEmpty />
-                <AiOutlineEye />
-                <IoCartOutline />
+                <button onClick={() => toggleLike(product)} >
+                  {likedItems.some((item) => item.id === product.id) ? (
+                    <AiFillHeart className="text-red-500 text-[24px]" />
+                  ) : (
+                    <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                  )}
+                </button>
+                <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]" />
+                <IoCartOutline className="cursor-pointer hover:text-[#00bfff]" onClick={() => handleAddToCart(product)} />
               </div>
             </div>
 
@@ -313,7 +380,6 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
                     : product.description}
                 </p>
 
-                
                 <div className="flex items-center text-[#FFB800] text-[16px] mt-[8px]">
                   {Array(fullStars)
                     .fill(0)
@@ -357,8 +423,30 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
 };
 
 
+  
 
 export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedProduct[] } }) => {
+  const handleAddToCart = (product: FeaturedProduct) => {
+    const existing = cartItemsVar();
+    const alreadyExists = existing.find((item) => item.id === product.id);
+  
+    if (!alreadyExists) {
+      cartItemsVar([...existing, product]);
+    }
+  };
+
+  const likedItems = useReactiveVar(likedItemsVar);
+
+  const toggleLike = (product: FeaturedProduct) => {
+    const isLiked = likedItems.some((item) => item.id === product.id);
+
+    likedItemsVar(
+      isLiked
+        ? likedItems.filter((item) => item.id !== product.id)
+        : [...likedItems, product]
+    );
+  };
+
     return (
       <>
         {data?.featuredProducts?.map((product: FeaturedProduct) => {
@@ -380,9 +468,15 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                 </div>
   
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                  <IoIosHeartEmpty />
-                  <AiOutlineEye />
-                  <IoCartOutline />
+                <button onClick={() => toggleLike(product)} >
+                  {likedItems.some((item) => item.id === product.id) ? (
+                    <AiFillHeart className="text-red-500 text-[24px]" />
+                  ) : (
+                    <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                  )}
+                </button>
+                  <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
+                  <IoCartOutline className="cursor-pointer hover:text-[#00bfff]" onClick={() => handleAddToCart(product)}/>
                 </div>
               </div>
   

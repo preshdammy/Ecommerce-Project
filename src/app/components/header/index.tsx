@@ -31,6 +31,8 @@ import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsp
 import trash from '../../../../public/figma images/Icon.png'
 import substract from '../../../../public/figma images/Icon (1).png'
 import add from '../../../../public/figma images/add-square-02.png'
+import { IoIosAddCircle } from "react-icons/io";
+import { GrSubtractCircle } from "react-icons/gr";
 
 
 
@@ -39,12 +41,28 @@ import add from '../../../../public/figma images/add-square-02.png'
 import like from '../../../../public/figma images/heart (1).png'
 import cancel2 from '../../../../public/figma images/Icon (2).png'
 
+import { useReactiveVar } from "@apollo/client";
+import { cartItemsVar } from "@/shared/lib/apolloClient";
+import { likedItemsVar } from "@/shared/lib/apolloClient";
+
 
 
 const Header = () => {
   const [isAuthentication, setIsAuthentication] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
   const [showLike, setShowLike] = useState<boolean>(false);
+  const [counts, setCounts] = useState<{ [productId: string]: number }>({});
+  const cartItems = useReactiveVar(cartItemsVar);
+  const likedItems = useReactiveVar(likedItemsVar);
+  interface Product {
+    id: string;
+    name: string;
+    price: number;
+  }
+
+  const handleDelete = (product: Product): void => {
+    cartItemsVar(cartItemsVar().filter((item: Product) => item.id !== product.id));
+  }
 
 
 
@@ -147,77 +165,151 @@ const Header = () => {
 
 
         {showLike && (
-           <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white  flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
-           <div className='ml-auto'>
-            <button onClick={()=> setShowLike(false)}>
-               <Image src={cancel} alt=''/>
-            </button>
-           </div>
-           <div className='flex items-center my-[10px] gap-[15px]'>
-               <Image src={like} className='w-[27px] h-[27px]' alt=''/><p className='text-[24px] font-[600]'>3 items</p>
-           </div>
-           <div className='overflow-y-scroll'>
-           <div className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
-               <div className='flex items-center'>
-                   <Image src={cancel2} alt=''/>
-               </div>
-               <Image src={shirt} alt=''/>
-               <div className='flex flex-col'>
-                   <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>Black Tee with a simple
-                       white circular logo at
-                       top left</p>
-                   <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ 22,000</p>
-               </div>
-               <Image src={cart} alt=''/>
-           </div>
-           </div>
-           <div className='mx-auto mt-auto'>
-               <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>Checkout Now (₦ 66,000) </button>
-           </div>
-   
-         </div>
-        )}
+  <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+    <div className='ml-auto'>
+      <button onClick={() => setShowLike(false)}>
+        <Image src={cancel} alt='' />
+      </button>
+    </div>
 
-        
-        {showCart && (
-           <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
-           <div className='ml-auto'>
-            <button onClick={()=> setShowCart(false)}>
-               <Image src={cancel} alt=''/>
-            </button>
-               
-           </div>
-           <div className='flex items-center my-[10px] gap-[15px]'>
-               <Image src={cart} className='w-[30px] h-[27px]' alt=''/><p className='text-[24px] font-[600]'>3 items</p>
-           </div>
-           <div className='overflow-y-scroll'>
-           <div className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
-               <div className='flex flex-col items-center'>
-                   <Image src={add} alt=''/>
-                   <p className='text-[24px] font-[600]'>2</p>
-                   <Image src={substract} alt=''/>
-               </div>
-               <Image src={shirt} alt=''/>
-               <div className='flex flex-col'>
-                   <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>Black Tee with a simple
-                       white circular logo at
-                       top left</p>
-                   <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>₦ 22,000 * 1</p>
-                   <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ 22,000</p>
-               </div>
-               <Image src={trash} alt=''/>
-           </div>
-           </div>
-   
-   
-   
+    <div className='flex items-center my-[10px] gap-[15px]'>
+      <Image src={like} className='w-[27px] h-[27px]' alt='' />
+      <p className='text-[24px] font-[600]'>{likedItems.length} items</p>
+    </div>
 
-           <div className='mx-auto mt-auto'>
-               <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>Checkout Now (₦ 66,000) </button>
-           </div>
-   
-         </div>
-        )}
+    <div className='overflow-y-scroll flex-1'>
+      {likedItems.length === 0 ? (
+        <p className='text-center text-[18px] text-gray-500 mt-[100px]'>You haven't liked any items yet.</p>
+      ) : (
+        likedItems.map((item, index) => (
+          <div
+            key={index}
+            className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'
+          >
+            <div className='flex items-center'>
+              <Image
+                onClick={() =>
+                  likedItemsVar(likedItems.filter((liked) => liked.id !== item.id))
+                }
+                src={cancel2}
+                className='cursor-pointer'
+                alt=''
+              />
+            </div>
+
+            <Image src={item.image || shirt} alt='' width={60} height={60} />
+
+            <div className='flex flex-col'>
+              <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
+              <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ {item.price.toLocaleString()}</p>
+            </div>
+
+            <Image
+              onClick={() => {
+                const alreadyInCart = cartItems.find((c) => c.id === item.id);
+                if (!alreadyInCart) cartItemsVar([...cartItems, item]);
+              }}
+              src={cart}
+              alt=''
+              className='cursor-pointer'
+            />
+          </div>
+        ))
+      )}
+    </div>
+
+    {likedItems.length > 0 && (
+      <div className='mx-auto mt-auto'>
+        <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>
+          Checkout Now (₦{" "}
+          {likedItems.reduce((sum, item) => sum + item.price, 0).toLocaleString()})
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+{showCart && (
+  <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+    <div className='ml-auto'>
+      <button onClick={() => setShowCart(false)}>
+        <Image src={cancel} alt='' />
+      </button>
+    </div>
+
+    <div className='flex items-center my-[10px] gap-[15px]'>
+      <Image src={cart} className='w-[30px] h-[27px]' alt='' />
+      <p className='text-[24px] font-[600]'>{cartItems.length} items</p>
+    </div>
+
+    <div className='overflow-y-scroll flex-1'>
+      {cartItems.length === 0 ? (
+        <p className='text-center text-[18px] text-gray-500 mt-[100px]'>Your cart is empty.</p>
+      ) : (
+        cartItems.map((item, index) => {
+          const quantity = counts[item.id] || 1;
+          const totalPrice = item.price * quantity;
+
+          return (
+            <div key={index} className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
+              <div className='flex flex-col items-center'>
+                <IoIosAddCircle
+                  onClick={() =>
+                    setCounts((prev) => ({
+                      ...prev,
+                      [item.id]: (prev[item.id] || 1) + 1,
+                    }))
+                  }
+                  className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                />
+                <p className='text-[24px] font-[600]'>{quantity}</p>
+                <GrSubtractCircle
+                  onClick={() =>
+                    setCounts((prev) => ({
+                      ...prev,
+                      [item.id]: Math.max(1, quantity - 1),
+                    }))
+                  }
+                  className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                />
+              </div>
+
+              <Image src={shirt} alt='' />
+
+              <div className='flex flex-col'>
+                <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
+                <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>
+                  ₦ {item.price.toLocaleString()} * {quantity}
+                </p>
+                <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>
+                  ₦ {totalPrice.toLocaleString()}
+                </p>
+              </div>
+
+              <Image onClick={() => handleDelete(item)} src={trash} alt='' className='cursor-pointer' />
+            </div>
+          );
+        })
+      )}
+    </div>
+
+    {cartItems.length > 0 && (
+      <div className='mx-auto mt-auto'>
+        <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>
+          Checkout Now (₦{" "}
+          {cartItems
+            .reduce((sum, item) => {
+              const quantity = counts[item.id] || 1;
+              return sum + item.price * quantity;
+            }, 0)
+            .toLocaleString()}
+          )
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
 
 
 

@@ -1,8 +1,9 @@
-import { ApolloClient, InMemoryCache, HttpLink, from } from "@apollo/client";
+import { makeVar, ApolloClient, InMemoryCache, HttpLink, from } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import Cookies from "js-cookie";
 import { onError } from "@apollo/client/link/error";
 import { cookies } from "next/headers";
+
 
 
 const errorLink = onError(({ graphQLErrors }) => {
@@ -27,8 +28,8 @@ const errorLink = onError(({ graphQLErrors }) => {
 });
 
 const httplink = new HttpLink({
-  uri: "/api/graphql",
-  credentials: "include", // optional: can leave or remove; doesn't hurt
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "/api/graphql",
+  credentials: "include", 
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -45,14 +46,45 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
+
+export const cartItemsVar = makeVar<any[]>([]);
+export const likedItemsVar = makeVar<
+  {
+    id: string;
+    name: string;
+    price: number;
+    image?: string;
+  }[]
+>([]);
+
+
 export function createApolloClient() {
   return new ApolloClient({
     link: from([
       errorLink,
       authLink.concat(httplink),
     ]),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      typePolicies: {
+        Query: {
+          fields: {
+            cartItems: {
+              read() {
+                return cartItemsVar();
+              },
+            },
+            likedItems: {
+              read() {
+                return likedItemsVar();
+              },
+            },
+          },
+        },
+      },
+    }),
   });
 
 }
+
+export const client = createApolloClient();
 

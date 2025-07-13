@@ -15,6 +15,7 @@ interface ContextType {
 const server = new ApolloServer<ContextType>({
   typeDefs,
   resolvers,
+  introspection: true
 });
 
 const handler = startServerAndCreateNextHandler<NextRequest>(server, {

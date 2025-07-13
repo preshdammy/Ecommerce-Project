@@ -8,11 +8,12 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
 const create_products = gql`
-  mutation createProduct ($name:String!, $category:String!, $description:String!, $subCategory:String!, $color:String!, $condition:String!, $minimumOrder:Int!, $stock:Int! $price:Float!, $originalPrice:Float, $images: [String!]!) {
-    createProduct (name: $name, category: $category, description: $description, subCategory: $subCategory, color: $color, condition: $condition, minimumOrder: $minimumOrder, stock: $stock, price: $price, originalPrice: $originalPrice images: $images) {
+  mutation createProduct ($name:String!, $category:String!, $description:String!, $extendedDescription:String!, $subCategory:String!, $color:String!, $condition:String!, $minimumOrder:Int!, $stock:Int! $price:Float!, $originalPrice:Float, $images: [String!]!) {
+    createProduct (name: $name, category: $category, description: $description, extendedDescription: $extendedDescription, subCategory: $subCategory, color: $color, condition: $condition, minimumOrder: $minimumOrder, stock: $stock, price: $price, originalPrice: $originalPrice images: $images) {
     name,
     category,
     description,
+    extendedDescription,
     subCategory,
     color,
     condition,
@@ -33,6 +34,7 @@ const ProductUpload = () => {
     name: '',
     category: '',
     description: '',
+    extendedDescription: '',
     subCategory: '',
     color: '',
     stock: 0,
@@ -85,6 +87,7 @@ const ProductUpload = () => {
         name: '',
         category: '',
         description: '',
+        extendedDescription: '',
         subCategory: '',
         color: '',
         stock: 0,
@@ -169,7 +172,7 @@ const ProductUpload = () => {
 
               {/* Input Fields */}
               <div className="md:col-span-3 mt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-[20px] font-medium text-gray-700 mb-1">
                       Product Name
@@ -185,13 +188,49 @@ const ProductUpload = () => {
                     <label className="block text-[20px] font-medium text-gray-700 mb-1">
                       Category
                     </label>
-                    <input
-                      value={productData.category}
-                      onChange={(e)=>setProductData({...productData, category: e.target.value})}
-                      type="text"
-                      className="bg-white w-full h-[88px] rounded-[16px] px-4"
-                    />
+                    <select
+                    name="category"
+                    value={productData.category}
+                    onChange={(e)=>setProductData({...productData, category: e.target.value})}
+                    className="bg-white w-full h-[88px] rounded-[16px] px-4"
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Computers & Laptops">Computers & Laptops</option>
+                    <option value="Cosmetics & Body care">Cosmetics & Body care</option>
+                    <option value="Clothing & Shoes">Clothing & Shoes</option>
+                    <option value="Furniture & Outdoors">Furniture & Outdoors</option>
+                    <option value="Automobiles & Spare parts">Automobiles & Spare parts</option>
+                    <option value="Food, Grocery & Beverages">Food, Grocery & Beverages</option>
+                    <option value="Others">Others</option>
+                  </select>
+
                   </div>
+                  <div>
+                    <label className="block text-[20px] font-medium text-gray-700 mb-1">
+                      Sub-category
+                    </label>
+                    <select
+                      name="subCategory"
+                      value={productData.subCategory}
+                      onChange={(e)=>setProductData({...productData, subCategory: e.target.value})}
+                      className="bg-white w-full h-[88px] rounded-[16px] px-4"
+                    >
+                      <option value="">Select Subcategory</option>
+                      <option value="Laptops">Laptops</option>
+                      <option value="Desktops">Desktops</option>
+                      <option value="Makeup">Makeup</option>
+                      <option value="Skincare">Skincare</option>
+                      <option value="Men's Clothing">Men's Clothing</option>
+                      <option value="Women's Shoes">Women's Shoes</option>
+                      <option value="Living Room">Living Room</option>
+                      <option value="Car Accessories">Car Accessories</option>
+                      <option value="Snacks">Snacks</option>
+                      <option value="Drinks">Drinks</option>
+                      <option value="Other">Other</option>
+                    </select>
+
+                  </div>
+                  
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -208,11 +247,11 @@ const ProductUpload = () => {
                   </div>
                   <div>
                     <label className="block text-[20px] font-medium text-gray-700 mb-1">
-                      Sub-category
+                      Product Extended Description
                     </label>
                     <input
-                      value={productData.subCategory}
-                      onChange={(e)=>setProductData({...productData, subCategory: e.target.value})}
+                      value={productData.extendedDescription}
+                      onChange={(e)=>setProductData({...productData, extendedDescription: e.target.value})}
                       type="text"
                       className="bg-white w-full h-[176px] rounded-[16px] px-4"
                     />
