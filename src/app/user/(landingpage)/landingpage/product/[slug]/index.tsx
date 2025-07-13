@@ -7,6 +7,7 @@ import Image from "next/image";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import { IoChatboxOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
+import { AiFillHeart } from "react-icons/ai";
 import { toast } from "react-toastify"; 
 import { IoIosHeartEmpty } from "react-icons/io";
 import { AiOutlineEye } from "react-icons/ai";
@@ -17,6 +18,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import starLogo from "../../../../../../../public/figma images/Frame 498.png"
 import treeImage from "../../../../../../../public/figma images/0fee51f546b9f6d8a608af5d000da6ed 1.png"
 import bagImage from "../../../../../../../public/figma images/robert-gomez-vXduK0SeYjU-unsplash-removebg-preview 1.png"
+import { cartItemsVar } from "@/shared/lib/apolloClient";
+import { likedItemsVar } from "@/shared/lib/apolloClient";
+import { useReactiveVar } from "@apollo/client";
 
 
 const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
@@ -25,15 +29,34 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
       name
       slug
       description
+      extendedDescription
       price
       images
       seller {
         id
         name
+        email
+        phone
+        businessDescription
+        businessName
+        profilePicture
       }
     }
   }`
 
+const get_reviews = gql`
+      query GetProductReviews($productId: ID!) {
+          productReviews(productId: $productId) {
+            id
+            rating
+            comment
+            user {
+              name
+            }
+          }
+        }
+`
+  
 
   const create_review_mutation = gql`
   mutation CreateReview($productId: ID!, $rating: Int!, $comment: String!) {
@@ -81,6 +104,26 @@ type RelatedProduct = {
     averageRating: number;
     totalReviews: number;
   };
+
+  type ProductDescription = {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    extendedDescription: string;
+    price: number;
+    images: string[];
+    seller: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      businessName: string;
+      businessDescription: string;
+      image?: string;
+    };
+  };
+  
   
   
 const ProductDescription = ({slug}:{slug: string}) => {
@@ -100,6 +143,12 @@ const ProductDescription = ({slug}:{slug: string}) => {
       limit: 8
   },
   skip: !product?.id 
+  });
+
+  const { data: getReviews, loading: reviewLoading, error: reviewError } = useQuery(get_reviews, {
+    variables: 
+      product?.id ? { productId: product.id } : undefined,
+    skip: !product?.id, 
   });
 
   const [createReview, {loading: creatingReview}] = useMutation(create_review_mutation)
@@ -138,6 +187,47 @@ const ProductDescription = ({slug}:{slug: string}) => {
           
       }
       console.log("Related Products Data:", relatedData);
+      const [quantity, setQuantity] = useState(1);
+
+      const increaseQty = () => setQuantity((prev) => prev + 1);
+      const decreaseQty = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+      const handleAddToCart = () => {
+        const currentCart = cartItemsVar();
+      
+        const isAlreadyInCart = currentCart.some((item) => item.id === product.id);
+      
+        if (isAlreadyInCart) {
+          toast.info("Product already in cart");
+          return;
+        }
+      
+        const newItem = {
+          ...product,
+          quantity,
+          totalPrice: product.price * quantity,
+        };
+      
+        cartItemsVar([...currentCart, newItem]);
+        toast.success("Product added to cart!");
+      };
+
+      const likedItems = useReactiveVar(likedItemsVar);
+      const isLiked = likedItems.some((item) => item.id === product.id);
+
+      const toggleLike = (product: ProductDescription) => {
+        const isLiked = likedItems.some((item) => item.id === product.id);
+      
+        if (isLiked) {
+          likedItemsVar(likedItems.filter((item) => item.id !== product.id));
+          toast.info("Removed from Likes");
+        } else {
+          likedItemsVar([...likedItems, product]);
+          toast.success("Added to Likes");
+        }
+      };
+      
+      
+      
       
 
   return (
@@ -146,65 +236,107 @@ const ProductDescription = ({slug}:{slug: string}) => {
         <div className="full bg-[#F8F8F8] py-[10vh]">
           <div className="w-[85%] mx-auto">
             <div className="w-full flex gap-[8%] pb-[10vh]">
-              {/* Left Image Block */}
+             {/* Left Image Block */}
               <div className="w-[45%]">
+                {/* Large Main Image */}
                 <div className="w-full flex justify-center bg-white rounded-[10px] ">
-                  <Image className="w-[265px] h-[350px]" src={bagImage} alt="" />
+                  {product?.images?.[0] && (
+                    <Image
+                      className="w-[265px] h-[350px] object-contain"
+                      src={product.images[0]}
+                      alt="Main product image"
+                      width={265}
+                      height={350}
+                    />
+                  )}
                 </div>
 
+                {/* Two Smaller Thumbnails */}
                 <div className="flex w-full justify-between mt-[15px]">
-                  {[1, 2].map((_, i) => (
+                  {product?.images?.slice(1, 3).map((img: string, i: number) => (
                     <div key={i} className="bg-white w-[48%] flex justify-center rounded-[10px]">
-                      <Image className="h-[175px] w-[133px]" src={bagImage} alt="" />
+                      <Image
+                        className="h-[175px] w-[133px] object-contain"
+                        src={img}
+                        alt={`Thumbnail ${i + 1}`}
+                        width={133}
+                        height={175}
+                      />
                     </div>
                   ))}
                 </div>
               </div>
 
+
               {/* Right Product Details */}
-              <div className="flex flex-col gap-[25px]">
-                <h2 className="w-[504px] font-sans text-[32px] font-[600]">
-                  Durable Bronze and Black Twin Suitcase
-                </h2>
-                <p className="w-[504px] text-[16px] font-[500] font-sans text-[#939090]">
-                  Stylish bronze and black twin suitcase set for modern travelers. Durable,
-                  scratch-resistant exterior.
-                </p>
-                <p className="font-[700] font-sans text-[20px]">₦ 72,000</p>
+              
+              {product && (
+                <div className="flex flex-col gap-[25px]">
+                  <h2 className="w-[504px] font-sans text-[32px] font-[600]">
+                    {product.name}
+                  </h2>
+                  <p className="w-[504px] text-[16px] font-[500] font-sans text-[#939090]">
+                    {product.description}
+                  </p>
+                  <p className="font-[700] font-sans text-[20px]">₦ {(product.price * quantity).toLocaleString()}</p>
 
-                <div className="font-[600] text-[12px] flex justify-between items-center">
-                  <div>
-                    <span className="bg-[#55A7FF] rounded-[3px] py-[7px] px-[12px] text-white">-</span>
-                    <span className="rounded-[3px] py-[7px] px-[12px] bg-white">2</span>
-                    <span className="bg-[#55A7FF] rounded-[3px] py-[7px] px-[12px] text-white">+</span>
-                  </div>
-                  <CiHeart className="text-[24px] text-blue-500" />
-                </div>
-
-                <button className="flex gap-[8px] py-[10px] w-[150px] rounded-[5px] px-[16px] bg-[#FF4C3B] font-[600] items-center text-[16px] text-white">
-                  <span>Add to cart</span>
-                  <RiShoppingCart2Line className="text-[18px] font-[700]" />
-                </button>
-
-                <div className="bg-[#F5FAFF] font-sans w-[340px] h-[75px] ">
-                  <div className="flex h-[100%] w-[100%] justify-around items-center">
-                    <div className="w-[160px] h-[42px] flex">
-                      <Image className="w-[45px] h-[45px] rounded-[50%]" src={treeImage} alt="" />
-                      <div className="flex flex-col justify-between ml-2">
-                        <p className="font-[600] text-[12px]">Luxurious Travels</p>
-                        <p className="text-[#939090] font-[400] text-[10px]">(4.2) Ratings</p>
-                      </div>
+                  <div className="font-[600] text-[12px] flex justify-between items-center">
+                    <div>
+                      <span onClick={decreaseQty} className="bg-[#55A7FF] cursor-pointer rounded-[3px] py-[7px] px-[12px] text-white">-</span>
+                      <span className="rounded-[3px] py-[7px] px-[12px] bg-white">{quantity}</span>
+                      <span onClick={increaseQty} className="bg-[#55A7FF] cursor-pointer rounded-[3px] py-[7px] px-[12px] text-white">+</span>
                     </div>
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="flex items-center py-[10px] px-[12px] gap-[8px] cursor-pointer hover:bg-blue-100 rounded transition"
-                    >
-                      <span className="font-[600] text-[12px]">Message Seller</span>
-                      <IoChatboxOutline className="text-[16px]" />
-                    </button>
+                    <div onClick={() => toggleLike(product)} className="cursor-pointer">
+                      {isLiked ? (
+                        <AiFillHeart className="text-red-500 text-[24px]" />
+                      ) : (
+                        <CiHeart className="text-[24px] text-blue-500" />
+                      )}
+                    </div>
+
+                  </div>
+
+                  <button onClick={handleAddToCart} className="flex gap-[8px] py-[10px] w-[150px] rounded-[5px] px-[16px] bg-[#FF4C3B] font-[600] items-center text-[16px] text-white">
+                    <span>Add to cart</span>
+                    <RiShoppingCart2Line className="text-[18px] font-[700]" />
+                  </button>
+
+                  <div className="bg-[#F5FAFF] font-sans w-[340px] h-[75px]">
+                    <div className="flex h-[100%] w-[100%] justify-around items-center">
+                      <div className="w-[180px] h-[42px] flex">
+                        <Image
+                          className="w-[45px] h-[45px] rounded-[50%]"
+                          src={product.seller.profilePicture} 
+                          alt=""
+                          width={45}
+                          height={45}
+                        />
+                        <div className="flex flex-col justify-between ml-2">
+                          <p className="font-[600] text-[12px]">{product.seller.businessName}</p>
+                          <p className="text-[#939090] font-[400] text-[10px]">
+                            {getReviews?.productReviews?.length
+                              ? `(${(
+                                  getReviews.productReviews.reduce(
+                                    (sum: number, review: any) => sum + review.rating,
+                                    0
+                                  ) / getReviews.productReviews.length
+                                ).toFixed(1)} ⭐)`
+                              : "(No ratings yet)"}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center py-[10px] px-[12px] gap-[8px] cursor-pointer hover:bg-blue-100 rounded transition"
+                      >
+                        <span className="font-[600] text-[12px]">Message Seller</span>
+                        <IoChatboxOutline className="text-[16px]" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
             </div>
 
                        {/* Tabs */}
@@ -230,66 +362,47 @@ const ProductDescription = ({slug}:{slug: string}) => {
 
               {/* Tab Content */}
               <div className="w-[95%] h-[40vh] overflow-auto mx-auto text-[16px] font-sans flex flex-col gap-[10px] mt-[20px]">
-                {activeTab === "details" && (
-                  <>
-                    <p>Introducing our sleek and stylish bronze and black twin suitcase...</p>
-                    <p>
-                      Made from durable materials, these suitcases are built to withstand the rigors
-                      of travel...
-                    </p>
-                    <p>Inside, you'll find a spacious and well-organized interior...</p>
-                    <p>
-                      Maneuvering through crowded airports is a breeze with the smooth-rolling
-                      spinner wheels...
-                    </p>
-                    <p>
-                      Upgrade your travel gear with our bronze and black twin suitcase set...
-                    </p>
-                  </>
-                )}
+              {activeTab === "details" && product?.extendedDescription && (
+                    <>
+                      {product.extendedDescription
+                        .split('\n')
+                        .map((paragraph: string, index: number) => (
+                          <p key={index} className="mt-2">{paragraph.trim()}</p>
+                        ))}
+                    </>
+                  )}
 
-                {activeTab === "reviews" && (
-                  <>
-                    <p className="font-semibold text-lg">Customer Reviews:</p>
-                    {[
-                      {
-                        name: "Jane Doe",
-                        rating: 5,
-                        text:
-                          "This suitcase set is absolutely fantastic. Durable and stylish. I've used it for 3 trips now with no issues at all!",
-                      },
-                      {
-                        name: "John Smith",
-                        rating: 4,
-                        text:
-                          "Great quality. Only wish the smaller one had a bit more room, but overall very satisfied!",
-                      },
-                      {
-                        name: "Amaka Benson",
-                        rating: 4,
-                        text: "Very durable and elegant. Got lots of compliments at the airport!",
-                      },
-                    ].map((review, i) => (
-                      <div key={i} className="bg-[#f9f9f9] p-4 rounded-md shadow mt-2">
-                        <p className="font-medium">{review.name}</p>
-                        <p>{"⭐️".repeat(review.rating)}</p>
-                        <p>{review.text}</p>
-                      </div>
-                    ))}
-                  </>
-                )}
+                  {activeTab === "reviews" && (
+                    <>
+                      <p className="font-semibold text-lg">Customer Reviews:</p>
 
-                {activeTab === "seller" && (
+                      {reviewLoading ? (
+                        <p>Loading reviews...</p>
+                      ) : reviewError ? (
+                        <p className="text-red-500">Error loading reviews.</p>
+                      ) : getReviews?.productReviews.length === 0 ? (
+                        <p>No reviews yet for this product.</p>
+                      ) : (
+                        getReviews.productReviews.map((review: any, i: number) => (
+                          <div key={i} className="bg-[#f9f9f9] p-4 rounded-md shadow mt-2">
+                            <p className="font-medium">{review.user.name}</p>
+                            <p>{"⭐️".repeat(review.rating)}</p>
+                            <p>{review.comment}</p>
+                          </div>
+                        ))
+                      )}
+                    </>
+                  )}
+
+                {activeTab === "seller" && product?.seller && (
                   <>
                     <p className="font-semibold text-lg">Seller Information:</p>
                     <div className="bg-[#f9f9f9] p-4 rounded-md shadow">
-                      <p className="font-medium">Luxurious Travels</p>
-                      <p>Email: luxurious@travels.com</p>
-                      <p>Phone: +234 801 234 5678</p>
+                      <p className="font-medium">{product.seller.businessName}</p>
+                      <p>Email: {product.seller.email}</p>
+                      <p>Phone: {product.seller.phone}</p>
                       <p className="text-sm mt-2">
-                        We provide high-end travel gear tailored for fashion-conscious and
-                        functionality-driven individuals. Reach out to us for inquiries, product
-                        customization, or bulk orders.
+                        {product.seller.businessDescription}
                       </p>
                     </div>
                   </>
@@ -389,6 +502,32 @@ export default ProductDescription;
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 
 export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct[] } }) => {
+  const handleAddToCart = (product: RelatedProduct) => {
+      const existing = cartItemsVar();
+      const alreadyExists = existing.find((item) => item.id === product.id);
+    
+      if (!alreadyExists) {
+        cartItemsVar([...existing, product]);
+        toast.success("Product added to cart!");
+        return
+      }
+      toast.info("Product already in cart")
+    };
+  
+    const likedItems = useReactiveVar(likedItemsVar);
+    
+            const toggleLike = (product: RelatedProduct) => {
+              const isLiked = likedItems.some((item) => item.id === product.id);
+            
+              if (isLiked) {
+                likedItemsVar(likedItems.filter((item) => item.id !== product.id));
+                toast.info("Removed from Likes");
+              } else {
+                likedItemsVar([...likedItems, product]);
+                toast.success("Added to Likes");
+              }
+            };
+  
     return (
       <>
         {data?.relatedProducts?.map((product: RelatedProduct) => {
@@ -410,9 +549,15 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
                 </div>
   
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                  <IoIosHeartEmpty />
-                  <AiOutlineEye />
-                  <IoCartOutline />
+                <button onClick={() => toggleLike(product)} >
+                  {likedItems.some((item) => item.id === product.id) ? (
+                    <AiFillHeart className="text-red-500 text-[24px]" />
+                  ) : (
+                    <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                  )}
+                </button>
+                  <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
+                  <IoCartOutline className="cursor-pointer hover:text-[#00bfff]" onClick={() => handleAddToCart(product)}/>
                 </div>
               </div>
   
