@@ -10,6 +10,7 @@ export const userresolver = {
     user: async (_: any, { id }: { id: string }) => {
       return await usermodel.findById(id).select("-password");
     },
+    
   },
 
   Mutation: {

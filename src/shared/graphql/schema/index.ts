@@ -24,7 +24,7 @@ export const resolvers = mergeResolvers([
     productresolver,
     reviewresolver,
     notificationresolver,
-    orderResolvers
+    orderResolvers,
 ])
 export const typeDefs = mergeTypeDefs([
     usertypedef,
@@ -33,7 +33,7 @@ export const typeDefs = mergeTypeDefs([
     producttypedef,
     reviewtypedef,
     notificationTypeDef,
-    orderTypeDef
+    orderTypeDef,
   ])
   
 

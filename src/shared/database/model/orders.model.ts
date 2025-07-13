@@ -29,4 +29,3 @@ const orderSchema = new Schema<IOrder>(
 
 export const OrderModel = mongoose.models.orders || mongoose.model<IOrder>("orders", orderSchema);
 
-

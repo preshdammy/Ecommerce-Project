@@ -80,7 +80,8 @@ type Message {
     getVendorProfile: Vendor!
     getVendorById(id: ID!): Vendor!
     messages(chatId: ID!): [Message!]!
-   messagesBetween(senderId: ID!, receiverId: ID!): [Message!]!
+    messagesBetween(senderId: ID!, receiverId: ID!): [Message!]!
+
   }
 
   type Mutation {
@@ -117,8 +118,11 @@ type Message {
     ): Vendor
 
      changeVendorPassword(currentPassword: String!, newPassword: String!): Boolean!
-       sendMessage(senderId: ID!, receiverId: ID!, content: String!): Message!
+     sendMessage(senderId: ID!, receiverId: ID!, content: String!): Message!
+    
   }
+       
+  
 
 `;
 

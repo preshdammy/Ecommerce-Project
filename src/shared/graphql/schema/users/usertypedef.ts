@@ -44,5 +44,9 @@ type Mutation {
   updateuser(input: UpdateUserInput!): User!  
   deleteuser(id: ID!): Boolean!
 }
+
+
+
+
 `;
 

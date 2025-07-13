@@ -43,6 +43,7 @@ export const VendorResolver = {
       return vendor;
     },
 
+
     messages: async (_: any, { chatId }: { chatId: string }) => {
       return await messageModel.find({ chatId }).sort({ createdAt: 1 });
     },

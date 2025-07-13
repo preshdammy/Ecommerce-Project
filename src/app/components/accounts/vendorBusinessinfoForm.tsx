@@ -185,7 +185,7 @@ export default function BusinessInformationForm() {
           placeholder="Vendor Email"
           className="mt-1 block w-full h-[7vh] p-3 rounded-md bg-white border-2 border-[#D4D3D3] 
           focus:outline-none focus:ring-0 focus:border-blue-600 placeholder:text-[16px] 
-          placeholder:text-[#272222] placeholder:tracking-[1px]"
+          placeholder:text-[#272222] "
         />
 
         {/* Business Name */}
@@ -196,7 +196,7 @@ export default function BusinessInformationForm() {
           placeholder="Business Name"
           className="mt-1 block w-full h-[7vh] p-3 rounded-md bg-white border-2 border-[#D4D3D3] 
           focus:outline-none focus:ring-0 focus:border-blue-600 placeholder:text-[16px] 
-          placeholder:text-[#272222] placeholder:tracking-[1px]"
+          placeholder:text-[#272222] "
         />
 
         {/* Business Description */}
@@ -207,7 +207,7 @@ export default function BusinessInformationForm() {
           placeholder="Business Description"
           className="mt-1 block w-full h-[7vh] p-3 rounded-md bg-white border-2 border-[#D4D3D3] 
           focus:outline-none focus:ring-0 focus:border-blue-600 placeholder:text-[16px] 
-          placeholder:text-[#272222] placeholder:tracking-[1px]"
+          placeholder:text-[#272222] "
         />
 
         {/* Business Address */}
@@ -218,7 +218,7 @@ export default function BusinessInformationForm() {
           placeholder="Business Address"
           className="mt-1 block w-full h-[7vh] p-3 rounded-md bg-white border-2 border-[#D4D3D3] 
           focus:outline-none focus:ring-0 focus:border-blue-600 placeholder:text-[16px] 
-          placeholder:text-[#272222] placeholder:tracking-[1px]"
+          placeholder:text-[#272222] "
         />
 
         {/* Business Certificate */}
@@ -226,7 +226,7 @@ export default function BusinessInformationForm() {
           <label
             htmlFor="businessCertificate"
             className="block mt-1 w-full h-[7vh] p-3 rounded-md bg-white border-2 border-[#D4D3D3] 
-            cursor-pointer text-[#272222] text-[16px] tracking-[1px]"
+            cursor-pointer text-[#272222] text-[16px]"
           >
             {form.businessCertificateName || "Business certificate... choose a file"}
           </label>
@@ -246,7 +246,7 @@ export default function BusinessInformationForm() {
             value={form.businessOpeningTime}
             onChange={handleChange}
             className="w-full sm:w-1/2 mt-1 h-[7vh] p-3 rounded-md border-2 border-[#D4D3D3] 
-            bg-white text-[16px] text-[#272222] tracking-[1px] focus:outline-none focus:ring-0 
+            bg-white text-[16px] text-[#272222] focus:outline-none focus:ring-0 
             focus:border-blue-600"
           >
             <option value="">Opening Time</option>
@@ -260,7 +260,7 @@ export default function BusinessInformationForm() {
             value={form.businessClosingTime}
             onChange={handleChange}
             className="w-full sm:w-1/2 mt-1 h-[7vh] p-3 rounded-md border-2 border-[#D4D3D3] 
-            bg-white text-[16px] text-[#272222] tracking-[1px] focus:outline-none focus:ring-0 
+            bg-white text-[16px] text-[#272222] focus:outline-none focus:ring-0 
             focus:border-blue-600"
           >
             <option value="">Closing Time</option>
@@ -276,7 +276,7 @@ export default function BusinessInformationForm() {
           value={form.businessAvailability}
           onChange={handleChange}
           className="mt-1 w-full h-[7vh] p-3 rounded-md border-2 border-[#D4D3D3] bg-white 
-          text-[16px] text-[#272222] tracking-[1px] focus:outline-none focus:ring-0 
+          text-[16px] text-[#272222] focus:outline-none focus:ring-0 
           focus:border-blue-600"
         >
           <option value="">Availability</option>
@@ -292,7 +292,7 @@ export default function BusinessInformationForm() {
             value={form.state}
             onChange={handleChange}
             className="p-3 border-2 border-[#D4D3D3] rounded-lg bg-white w-full sm:w-1/2 
-            text-[16px] text-[#272222] tracking-[1px] focus:outline-none focus:border-blue-600"
+            text-[16px] text-[#272222] focus:outline-none focus:border-blue-600"
           >
             <option value="">Select State</option>
             <option>Lagos</option>
@@ -306,7 +306,7 @@ export default function BusinessInformationForm() {
             value={form.city}
             onChange={handleChange}
             className="p-3 border-2 border-[#D4D3D3] rounded-lg bg-white w-full sm:w-1/2 
-            text-[16px] text-[#272222] tracking-[1px] focus:outline-none focus:border-blue-600"
+            text-[16px] text-[#272222] focus:outline-none focus:border-blue-600"
           >
             <option value="">Select City</option>
             <option>Ikeja</option>
@@ -323,7 +323,7 @@ export default function BusinessInformationForm() {
           value={form.joinedDate}
           onChange={handleChange}
           className="w-full p-3 border-2 border-[#D4D3D3] rounded-lg bg-white 
-          text-[16px] text-[#272222] tracking-[1px] focus:outline-none focus:border-blue-600"
+          text-[16px] text-[#272222] focus:outline-none focus:border-blue-600"
         />
 
         {/* Gender */}
