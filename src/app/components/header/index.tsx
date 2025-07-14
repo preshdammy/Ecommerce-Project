@@ -45,6 +45,10 @@ import { useReactiveVar } from "@apollo/client";
 import { cartItemsVar } from "@/shared/lib/apolloClient";
 import { likedItemsVar } from "@/shared/lib/apolloClient";
 
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Cookies from "js-cookie";
+
 
 
 const Header = () => {
@@ -54,6 +58,11 @@ const Header = () => {
   const [counts, setCounts] = useState<{ [productId: string]: number }>({});
   const cartItems = useReactiveVar(cartItemsVar);
   const likedItems = useReactiveVar(likedItemsVar);
+  const pathname = usePathname();
+  const [showUsername, setShowUsername] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  
+  
   interface Product {
     id: string;
     name: string;
@@ -63,6 +72,25 @@ const Header = () => {
   const handleDelete = (product: Product): void => {
     cartItemsVar(cartItemsVar().filter((item: Product) => item.id !== product.id));
   }
+
+  useEffect(() => {
+    if (pathname.startsWith("/user")) {
+      setIsAuthentication(true);
+      setShowUsername(true);
+
+    const cookieUser = Cookies.get("userinfo");
+    if (cookieUser) {
+      try {
+        const parsedUser = JSON.parse(cookieUser);
+        setUserName(parsedUser.name || "User");
+      } catch (err) {
+        console.error("Failed to parse user info from cookies", err);
+      }
+    }
+  
+      return 
+    }
+  }, [pathname]);
 
 
 
@@ -207,7 +235,7 @@ const Header = () => {
             <Image
               onClick={() => {
                 const alreadyInCart = cartItems.find((c) => c.id === item.id);
-                if (!alreadyInCart) cartItemsVar([...cartItems, item]);
+                if (!alreadyInCart) cartItemsVar([...cartItems, item,]);
               }}
               src={cart}
               alt=''
@@ -274,7 +302,7 @@ const Header = () => {
                 />
               </div>
 
-              <Image src={shirt} alt='' />
+              <Image src={item.image || shirt} alt='' />
 
               <div className='flex flex-col'>
                 <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
@@ -372,15 +400,15 @@ const Header = () => {
           }`}
         >
           <div className="flex w-[85%] justify-center h-[100%] items-center mx-auto">
-            <button
-              className={`font-[700] text-[12px] font-sans ${
-                isAuthentication ? "text-white" : "text-[#272222]"
-              }`}
-            >
-              {isAuthentication
-                ? "Welcome back Usman"
-                : "Create an account to continue shopping!"}
-            </button>
+          {isAuthentication && showUsername ? (
+              <button className="font-[700] text-[12px] font-sans text-white">
+                {`Welcome back ${userName || "User"}!`}
+              </button>
+            ) : !isAuthentication ? (
+              <button className="font-[700] text-[12px] font-sans text-[#272222]">
+                Create an account to continue shopping!
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -391,6 +419,8 @@ const Header = () => {
 export default Header;
 
 export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthentication: boolean,  setShowCart: Dispatch<SetStateAction<boolean>>, setShowLike: Dispatch<SetStateAction<boolean>>;}) => {
+  const cartItems = useReactiveVar(cartItemsVar);
+  const likedItems = useReactiveVar(likedItemsVar);
   return (
     <>
       <div
@@ -402,18 +432,28 @@ export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthe
           {" "}
           <GoBell />{" "}
         </Link>
-        {isAuthentication ? (
-          ""
-        ) : (
-          <Link href="" onClick={()=> setShowLike(true)} className="text-[32px]">
-            {" "}
-            <FaRegHeart />{" "}
-          </Link>
-        )}
-        <Link href="" onClick={()=> setShowCart(true)} className="text-[32px]">
-          {" "}
-          <FiShoppingCart />{" "}
+          <div className="relative text-[32px]">
+            <Link href="" onClick={() => setShowLike(true)}>
+              <FaRegHeart />
+              {likedItems.length > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-[16px] h-[16px] flex items-center justify-center">
+                  {likedItems.length}
+                </span>
+              )}
+            </Link>
+          </div>
+
+      <div className="relative text-[32px]">
+        <Link href="" onClick={() => setShowCart(true)}>
+          <FiShoppingCart />
+          {cartItems.length > 0 && (
+            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-[16px] h-[16px] flex items-center justify-center">
+              {cartItems.length}
+            </span>
+          )}
         </Link>
+      </div>
+
         <Link href="" className="text-[32px] flex gap-[2px] items-end">
           {" "}
           <MdOutlineAccountCircle />{" "}

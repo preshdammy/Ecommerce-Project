@@ -14,7 +14,6 @@ const errorLink = onError(({ graphQLErrors }) => {
         err.message.includes("jwt expired") ||
         err.extensions?.code === "UNAUTHENTICATED"
       ) {
-        // Remove all role tokens if expired
         Cookies.remove("usertoken");
         Cookies.remove("vendortoken");
         Cookies.remove("admintoken");
