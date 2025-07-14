@@ -5,6 +5,9 @@ const vendorTypeDefs = gql`
     id: ID!
     name: String!
     email: String!
+    personalEmail: String
+    personalProfilePic: String
+    profileName: String
     storeName: String
     profilePicture: String
     bio: String
@@ -38,6 +41,9 @@ type Message {
     id: ID!
     name: String!
     email: String!
+    personalEmail: String
+    personalProfilePic: String
+    profileName: String
     storeName: String
     profilePicture: String
     bio: String
@@ -97,7 +103,10 @@ type Message {
 
     updateVendorProfile(
       email: String!
+      personalEmail: String
+      personalProfilePic: String
       name: String
+      profileName: String
       storeName: String
       profilePicture: String
       bio: String

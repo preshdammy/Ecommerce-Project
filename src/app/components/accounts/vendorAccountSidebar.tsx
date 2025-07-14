@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BsCartCheck } from 'react-icons/bs';
-import { CiPhone, CiCreditCard1, CiLocationOn, CiLock } from "react-icons/ci";
+import { CiUser, CiPhone, CiCreditCard1, CiLocationOn, CiLock } from "react-icons/ci";
 import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { GoInbox } from "react-icons/go";
 import { BsArrowCounterclockwise } from "react-icons/bs";
@@ -12,6 +12,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { IoIosLogOut } from "react-icons/io";
 
 const sidebarItems = [
+  { icon: <CiUser />, label: 'Personal Details', path: '/vendor/account-settings' },
   { icon: <HiOutlineBuildingOffice2 />, label: 'Business Information', path: '/vendor/account-settings/business-information' },
   { icon: <CiPhone />, label: 'Change Contact Details', path: '/vendor/account-settings/change-contact-details' },
   { icon: <CiLock />, label: 'Change Password', path: '/vendor/account-settings/change-password' },
@@ -32,7 +33,7 @@ export default function AccountSidebar() {
     <aside className="w-[250px] bg-white mt-4 pt-4 pb-6 px-4 rounded-xl shadow-sm border border-gray-200">
       <ul className="space-y-4">
         {sidebarItems.map((item, idx) => {
-          const isActive = pathname === item.path || (pathname === '/vendor/account-settings' && item.path === '/vendor/account-settings/business-information');
+          const isActive = pathname === item.path || (pathname === '/vendor/account-settings' && item.path === '/vendor/account-settings/personal-details');
           return (
             <li key={idx}>
               <Link
