@@ -132,9 +132,7 @@ const Header = () => {
               </div>
             </div>
 
-            {isAuthentication ? (
-              <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike} />
-            ) : (
+            
               <button className="w-[20%] lg:flex h-[64px] rounded-[16px] hidden bg-[#FF4C3B] justify-center gap-[16px] text-white items-center">
                 <span>Become a Seller </span>
                 <Image
@@ -143,11 +141,11 @@ const Header = () => {
                   alt=""
                 />
               </button>
-            )}
+            
 
             <div className=" flex items-center sm:gap-[40px] gap-[30px] lg:gap-[50px] lg:hidden text-blue-500">
               <Link
-                href="/cart"
+                href="/user/cart"
                 className="md:text-[28px] sm:text-[24px] text-[16px]"
               >
                 {" "}
@@ -341,19 +339,6 @@ const Header = () => {
 
 
 
-        {isAuthentication ? (
-          <div className="w-full flex h-[71px] bg-white">
-            <div className=" w-[85%] flex mx-auto items-center justify-between text-[20px] font-sans text-[#272222]">
-              <Link href="">Electronics</Link>
-              <Link href=""> Fashion</Link>
-              <Link href=""> Health & Beauty</Link>
-              <Link href="">Furniture</Link>
-              <Link href="">Automobiles</Link>
-              <Link href="">Outdoors</Link>
-              <Link href="">Foods</Link>
-            </div>
-          </div>
-        ) : (
           <div className=" w-full h-[87px] bg-[#007BFF] lg:block hidden">
             <div className="w-[85%] h-[100%] mx-auto flex items-center justify-between">
               <div className=" h-[100%] flex items-end">
@@ -385,23 +370,21 @@ const Header = () => {
                 <Link href=""> Events</Link>
                 <Link href=""> FAQ</Link>
               </div>
-              {isAuthentication ? (
-                ""
-              ) : (
+              
                 <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike}/>
-              )}
+              
             </div>
           </div>
-        )}
+       
 
         <div
           className={`w-full lg:flex hidden h-[46px] ${
-            isAuthentication ? "bg-blue-500" : "bg-white"
+            isAuthentication ? "bg-[#ffffff]" : "bg-white"
           }`}
         >
           <div className="flex w-[85%] justify-center h-[100%] items-center mx-auto">
           {isAuthentication && showUsername ? (
-              <button className="font-[700] text-[12px] font-sans text-white">
+              <button className="font-[700] text-[12px] font-sans text-black">
                 {`Welcome back ${userName || "User"}!`}
               </button>
             ) : !isAuthentication ? (
@@ -425,7 +408,7 @@ export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthe
     <>
       <div
         className={`flex w-[220px]  justify-between ${
-          isAuthentication ? "text-blue-500" : "text-white"
+          isAuthentication ? "text-white" : "text-white"
         } `}
       >
         <Link href="" className="text-[32px]">
