@@ -10,6 +10,7 @@ type product = {
     name: string;
     category: string;
     description: string;
+    extendedDescription: string;
     subCategory: string;
     color: string;
     condition: string;
@@ -43,6 +44,18 @@ export const productresolver = {
             } catch (error: any) {
               handleError(error);
               throw new Error(error);
+            }
+          },
+
+          allCategories: async () => {
+            try {
+              const categories = await productModel.distinct("category");
+              return categories.map((cat: string) => ({
+                name: cat,
+                slug: slugify(cat, { lower: true, strict: true })
+              }));
+            } catch (error) {
+              handleError(error);
             }
           },
           
@@ -124,17 +137,15 @@ export const productresolver = {
         }
       },
       
-        productsByCategory: async (_: any, { category }: { category: string }) => {
-            try {
-                const productsbycategory = await productModel.find({ category })
-                if (!productsbycategory || productsbycategory.length === 0) {
-                    throw new Error("No products found in this category");
-                }
-                return productsbycategory;
-            } catch (error) {
-                handleError(error);
-            }
-        },
+      productsByCategory: async (_: any, { category }: { category: string }) => {
+        const products = await productModel.find({
+          categorySlug: category, 
+        }).populate("seller");
+      
+        return products;
+      },
+      
+      
         productsBySubCategory: async (_: any, { subCategory }: { subCategory: string }) => {
             try {
                 const productsbysubcategory = await productModel.find({ subCategory })
@@ -243,6 +254,7 @@ export const productresolver = {
                 name,
                 category,
                 description,
+                extendedDescription,
                 subCategory,
                 color,
                 condition,
@@ -277,6 +289,11 @@ export const productresolver = {
                 trim: true,
               });
               console.log("Generated slug:", slug);
+
+              const categorySlug = category
+                    .replace(/&/g, "and")
+                    .replace(/\s+/g, '-')
+                    .toLowerCase();
           
               // Upload images to Cloudinary
               const pictures = await Promise.all(
@@ -299,7 +316,9 @@ export const productresolver = {
               const newproduct = await productModel.create({
                 name,
                 category,
+                categorySlug,
                 description,
+                extendedDescription,
                 subCategory,
                 color,
                 condition,
@@ -312,7 +331,7 @@ export const productresolver = {
                 stock,
                 seller: seller._id,
               });
-          
+              
               return newproduct;
             } catch (error) {
               console.error("Product creation error:", error);
@@ -323,7 +342,7 @@ export const productresolver = {
           
           
         updateProduct: async (_: any, arg: product, context: any) => {
-            const  {id, name, category, description, subCategory, color, condition, minimumOrder, price, images} = arg
+            const  {id, name, category, description, extendedDescription, subCategory, color, condition, minimumOrder, price, images} = arg
             try {
               const {vendor} = context 
               console.log(vendor);
@@ -343,6 +362,7 @@ export const productresolver = {
                 name,
                 category,
                 description,
+                extendedDescription,
                 subCategory,
                 color,
                 condition,
