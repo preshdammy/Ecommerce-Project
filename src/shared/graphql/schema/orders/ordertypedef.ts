@@ -17,6 +17,7 @@ type Order {
   status: OrderStatus!
   createdAt: String!
   updatedAt: String!
+  estimatedDeliveryDate: String
 }
 
 extend type Query {

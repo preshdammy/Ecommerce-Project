@@ -13,10 +13,14 @@ enum OrderStatus {
     DELIVERED,
     CANCELLED
   }
+
+  const estimatedDeliveryDate = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 3 days from now
+
+
 export const orderResolvers = {
   Query: {
     async myOrders(_: any, __: any, context: any) {
-      console.log("MY ORDERS CONTEXT:", context);
+      // console.log("MY ORDERS CONTEXT:", context);
       
       if (!context.user) throw new Error("Unauthorized");
       return OrderModel.find({ buyer: context.user.id }).sort({ createdAt: -1 })
@@ -73,17 +77,24 @@ export const orderResolvers = {
         quantity,
         totalAmount,
         status: "PENDING",
+        estimatedDeliveryDate,
       });
 
       await NotificationModel.create({
-        recipient: product.seller,
-        recipientType: "vendor",
+        recipientId: product.seller.toString(), // vendor ID
+        recipientRole: "VENDOR",
+        type: "ORDER",
+        title: "New Order",
         message: `A new order has been placed for ${product.name}.`,
-        read: false,
+        isRead: false,
       });
 
-      return order.populate("product").populate("vendor").populate("buyer");
+      return await OrderModel.findById(order._id)
+      .populate("product")
+      .populate("vendor")
+      .populate("buyer");
     },
+
 
     async updateOrderStatus(_: any, { id, status }: {id: string, status: OrderStatus}, context: any) {
       const order = await OrderModel.findById(id);
@@ -116,20 +127,27 @@ export const orderResolvers = {
     
         // Notify the user
         await NotificationModel.create({
-          recipient: order.buyer._id,
-          recipientType: "user",
+          recipientId: order.buyer._id.toString(),
+          recipientRole: "USER",
+          type: "ORDER",
+          title: "Order Shipped",
           message: `Your order for "${order.product.name}" has been shipped.`,
-          read: false,
+          isRead: false,
         });
     
         // Notify the vendor
         await NotificationModel.create({
-          recipient: order.vendor._id,
-          recipientType: "vendor",
+          recipientId: order.vendor._id.toString(),
+          recipientRole: "VENDOR",
+          type: "ORDER",
+          title: "Order Marked as Shipped",
           message: `You marked the order for "${order.product.name}" as shipped.`,
-          read: false,
+          isRead: false,
         });
     
         return order;
   },
 }};
+
+
+    
