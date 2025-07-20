@@ -37,7 +37,7 @@ const CREATE_UPDATE_VENDOR_PROFILE = gql`
 
 export default function vendorPersonalDetailsForm() {
     const [preview, setPreview] = useState<string | null>(null);
-     const [updateVendorProfile, { loading }] = useMutation(CREATE_UPDATE_VENDOR_PROFILE);
+    const [updateVendorProfile, { loading }] = useMutation(CREATE_UPDATE_VENDOR_PROFILE);
     const [form, setForm] = useState({
         personalProfilePic: "",
         profileName: "",
