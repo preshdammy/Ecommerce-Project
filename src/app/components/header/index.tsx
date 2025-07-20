@@ -19,12 +19,6 @@ import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState } from "react";
 import { div } from "framer-motion/client";
-
-
-
-
-
-
 import cancel from '../../../../public/figma images/x-01.png'
 import cart from '../../../../public/figma images/shopping-cart (2).png'
 import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsplash-removebg-preview 1.png'
@@ -33,14 +27,8 @@ import substract from '../../../../public/figma images/Icon (1).png'
 import add from '../../../../public/figma images/add-square-02.png'
 import { IoIosAddCircle } from "react-icons/io";
 import { GrSubtractCircle } from "react-icons/gr";
-
-
-
-
-
 import like from '../../../../public/figma images/heart (1).png'
 import cancel2 from '../../../../public/figma images/Icon (2).png'
-
 import { useReactiveVar } from "@apollo/client";
 import { cartItemsVar } from "@/shared/lib/apolloClient";
 import { likedItemsVar } from "@/shared/lib/apolloClient";

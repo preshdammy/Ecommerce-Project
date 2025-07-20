@@ -14,8 +14,6 @@ enum OrderStatus {
     CANCELLED
   }
 
-  const estimatedDeliveryDate = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 3 days from now
-
 
 export const orderResolvers = {
   Query: {
@@ -69,6 +67,7 @@ export const orderResolvers = {
       if (!product) throw new Error("Product not found");
 
       const totalAmount = product.price * quantity;
+      const estimatedDeliveryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
 
       const order = await OrderModel.create({
         product: product._id,
@@ -78,16 +77,18 @@ export const orderResolvers = {
         totalAmount,
         status: "PENDING",
         estimatedDeliveryDate,
-      });
+      });   
 
-      await NotificationModel.create({
-        recipientId: product.seller.toString(), // vendor ID
-        recipientRole: "VENDOR",
-        type: "ORDER",
-        title: "New Order",
-        message: `A new order has been placed for ${product.name}.`,
-        isRead: false,
-      });
+
+        await NotificationModel.create({
+          recipientId: product.seller.toString(),
+          recipientRole: "VENDOR",
+          type: "ORDER",
+          title: "New Order",
+          message: `A new order has been placed for ${product.name}.`,
+          isRead: false,
+        });
+      
 
       return await OrderModel.findById(order._id)
       .populate("product")
@@ -141,7 +142,7 @@ export const orderResolvers = {
           recipientRole: "VENDOR",
           type: "ORDER",
           title: "Order Marked as Shipped",
-          message: `You marked the order for "${order.product.name}" as shipped.`,
+          message: `You marked the order for "${order.product.name}" has shipped.`,
           isRead: false,
         });
     
