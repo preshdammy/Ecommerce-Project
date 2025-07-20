@@ -40,6 +40,7 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
         businessDescription
         businessName
         profilePicture
+        joinedDate
       }
     }
   }`
@@ -56,6 +57,13 @@ const get_reviews = gql`
           }
         }
 `
+const get_my_products = gql`query GetMyProducts {
+  myProducts {
+    id
+    slug
+    
+  }
+}`
   
 
   const create_review_mutation = gql`
@@ -121,6 +129,7 @@ type RelatedProduct = {
       businessName: string;
       businessDescription: string;
       image?: string;
+      joinedDate: string;
     };
   };
   
@@ -144,6 +153,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
   },
   skip: !product?.id 
   });
+  const { data: myProductData } = useQuery(get_my_products)
 
   const { data: getReviews, loading: reviewLoading, error: reviewError } = useQuery(get_reviews, {
     variables: 
@@ -394,21 +404,55 @@ const ProductDescription = ({slug}:{slug: string}) => {
                     </>
                   )}
 
-                {activeTab === "seller" && product?.seller && (
-                  <>
-                    <p className="font-semibold text-lg">Seller Information:</p>
-                    <div className="bg-[#f9f9f9] p-4 rounded-md shadow">
-                      <p className="font-medium">{product.seller.businessName}</p>
-                      <p>Email: {product.seller.email}</p>
-                      <p>Phone: {product.seller.phone || "contact by Email only"}</p>
-                      <p className="text-sm mt-2">
-                        {product.seller.businessDescription}
-                      </p>
+              {activeTab === "seller" && product?.seller && (
+                <>
+                  {[product.seller].map((seller, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-start bg-white px-6 py-4 "
+                    >
+                      {/* Left side: Shop Info */}
+                      <div className="flex flex-col space-y-2 max-w-[52%]">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-lg font-semibold">{seller.businessName}</span>
+                          <div className="flex items-center gap-1 text-gray-500 text-[12px]">
+                            <span>(4.2) Ratings</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-800 leading-[1.4]">
+                        Luxury Travels is a high-end travel company that provides exclusive, bespoke travel experiences for romantic getaways,
+                        family vacations, and corporate retreats. They offer expert travel advice and concierge services, focusing on luxury and
+                        exclusivity, to create personalized travel itineraries for their clients.
+                        </p>
+                      </div>
+
+                      {/* Right side: Stats and Button */}
+                      <div className="flex flex-col items-start justify-between text-sm text-gray-700 min-w-[170px]">
+                        <p>
+                          <span className="font-medium">Joined On:</span>{" "}
+                          {seller.joinedDate}
+                        </p>
+                        <p>
+                          <span className="font-medium">Total Products:</span>{" "}
+                          {myProductData?.myProducts?.length || 0}
+                        </p>
+                        <p>
+                          <span className="font-medium">Total Reviews:</span>{" "}
+                          {getReviews?.productReviews?.length || 0}
+                        </p>
+                        <button
+                          className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                        >
+                          Visit Shop
+                        </button>
+                      </div>
                     </div>
-                  </>
-                )}
+                  ))}
+                </>
+              )}
               </div>
-            </div>
+              </div>
+
 
             {/* Review Form */}
             <div className="w-[95%] mt-[30px] ">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import VendorAccountLayout from '../../../components/accounts/vendorAccountlayout';
 import AccountSettingsHeader from '../../../components/accounts/AccountSettingHeader';
-import BusinessInformationForm from '../../../components/accounts/vendorBusinessinfoForm';
+import VendorPersonalDetailsForm from '../../../components/accounts/vendorPersonalDetailsForm';
 import MobileAccountSettings from '../../../components/accounts/MobileAccountSettings';
 
 export default function VendorAccountSettingsPage() {
@@ -25,7 +25,7 @@ export default function VendorAccountSettingsPage() {
             </Link>
           </div>
             <AccountSettingsHeader title="User Settings" />
-           <BusinessInformationForm />
+           <VendorPersonalDetailsForm />
         </VendorAccountLayout>
        </div>
     </>

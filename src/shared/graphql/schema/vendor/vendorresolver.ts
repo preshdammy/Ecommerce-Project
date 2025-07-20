@@ -115,6 +115,7 @@ export const VendorResolver = {
         gender,
         joinedDate,
         businessCertificate,
+        personalProfilePic,
         ...rest
       } = args;
 
@@ -146,13 +147,26 @@ export const VendorResolver = {
         updateData.businessCertificate = businessCertificate;
       }
 
+      if (personalProfilePic && personalProfilePic.startsWith("data:image")) {
+        try {
+          const uploadResponse = await cloudinary.uploader.upload(personalProfilePic, {
+            folder: "vendor_personal_profile_pictures",
+          });
+          updateData.personalProfilePic = uploadResponse.secure_url;
+        } catch {
+          throw new Error("Failed to upload personal profile picture");
+        }
+      } else if (personalProfilePic) {
+        updateData.personalProfilePic = personalProfilePic;
+      }
+
       if (gender) updateData.gender = gender;
       if (joinedDate) updateData.joinedDate = joinedDate;
 
       const allowedFields = [
-        "name", "storeName", "bio", "phone", "location", "address",
-        "businessName", "businessDescription", "businessAddress",
-        "businessOpeningTime", "businessClosingTime", "businessAvailability"
+        "name", "storeName", "bio", "phone", "location", "address", "personalProfilePic",
+        "businessName", "businessDescription", "businessAddress", "personalEmail",
+        "businessOpeningTime", "businessClosingTime", "businessAvailability", "profileName"
       ];
 
       for (const key of allowedFields) {

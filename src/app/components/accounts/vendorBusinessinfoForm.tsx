@@ -20,7 +20,6 @@ const UPDATE_VENDOR_PROFILE = gql`
     $location: String
     $joinedDate: String
     $profilePicture: String
-    $gender: String
   ) {
     updateVendorProfile(
       email: $email
@@ -34,7 +33,6 @@ const UPDATE_VENDOR_PROFILE = gql`
       location: $location
       joinedDate: $joinedDate
       profilePicture: $profilePicture
-      gender: $gender
     ) {
       id
       businessName
@@ -57,8 +55,7 @@ export default function BusinessInformationForm() {
     state: "",
     city: "",
     joinedDate: "",
-    profilePicture: "",
-    gender: "",
+    profilePicture: ""
   });
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -136,8 +133,7 @@ export default function BusinessInformationForm() {
         state: "",
         city: "",
         joinedDate: "",
-        profilePicture: "",
-        gender: "",
+        profilePicture: ""
       })
 
       toast.success("Business information updated successfully!");
@@ -325,23 +321,6 @@ export default function BusinessInformationForm() {
           className="w-full p-3 border-2 border-[#D4D3D3] rounded-lg bg-white 
           text-[16px] text-[#272222] focus:outline-none focus:border-blue-600"
         />
-
-        {/* Gender */}
-        <div className="flex items-center gap-4 justify-center">
-          <span className="text-sm text-gray-700">Gender:</span>
-          {["Female", "Male"].map((g) => (
-            <label key={g} className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="gender"
-                value={g}
-                checked={form.gender === g}
-                onChange={handleChange}
-              />
-              <span className="text-[#272222]">{g}</span>
-            </label>
-          ))}
-        </div>
 
        {/* Submit */}
           <div className="flex justify-center">
