@@ -80,15 +80,14 @@ export const orderResolvers = {
       });   
 
 
-        await NotificationModel.create({
-          recipientId: product.seller.toString(),
-          recipientRole: "VENDOR",
-          type: "ORDER",
-          title: "New Order",
-          message: `A new order has been placed for ${product.name}.`,
-          isRead: false,
-        });
-      
+      await NotificationModel.create({
+        recipientId: product.seller.toString(), // vendor ID
+        recipientRole: "VENDOR",
+        type: "ORDER",
+        title: "New Order",
+        message: `A new order has been placed for ${product.name}.`,
+        isRead: false,
+      });
 
       return await OrderModel.findById(order._id)
       .populate("product")
@@ -142,7 +141,7 @@ export const orderResolvers = {
           recipientRole: "VENDOR",
           type: "ORDER",
           title: "Order Marked as Shipped",
-          message: `You marked the order for "${order.product.name}" has shipped.`,
+          message: `You marked the order for "${order.product.name}" as shipped.`,
           isRead: false,
         });
     
