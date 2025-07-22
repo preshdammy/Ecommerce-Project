@@ -17,6 +17,7 @@
     "@paystack/inline-js": "^2.22.6",
     "apollo-server-express": "^3.13.0",
     "autoprefixer": "^10.4.21",
+    "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.1",
     "date-fns": "^4.1.0",
@@ -41,6 +42,7 @@
     "react-icons": "^5.5.0",
     "react-responsive-carousel": "^3.2.23",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.1.0",
     "slugify": "^1.6.6",
     "sweetalert2": "^11.22.2",
     "zod": "^3.25.64"

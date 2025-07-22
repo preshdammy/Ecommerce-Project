@@ -36,7 +36,7 @@ const authLink = setContext((_, { headers }) => {
   const vendortoken = Cookies.get("vendortoken");
   const admintoken = Cookies.get("admintoken");
   const token = usertoken || vendortoken || admintoken;
-
+  
   return {
     headers: {
       ...headers,
