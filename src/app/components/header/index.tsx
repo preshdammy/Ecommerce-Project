@@ -19,6 +19,7 @@ import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState } from "react";
 import { div } from "framer-motion/client";
+
 import cancel from '../../../../public/figma images/x-01.png'
 import cart from '../../../../public/figma images/shopping-cart (2).png'
 import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsplash-removebg-preview 1.png'
@@ -36,6 +37,7 @@ import { likedItemsVar } from "@/shared/lib/apolloClient";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 
 
@@ -49,6 +51,7 @@ const Header = () => {
   const pathname = usePathname();
   const [showUsername, setShowUsername] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const Router = useRouter()
   
   
   interface Product {
@@ -59,6 +62,12 @@ const Header = () => {
 
   const handleDelete = (product: Product): void => {
     cartItemsVar(cartItemsVar().filter((item: Product) => item.id !== product.id));
+  }
+
+  const handleCheckout = () => {
+    Router.push("/user/checkout-page")
+    setShowCart(false)
+    setShowLike(false)
   }
 
   useEffect(() => {
@@ -234,7 +243,7 @@ const Header = () => {
 
     {likedItems.length > 0 && (
       <div className='mx-auto mt-auto'>
-        <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>
+        <button onClick={handleCheckout} className='text-[16px] px-4 py-2 cursor-pointer hover:bg-amber-700 text-white bg-[#ff4c3b] font-[700]'>
           Checkout Now (₦{" "}
           {likedItems.reduce((sum, item) => sum + item.price, 0).toLocaleString()})
         </button>
@@ -309,7 +318,7 @@ const Header = () => {
 
     {cartItems.length > 0 && (
       <div className='mx-auto mt-auto'>
-        <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>
+        <button onClick={handleCheckout} className='text-[16px] px-4 py-2 cursor-pointer hover:bg-amber-700 text-white bg-[#ff4c3b] font-[700]'>
           Checkout Now (₦{" "}
           {cartItems
             .reduce((sum, item) => {

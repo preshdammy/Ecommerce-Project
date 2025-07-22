@@ -17,6 +17,7 @@
     "@paystack/inline-js": "^2.22.6",
     "apollo-server-express": "^3.13.0",
     "autoprefixer": "^10.4.21",
+    "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.1",
     "date-fns": "^4.1.0",
