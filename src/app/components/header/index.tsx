@@ -475,10 +475,10 @@ export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthe
         </Link>
       </div>
 
-        <Link href="" className="text-[32px] flex gap-[2px] items-end">
+        <Link href="" className="text-[32px] flex gap-[1px] items-end">
           {" "}
           <MdOutlineAccountCircle />{" "}
-          <span className="text-[18px]">
+          <span className="text-[18px] -ml-[5px]">
             <FaCaretDown />
           </span>
         </Link>
