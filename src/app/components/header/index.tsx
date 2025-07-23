@@ -38,6 +38,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { string } from "zod";
 
 
 
@@ -60,6 +61,11 @@ const Header = () => {
     price: number;
   }
 
+  const isHomeActive = () => {
+    return pathname === "/" || pathname === "/user" || pathname === "/vendor";
+  };
+
+
   const handleDelete = (product: Product): void => {
     cartItemsVar(cartItemsVar().filter((item: Product) => item.id !== product.id));
   }
@@ -74,20 +80,41 @@ const Header = () => {
     if (pathname.startsWith("/user")) {
       setIsAuthentication(true);
       setShowUsername(true);
-
-    const cookieUser = Cookies.get("userinfo");
-    if (cookieUser) {
-      try {
-        const parsedUser = JSON.parse(cookieUser);
-        setUserName(parsedUser.name || "User");
-      } catch (err) {
-        console.error("Failed to parse user info from cookies", err);
-      }
-    }
   
-      return 
+      const cookieUser = Cookies.get("userinfo");
+      if (cookieUser) {
+        try {
+          const parsedUser = JSON.parse(cookieUser);
+          setUserName(parsedUser.name || "User");
+        } catch (err) {
+          console.error("Failed to parse user info from cookies", err);
+        }
+      } else {
+        setUserName(null);
+      }
+  
+    } else if (pathname.startsWith("/vendor")) {
+      setIsAuthentication(true);
+      setShowUsername(true);
+  
+      const cookieVendor = Cookies.get("vendorinfo");
+      if (cookieVendor) {
+        try {
+          const parsedVendor = JSON.parse(cookieVendor);
+          setUserName(parsedVendor.name || "Vendor");
+        } catch (err) {
+          console.error("Failed to parse vendor info from cookies", err);
+        }
+      } else {
+        setUserName(null);
+      }
+  
+    } else {
+      setIsAuthentication(false);
+      setShowUsername(false);
     }
   }, [pathname]);
+  
 
 
 
@@ -96,7 +123,7 @@ const Header = () => {
       <div className="max-w-[1536px] mx-auto font-sans">
         <div className="w-full bg-blue-500 lg:hidden">
           <div className="md:h-[75px] w-[85%] h-[25px] text-[8px] gap-[16px] flex mx-auto sm:text-[16px] sm:h-[60px] md:text-[20px] items-center sm:gap-[6%] text-white ">
-            <Link href="">Home</Link>
+            <Link  href="/" className={`relative ${isHomeActive() ? "text-[#272222] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#272222]" : ""}`}>Home</Link>
             <Link href="">About Us</Link>
             <Link href="">Contact Us</Link>
             <Link href="">Help</Link>
@@ -141,19 +168,23 @@ const Header = () => {
             
 
             <div className=" flex items-center sm:gap-[40px] gap-[30px] lg:gap-[50px] lg:hidden text-blue-500">
-              <Link
+            <Link
                 href="/user/cart"
-                className="md:text-[28px] sm:text-[24px] text-[16px]"
+                className="relative md:text-[28px] sm:text-[24px] text-[16px]"
               >
-                {" "}
-                <FiShoppingCart />{" "}
+                <FiShoppingCart />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] sm:text-[10px] md:text-[12px] font-bold rounded-full px-1.5 sm:px-2">
+                    {cartItems.length}
+                  </span>
+                )}
               </Link>
+
               <Link
                 href=""
                 className="md:text-[28px] sm:text-[24px] text-[16px]"
               >
-                {" "}
-                <RxHamburgerMenu />{" "}
+                <RxHamburgerMenu />
               </Link>
             </div>
           </div>
@@ -361,7 +392,7 @@ const Header = () => {
                 </div>
               </div>
               <div className="flex w-[642px] font-sans font-[600] text-white text-[20px]  justify-around items-center">
-                <Link href=""> Home</Link>
+                <Link href="/" className={`relative ${isHomeActive() ? "text-[#272222] font-[600] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#272222]" : ""}`}> Home</Link>
                 <Link href="">Best Selling</Link>
                 <Link href=""> Products</Link>
                 <Link href=""> Events</Link>
