@@ -36,6 +36,13 @@ input ShippingAddressInput {
   country: String!
 }
 
+input UpdateOrderStatusInput {
+  orderId: ID!
+  status: String!
+  manualOverride: Boolean   
+}
+
+
 type PaystackInitResponse {
   authorizationUrl: String!
   reference: String!
@@ -56,6 +63,7 @@ type Order {
   vendors: [Vendor!]!
   totalAmount: Float!
   shippingFee: Float!
+  manualOverride: Boolean!
   shippingAddress: ShippingAddress!
   paymentMethod: PaymentMethod!
   paymentStatus: PaymentStatus!
@@ -63,7 +71,11 @@ type Order {
   status: OrderStatus!
   createdAt: String!
   updatedAt: String!
+  shippedAt: Date
+  deliveredAt: Date
 }
+
+scalar Date
 
 type ShippingAddress {
   street: String!
@@ -93,6 +105,8 @@ extend type Mutation {
   ): Order!
 
   markOrderShipped(id: ID!): Order!
+
+  vendorUpdateOrderStatus(orderId: ID!, status: String!): Order!
 
   initiatePaystackPayment(orderId: ID!): PaystackInitResponse!
   verifyPaystackPayment(reference: String!): Order!

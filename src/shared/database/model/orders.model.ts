@@ -25,11 +25,14 @@ export interface IOrder extends Document {
   shippingAddress: IShippingAddress;
   paymentMethod: string;
   paymentStatus: "UNPAID" | "PENDING" | "PAID" | "FAILED";
+  manualOverride: boolean;
   paystackReference?: string;
   paystackSplitCode?: string;
   status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   createdAt: Date;
   updatedAt: Date;
+  shippedAt: Date;
+  deliveredAt: Date;
 }
 
 const orderItemSchema = new Schema<IOrderItem>(
@@ -70,6 +73,18 @@ const orderSchema = new Schema<IOrder>(
       type: String,
       enum: ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"],
       default: "PENDING",
+    },
+    manualOverride: {
+      type: Boolean,
+      default: false,
+    },
+    shippedAt: {
+      type: Date,
+      default: null,
+    },
+    deliveredAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }
