@@ -117,6 +117,17 @@ export default function CheckoutSuccessPage() {
     fetchPolicy: "network-only",
   });
 
+  useEffect(() => {
+    if (activeOrderId) {
+      const interval = setInterval(() => {
+        refetchOrder();
+      }, 60000); 
+  
+      return () => clearInterval(interval);
+    }
+  }, [activeOrderId, refetchOrder]);
+  
+
   // auto‑verify if reference present
   useEffect(() => {
     if (qsRef && !verifyTried) {

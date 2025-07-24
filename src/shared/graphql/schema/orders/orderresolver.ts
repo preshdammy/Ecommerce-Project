@@ -1,12 +1,40 @@
-// src/shared/graphql/schema/orders/orderResolvers.ts
 
 import { OrderModel, IOrder } from "@/shared/database/model/orders.model";
 import { productModel } from "@/shared/database/model/product.model";
 import { vendorModel } from "@/shared/database/model/vendor.model";
 import { usermodel } from "@/shared/database/model/user.model";
 import { NotificationModel } from "@/shared/database/model/notifications.model";
+import cron from "node-cron";
 import axios from "axios";
 import { Types } from "mongoose";
+
+
+cron.schedule("*/5 * * * *", async () => {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000); 
+
+  try {
+    const updated = await OrderModel.updateMany(
+      {
+        status: "PENDING",
+        createdAt: { $lt: cutoff },
+        manualOverride: false,
+        $or: [
+          { paymentMethod: "POD", paymentStatus: "UNPAID" },
+          { paymentMethod: { $ne: "POD" }, paymentStatus: "PAID" },
+        ],
+      },
+      {
+        $set: { status: "SHIPPED", shippedAt: new Date() },
+      }
+    );
+
+    if (updated.modifiedCount > 0) {
+      console.log(`[CRON] Marked ${updated.modifiedCount} orders as SHIPPED`);
+    }
+  } catch (error) {
+    console.error("[CRON ERROR] Failed to auto-ship orders:", error);
+  }
+});
 
 /* -------------------------------------------------------------------------------------------------
  * Shipping Fee
@@ -155,6 +183,11 @@ async function populateOrderById(orderId: string) {
     .populate({ path: "buyer", select: "name email" })
     .populate({ path: "vendors", select: "businessName" })
     .exec();
+}
+
+interface VendorUpdateOrderStatusArgs {
+  orderId: string;
+  status: "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 }
 
 /* -------------------------------------------------------------------------------------------------
@@ -345,7 +378,74 @@ export const orderResolvers = {
         reference: init.reference,
       };
     },
+
+    async markOrderShipped(_: unknown, { id }: { id: string }, context: Ctx) {
+      if (!context.admin && !context.vendor) throw new Error("Unauthorized");
     
+      const order = await OrderModel.findById(id);
+      if (!order) throw new Error("Order not found");
+    
+      // Optional: if vendors are allowed to call this, validate vendor ownership
+      if (context.vendor) {
+        const isVendorInOrder = order.vendors
+          .map((v: any) => v.toString())
+          .includes(context.vendor.id);
+        if (!isVendorInOrder) throw new Error("You cannot update this order");
+      }
+    
+      if (order.status !== "PROCESSING") {
+        throw new Error("Order must be in PROCESSING state to be marked as SHIPPED");
+      }
+    
+      order.status = "SHIPPED";
+      order.manualOverride = true;
+      await order.save();
+      return populateOrderById(order._id.toString());
+    },
+    
+    async vendorUpdateOrderStatus(
+      _: unknown,
+      { orderId, status }: VendorUpdateOrderStatusArgs,
+      context: any
+    ): Promise<IOrder> {
+      const user = context.user;
+    
+      if (!user || user.role !== "vendor") {
+        throw new Error("Unauthorized");
+      }
+    
+      const order = await OrderModel.findOne({
+        _id: new Types.ObjectId(orderId),
+        vendors: new Types.ObjectId(user.id),
+      });
+    
+      if (!order) {
+        throw new Error("Order not found or not your order");
+      }
+    
+      const validStatuses: VendorUpdateOrderStatusArgs["status"][] = [
+        "PENDING",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELLED",
+      ];
+      if (!validStatuses.includes(status)) {
+        throw new Error("Invalid status");
+      }
+      if (status === "SHIPPED") {
+        order.shippedAt = new Date();
+      }
+      if (status === "DELIVERED") {
+        order.deliveredAt = new Date();
+      }
+      
+    
+      order.status = status;
+      order.manualOverride = true;
+      await order.save();
+    
+      return order;
+    },
    
     async verifyPaystackPayment(
       _: unknown,
