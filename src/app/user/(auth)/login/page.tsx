@@ -51,6 +51,8 @@ const Login = () => {
           }),
           { expires: 7 }
         );
+        console.log("Login token:", user.token);
+
         router.push("/user/landingpage");
       } else {
         console.error("Login failed: No token returned.");

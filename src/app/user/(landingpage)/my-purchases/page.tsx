@@ -16,22 +16,61 @@ export const GET_USER_ORDERS = gql`
   query GetMyOrders {
     myOrders {
       id
-      quantity
       totalAmount
       status
+      estimatedDeliveryDate
       createdAt
       updatedAt
-      estimatedDeliveryDate
-      product {
-        name
-        images
-        price
-        averageRating
-        totalReviews
+      items {
+        quantity
+        lineTotal
+        product {
+          id
+          name
+          images
+          price
+          averageRating
+          totalReviews
+        }
       }
     }
   }
 `;
+
+function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
+  const items = Array.isArray(o.items) ? o.items : [];
+  const totalQty = items.reduce((sum, it) => sum + (it?.quantity ?? 0), 0);
+
+  // pick first item’s product (UI only shows one anyway)
+  const first = items[0];
+  const p = first?.product;
+
+  const fallbackName =
+    items.length > 1
+      ? `${items.length} items`
+      : p?.name ?? "Product unavailable";
+
+  const fallbackImages = p?.images && Array.isArray(p.images) ? p.images : [];
+  const fallbackPrice = p?.price ?? 0;
+
+  return {
+    id: o.id,
+    product: {
+      name: fallbackName,
+      images: fallbackImages,
+      price: fallbackPrice,
+      averageRating: p?.averageRating ?? 0,
+      totalReviews: p?.totalReviews ?? 0,
+    },
+    quantity: totalQty,
+    totalAmount: o.totalAmount,
+    status: o.status,
+    createdAt: o.createdAt,
+    updatedAt: o.updatedAt,
+    estimatedDeliveryDate: o.estimatedDeliveryDate ?? undefined,
+  };
+}
+
 
 type DeliveryCardProps = {
   order: {
@@ -51,6 +90,30 @@ type DeliveryCardProps = {
     estimatedDeliveryDate?: string;
   };
 };
+
+type GqlOrderItem = {
+  quantity: number;
+  lineTotal: number;
+  product: {
+    id: string;
+    name: string;
+    images?: string[] | null;
+    price: number;
+    averageRating?: number | null;
+    totalReviews?: number | null;
+  } | null;
+};
+
+type GqlOrder = {
+  id: string;
+  totalAmount: number;
+  status: string;
+  estimatedDeliveryDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: GqlOrderItem[];
+};
+
 
 const getStatusProgress = (status: string): number => {
   switch (status) {
@@ -105,6 +168,7 @@ const ProgressCircle = ({ progress, daysLeft }: { progress: number; daysLeft: st
 };
 
 const DeliveryCard = ({ order }: DeliveryCardProps) => {
+  if (!order?.product) return null;
   const { product, quantity, totalAmount, status, createdAt, estimatedDeliveryDate } = order;
   const progress = getStatusProgress(status);
   const daysLeft = getDaysLeft(estimatedDeliveryDate);
@@ -114,16 +178,23 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
   const fullStars = Math.floor(averageRating);
   const hasHalfStar = averageRating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  const imgSrc = Array.isArray(product.images) && product.images.length > 0
+  ? product.images[0]
+  : typeof product.images === "string" && product.images
+    ? product.images
+    : "/fallback.jpg";
+
 
   return (
     <div className="bg-white rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex-shrink-0 hover:border hover:border-blue-600 transition-all duration-500 ease-in-out">
       <div className="relative w-full h-[180px] rounded-t-2xl overflow-hidden">
-        <Image
-          src={Array.isArray(product?.images) ? product.images[0] : product.images || "/fallback.jpg"}
-          alt={product.name}
-          layout="fill"
-          objectFit="cover"
-        />
+      <Image
+        src={imgSrc}
+        alt={product.name}
+        fill
+        style={{ objectFit: "cover" }}
+      />
+
         <div className="absolute top-2 right-2 bg-white text-[16px] text-[#007bff] font-bold px-2 py-1 rounded-full shadow">
           {quantity === 1 ? "1 piece" : `${quantity} pieces`}
         </div>
@@ -159,10 +230,11 @@ export default function PurchasesWrapper() {
   });
   const [orders, setOrders] = useState<DeliveryCardProps["order"][]>([]);
   useEffect(() => {
-    if (data?.myOrders) {
-      setOrders(data.myOrders);
-    }
+    if (!data?.myOrders) return;
+    const normalized = data.myOrders.map(normalizeOrder);
+    setOrders(normalized);
   }, [data]);
+  
   const pendingRef = useRef<HTMLDivElement>(null);
   const completedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -277,3 +349,4 @@ export default function PurchasesWrapper() {
     </div>
   );
 }
+
