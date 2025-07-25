@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, FormEvent } from "react";
-import { gql, useMutation } from "@apollo/client";
+import React, { useState, useMemo, FormEvent, useEffect } from "react";
+import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import { useReactiveVar } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { cartItemsVar } from "@/shared/lib/apolloClient"; 
@@ -66,6 +66,24 @@ export const VERIFY_PAYSTACK_PAYMENT = gql`
   }
 `;
 
+const GET_BALANCE = gql`
+  query GetBalance {
+    getWalletBalance {
+      balance
+    }
+  }
+`;
+
+export const PAY_WITH_WALLET = gql`
+  mutation PayWithWallet($orderId: ID!) {
+    payWithWallet(orderId: $orderId) {
+      success
+      message
+      updatedBalance
+    }
+  }
+`;
+
 
 const SHIPPING_RATE_BY_STATE_NGN: Record<string, number> = {
   Lagos: 1500,
@@ -85,6 +103,7 @@ const PAYSTACK_METHODS = [
   { value: "PAYSTACK_USSD", label: "USSD" },
   { value: "PAYSTACK_MOBILE_MONEY", label: "Mobile Money" },
   { value: "PAYSTACK_QR", label: "QR" },
+  { value: "WALLET_BALANCE", label: "Pay with Wallet Balance" },
 ] as const;
 
 type PayMethod =
@@ -93,7 +112,8 @@ type PayMethod =
   | "PAYSTACK_TRANSFER"
   | "PAYSTACK_USSD"
   | "PAYSTACK_MOBILE_MONEY"
-  | "PAYSTACK_QR";
+  | "PAYSTACK_QR"
+  | "WALLET_BALANCE";
 
 
 const steps = ["Details", "Confirm", "Done"];
@@ -139,8 +159,32 @@ export default function CheckoutPage() {
 
   /* ----- Mutations ----- */
   const [createOrder, { loading: creatingOrder }] = useMutation(CREATE_ORDER);
+  const [payWithWallet, { loading: payingWithWallet }] = useMutation(PAY_WITH_WALLET);
+  const [getWalletBalance, { data, refetch }] = useLazyQuery(GET_BALANCE);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+
   const [initiatePaystackPayment, { loading: initiatingPaystack }] =
     useMutation(INITIATE_PAYSTACK_PAYMENT);
+
+
+    useEffect(() => {
+      if (paymentMethod === "WALLET_BALANCE") {
+        getWalletBalance();
+      }
+    }, [paymentMethod, getWalletBalance]);
+    
+    // Update wallet balance when data comes in
+    useEffect(() => {
+      if (data?.getWalletBalance?.balance !== undefined) {
+        setWalletBalance(data.getWalletBalance.balance);
+      }
+    }, [data]);
+
+    const insufficientFunds =
+    paymentMethod === "WALLET_BALANCE" &&
+    walletBalance !== null &&
+    walletBalance < grandTotal;
+
 
   
   const formValid =
@@ -194,6 +238,18 @@ export default function CheckoutPage() {
         router.push(`/user/checkout-page/success?orderId=${orderId}`);
         return;
       }
+
+       // 💼 Handle Wallet Payment
+    if (paymentMethod === "WALLET_BALANCE") {
+      const { data: walletRes } = await payWithWallet({ variables: { orderId } });
+      if (walletRes?.payWithWallet?.success) {
+        cartItemsVar([]);
+        router.push(`/user/checkout-page/success?orderId=${orderId}`);
+      } else {
+        throw new Error(walletRes?.payWithWallet?.message || "Wallet payment failed.");
+      }
+      return;
+    }
 
       const res = await initiatePaystackPayment({ variables: { orderId } });
       const { authorizationUrl } = res.data.initiatePaystackPayment;
@@ -355,18 +411,24 @@ export default function CheckoutPage() {
             </div>
           )}
         </div>
+        {insufficientFunds && (
+          <p className="text-red-500 text-sm flex justify-center mt-2">
+            Insufficient wallet balance (₦{walletBalance?.toLocaleString()}). Please fund your wallet.
+          </p>
+        )}
       </SectionCard>
 
       {/* Continue */}
       <div className="pt-4 hidden lg:block">
         <button
           type="submit"
-          disabled={!formValid}
+          disabled={!formValid || insufficientFunds}
           className="w-full rounded px-6 py-3 text-white disabled:opacity-40 sm:w-auto"
           style={{ background: brandBlue }}
         >
           Continue to Confirm
         </button>
+
       </div>
     </form>
   );

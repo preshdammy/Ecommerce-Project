@@ -66,7 +66,7 @@ const orderSchema = new Schema<IOrder>(
     totalAmount: { type: Number, required: true },
     shippingFee: { type: Number, required: true },
     shippingAddress: { type: shippingAddressSchema, required: true },
-    paymentMethod: { type: String, enum: ["POD", "PAYSTACK_CARD", "PAYSTACK_TRANSFER", "PAYSTACK_USSD", "PAYSTACK_MOBILE_MONEY", "PAYSTACK_QR"], required: true },
+    paymentMethod: { type: String, enum: ["POD", "PAYSTACK_CARD", "PAYSTACK_TRANSFER", "PAYSTACK_USSD", "PAYSTACK_MOBILE_MONEY", "PAYSTACK_QR", "WALLET_BALANCE"], required: true },
     paymentStatus: { type: String, enum: ["UNPAID", "PENDING", "PAID", "FAILED"], default: "UNPAID" },
     paystackReference: { type: String },
     paystackSplitCode: { type: String },

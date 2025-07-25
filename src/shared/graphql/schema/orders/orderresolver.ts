@@ -3,6 +3,7 @@ import { OrderModel, IOrder } from "@/shared/database/model/orders.model";
 import { productModel } from "@/shared/database/model/product.model";
 import { vendorModel } from "@/shared/database/model/vendor.model";
 import { usermodel } from "@/shared/database/model/user.model";
+import { walletmodel } from "@/shared/database/model/wallet.model";
 import { NotificationModel } from "@/shared/database/model/notifications.model";
 import cron from "node-cron";
 import axios from "axios";
@@ -338,6 +339,7 @@ export const orderResolvers = {
         status: "PENDING",
       });
 
+
       // Notifications
       for (const vendorId of vendorTotals.keys()) {
         await NotificationModel.create({
@@ -352,6 +354,85 @@ export const orderResolvers = {
 
       return populateOrderById(order._id.toString());
     },
+
+    async payWithWallet(
+      _: unknown,
+      { orderId }: { orderId: string },
+      context: Ctx
+    ): Promise<{ success: boolean; message: string; updatedBalance?: number }> {
+      if (!context.user) throw new Error("Unauthorized");
+    
+      const userId = context.user.id;
+    
+      const order = await OrderModel.findOne({
+        _id: orderId,
+        buyer: userId,
+      });
+    
+      if (!order) {
+        return {
+          success: false,
+          message: "Order not found",
+        };
+      }
+    
+      if (order.paymentMethod !== "WALLET_BALANCE") {
+        return {
+          success: false,
+          message: "Order is not set to use wallet payment",
+        };
+      }
+    
+      if (order.paymentStatus === "PAID") {
+        return {
+          success: false,
+          message: "Order is already paid",
+        };
+      }
+    
+      const user = await usermodel.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: "User not found",
+        };
+      }
+    
+      if (user.walletBalance < order.totalAmount) {
+        return {
+          success: false,
+          message: "Insufficient wallet balance",
+        };
+      }
+    
+      // Deduct from user wallet balance
+      user.walletBalance -= order.totalAmount;
+      await user.save();
+    
+      // Update order status
+      order.paymentStatus = "PAID";
+      order.status = "PROCESSING";
+      await order.save();
+    
+      // Notify vendors
+      for (const vendorId of order.vendors) {
+        await NotificationModel.create({
+          recipientId: vendorId,
+          recipientRole: "VENDOR",
+          type: "ORDER",
+          title: "New Paid Order",
+          message: "An order has been paid using wallet balance.",
+          isRead: false,
+        });
+      }
+    
+      return {
+        success: true,
+        message: "Wallet payment successful",
+        updatedBalance: user.walletBalance,
+      };
+    },
+    
 
     async initiatePaystackPayment(
       _: unknown,
