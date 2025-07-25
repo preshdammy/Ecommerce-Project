@@ -9,7 +9,11 @@ const userSchema = new mongoose.Schema({
   state: { type: String },
   city: { type: String },
   gender: { type: String },
-  dateOfBirth: { type: Date} 
+  dateOfBirth: { type: Date},
+  walletBalance: {
+    type: Number,
+    default: 0,
+  }   
 }, { timestamps: true });
 
 

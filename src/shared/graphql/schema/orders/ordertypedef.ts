@@ -14,6 +14,7 @@ enum PaymentMethod {
   PAYSTACK_USSD
   PAYSTACK_MOBILE_MONEY
   PAYSTACK_QR
+  WALLET_BALANCE 
 }
 
 enum PaymentStatus {
@@ -75,6 +76,12 @@ type Order {
   deliveredAt: Date
 }
 
+type WalletPaymentResponse {
+  success: Boolean!
+  message: String
+  updatedBalance: Float
+}
+
 scalar Date
 
 type ShippingAddress {
@@ -110,6 +117,8 @@ extend type Mutation {
 
   initiatePaystackPayment(orderId: ID!): PaystackInitResponse!
   verifyPaystackPayment(reference: String!): Order!
+
+  payWithWallet(orderId: ID!): WalletPaymentResponse!
 }
 
 `;
