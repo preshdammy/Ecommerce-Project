@@ -1,8 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import AccountSidebar from "./AccountSidebar";
-import MobileAccountSettings from "./MobileAccountSettings";
+import AccountSidebar from "../../../components/accounts/AccountSidebar";
+import MobileAccountSettings from "../../../components/accounts/MobileAccountSettings";
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

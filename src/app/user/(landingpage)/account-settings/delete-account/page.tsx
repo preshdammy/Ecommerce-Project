@@ -1,6 +1,6 @@
 "use client";
 
-import AccountLayout from "../../../../components/accounts/Accountlayout";
+import AccountLayout from "../layout";
 import AccountSettingsHeader from "../../../../components/accounts/AccountSettingHeader";
 import DeleteAccountForm from "../../../../components/accounts/DeleteAccountForm";
 import Link from 'next/link';

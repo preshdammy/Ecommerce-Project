@@ -16,7 +16,7 @@ cron.schedule("*/5 * * * *", async () => {
   try {
     const updated = await OrderModel.updateMany(
       {
-        status: "PENDING",
+        status: { $in: ["PENDING", "PROCESSING"] },
         createdAt: { $lt: cutoff },
         manualOverride: false,
         $or: [
@@ -245,13 +245,14 @@ export const orderResolvers = {
       if (context.admin || buyerMatch || vendorMatch) return order;
       throw new Error("Unauthorized");
     },
+    ordersByStatus: async (_: any, { status }: { status: string }) => {
+      return await OrderModel.find({ status }).populate("items.product buyer vendors");
+    },
+    
     
   },
 
   Mutation: {
-    /* ---------------------------------------------------------------------------
-     * createOrder
-     * ------------------------------------------------------------------------ */
     async createOrder(
       _: unknown,
       {
@@ -308,11 +309,19 @@ export const orderResolvers = {
         .filter((v: any) => v.paystackSubaccountCode)
         .map((v: any) => {
           const vTotal = vendorTotals.get(v._id.toString()) || 0;
-          const pct = productsSubtotal > 0 ? (vTotal / productsSubtotal) * 100 : 0;
+          const pct = productsSubtotal > 0 ? (vTotal / productsSubtotal) * 90 : 0;
           return {
             subaccount: v.paystackSubaccountCode,
             share: Math.round(pct),
           };
+        });
+
+        const adminSubaccountCode = process.env.ADMIN_SUBACCOUNT_CODE;
+        if (!adminSubaccountCode) throw new Error("Missing ADMIN_SUBACCOUNT_CODE in env");
+        
+        vendorSharesRaw.push({
+          subaccount: adminSubaccountCode,
+          share: 10,
         });
 
       let splitCode: string | undefined;
@@ -413,6 +422,8 @@ export const orderResolvers = {
       order.paymentStatus = "PAID";
       order.status = "PROCESSING";
       await order.save();
+      console.log("Wallet Payment Order Updated:", order.status, order.paymentStatus);
+
     
       // Notify vendors
       for (const vendorId of order.vendors) {
@@ -460,38 +471,76 @@ export const orderResolvers = {
       };
     },
 
-    async markOrderShipped(_: unknown, { id }: { id: string }, context: Ctx) {
-      if (!context.admin && !context.vendor) throw new Error("Unauthorized");
+    // async markOrderShipped(_: unknown, { id }: { id: string }, context: Ctx) {
+    //   if (!context.admin && !context.vendor) throw new Error("Unauthorized");
     
-      const order = await OrderModel.findById(id);
-      if (!order) throw new Error("Order not found");
+    //   const order = await OrderModel.findById(id);
+    //   if (!order) throw new Error("Order not found");
     
-      // Optional: if vendors are allowed to call this, validate vendor ownership
-      if (context.vendor) {
-        const isVendorInOrder = order.vendors
-          .map((v: any) => v.toString())
-          .includes(context.vendor.id);
-        if (!isVendorInOrder) throw new Error("You cannot update this order");
-      }
+    //   // Optional: if vendors are allowed to call this, validate vendor ownership
+    //   if (context.vendor) {
+    //     const isVendorInOrder = order.vendors
+    //       .map((v: any) => v.toString())
+    //       .includes(context.vendor.id);
+    //     if (!isVendorInOrder) throw new Error("You cannot update this order");
+    //   }
     
-      if (order.status !== "PROCESSING") {
-        throw new Error("Order must be in PROCESSING state to be marked as SHIPPED");
-      }
+    //   if (order.status !== "PROCESSING" && order.status !== "PENDING") {
+    //     throw new Error("Order must be in PROCESSING or PENDING state to be marked as SHIPPED");
+    //   }
     
-      order.status = "SHIPPED";
-      order.manualOverride = true;
-      await order.save();
-      return populateOrderById(order._id.toString());
-    },
+    //   order.status = "SHIPPED";
+    //   order.shippedAt = new Date();
+    //   order.manualOverride = true;
+    //   await order.save();
+    //   return populateOrderById(order._id.toString());
+    // },
+
+    // async markOrderDelivered(
+    //   _: unknown,
+    //   { id }: { id: string },
+    //   context: Ctx
+    // ) {
+    //   if (!context.admin && !context.vendor) {
+    //     throw new Error("Unauthorized");
+    //   }
+    
+    //   const order = await OrderModel.findById(id);
+    //   if (!order) throw new Error("Order not found");
+    
+    //   // Optional: validate vendor permission
+    //   if (context.vendor) {
+    //     const isVendorInOrder = order.vendors
+    //       .map((v: any) => v.toString())
+    //       .includes(context.vendor.id);
+    //     if (!isVendorInOrder) {
+    //       throw new Error("You cannot update this order");
+    //     }
+    //   }
+    
+    //   if (order.status !== "SHIPPED") {
+    //     throw new Error("Order must be in SHIPPED state to be marked as DELIVERED");
+    //   }
+    
+    //   order.status = "DELIVERED";
+    //   order.deliveredAt = new Date();
+    //   order.manualOverride = true;
+    //   await order.save();
+    
+    //   return populateOrderById(order._id.toString());
+    // },
+    
     
     async vendorUpdateOrderStatus(
       _: unknown,
       { orderId, status }: VendorUpdateOrderStatusArgs,
       context: any
     ): Promise<IOrder> {
-      const user = context.user;
+      const user = context.vendor;
+      console.log(user);
+      
     
-      if (!user || user.role !== "vendor") {
+      if (!user) {
         throw new Error("Unauthorized");
       }
     

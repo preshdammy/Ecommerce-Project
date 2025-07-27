@@ -71,9 +71,6 @@ const Header = () => {
     price: number;
   }
 
-  const isHomeActive = () => {
-    return pathname === "/" || pathname === "/user" || pathname === "/vendor";
-  };
 
 
   const handleDelete = (product: Product): void => {
@@ -133,7 +130,7 @@ const Header = () => {
       <div className="max-w-[1536px] mx-auto font-sans">
         <div className="w-full bg-blue-500 lg:hidden">
           <div className="md:h-[75px] w-[85%] h-[25px] text-[8px] gap-[16px] flex mx-auto sm:text-[16px] sm:h-[60px] md:text-[20px] items-center sm:gap-[6%] text-white ">
-            <Link  href="/" className={`relative ${isHomeActive() ? "text-[#272222] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#272222]" : ""}`}>Home</Link>
+            <Link  href="">Home</Link>
             <Link href="">About Us</Link>
             <Link href="">Contact Us</Link>
             <Link href="">Help</Link>
@@ -402,7 +399,7 @@ const Header = () => {
                 </div>
               </div>
               <div className="flex w-[642px] font-sans font-[600] text-white text-[20px]  justify-around items-center">
-                <Link href="/" className={`relative ${isHomeActive() ? "text-[#272222] font-[600] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#272222]" : ""}`}> Home</Link>
+                <Link href=""> Home</Link>
                 <Link href="">Best Selling</Link>
                 <Link href=""> Products</Link>
                 <Link href=""> Events</Link>

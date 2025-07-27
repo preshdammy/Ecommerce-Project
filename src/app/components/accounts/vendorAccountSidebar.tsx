@@ -19,7 +19,7 @@ const sidebarItems = [
   { icon: <BsCartCheck />, label: 'Orders', path: '/vendor/account-settings/orders' },
   { icon: <BsArrowCounterclockwise />, label: 'Refunds', path: '/vendor/account-settings/refunds' },
   { icon: <GoInbox />, label: 'Inbox', path: '/vendor/account-settings/inbox' },
-  { icon: <PiClockClockwise />, label: 'Track Order', path: '/vendor/account-settings/track-order' },
+  // { icon: <PiClockClockwise />, label: 'Track Order', path: '/vendor/account-settings/track-orders' },
   { icon: <CiCreditCard1 />, label: 'Payment Methods', path: '/vendor/account-settings/payment-methods' },
   { icon: <CiLocationOn />, label: 'Address', path: '/vendor/account-settings/address' },
    { icon: <CiWarning/>, label: 'Complaints', path: '/vendor/account-settings/complaints' },

@@ -9,6 +9,16 @@ export const walletTypeDefs = `
     updatedAt: Date!
   }
 
+   type WalletTransaction {
+    id: ID!
+    user: ID!
+    type: String!           
+    amount: Float!
+    reference: String
+    status: String!
+    createdAt: Date!
+  }
+
   type PaystackInitResponse {
     authorization_url: String!
     access_code: String!
@@ -17,6 +27,7 @@ export const walletTypeDefs = `
 
   extend type Query {
     getWalletBalance: Wallet!
+    myWalletTransactions: [WalletTransaction!]!
   }
 
   extend type Mutation {
