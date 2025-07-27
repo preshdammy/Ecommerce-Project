@@ -167,7 +167,7 @@ const MyPayment = () => {
                   </span>
                 </div>
                 <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
-                  {ordersLoading ? (
+                {ordersLoading ? (
                     <p className="text-center text-gray-500">Loading orders...</p>
                   ) : ordersData?.myOrders?.length ? (
                     ordersData.myOrders.map((order: any) => (
@@ -181,6 +181,7 @@ const MyPayment = () => {
                   ) : (
                     <p className="text-center text-gray-500">No orders yet</p>
                   )}
+
                 </div>
 
               </div>
@@ -300,6 +301,8 @@ export const GroceryShoppingDiv = ({
   type?: "CREDIT" | "DEBIT";
 }) => {
   const isCredit = type === "CREDIT";
+  const isTypeDefined = type !== undefined;
+
   return (
     <div className="flex items-center justify-between w-[85%] mx-auto border-b-[1px] border-[#D9D9D9] py-[5px]">
       <div className="flex items-center gap-[10px]">
@@ -310,8 +313,14 @@ export const GroceryShoppingDiv = ({
         </div>
       </div>
       <div>
-        <span className={`font-[600] text-[20px] ${isCredit ? "text-green-600" : "text-red-600"}`}>
-          ₦{(amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        <span
+          className={`font-[600] text-[20px] ${
+            isTypeDefined ? (isCredit ? "text-green-600" : "text-red-600") : "text-black"
+          }`}
+        >
+          {`${isTypeDefined ? (isCredit ? "+" : "-") : ""}₦${(amount ?? 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+          })}`}
         </span>
       </div>
     </div>
