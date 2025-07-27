@@ -99,6 +99,7 @@ extend type Query {
   vendorOrders: [Order!]!
   allOrders: [Order!]!
   order(id: ID!): Order
+  ordersByStatus(status: String!): [Order!]!
 }
 
 extend type Mutation {
@@ -114,6 +115,7 @@ extend type Mutation {
   ): Order!
 
   markOrderShipped(id: ID!): Order!
+  markOrderDelivered(id: ID!): Order!
 
   vendorUpdateOrderStatus(orderId: ID!, status: String!): Order!
 

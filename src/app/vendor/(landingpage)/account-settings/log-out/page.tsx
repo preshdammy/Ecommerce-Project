@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { LogOut, AlertTriangle } from 'lucide-react';
-import VendorAccountLayout from '../../../../components/accounts/vendorAccountlayout';
 import AccountSettingsHeader from '../../../../components/accounts/AccountSettingHeader';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
@@ -20,8 +19,7 @@ export default function LogoutPage() {
   }
 
   return (
-    <VendorAccountLayout>
-
+      <>
       <div className=" flex items-center gap-2 mb-4 text-blue-600">
         <Link href="/vendor/account-settings" className="flex items-center gap-2">
           <ChevronLeft className="w-5 h-5" />
@@ -59,6 +57,6 @@ export default function LogoutPage() {
           </button>
         </div>
       </div>
-    </VendorAccountLayout>
+      </>
   );
 }

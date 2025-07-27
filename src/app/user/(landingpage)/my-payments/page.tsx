@@ -1,7 +1,7 @@
 
 "use client";
 
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
 
 // GraphQL Queries and Mutations
@@ -38,6 +38,31 @@ const GET_BALANCE = gql`
   }
 `;
 
+const MY_ORDERS = gql`
+  query MyOrders {
+    myOrders {
+      id
+      totalAmount
+      createdAt
+      
+    }
+  }
+`;
+
+const MY_TRANSACTIONS = gql`
+  query MyWalletTransactions {
+    myWalletTransactions {
+      id
+      type
+      amount
+      status
+      createdAt
+    }
+  }
+`;
+
+
+
 const MyPayment = () => {
   const [showFundModal, setShowFundModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -47,9 +72,15 @@ const MyPayment = () => {
   const [verifyWallet] = useMutation(VERIFY_WALLET_FUNDING);
   const [withdrawFunds] = useMutation(WITHDRAW_FUNDS);
   const [getWalletBalance, { data, refetch }] = useLazyQuery(GET_BALANCE);
+  const { data: ordersData, loading: ordersLoading } = useQuery(MY_ORDERS);
+  const { data: transactionData, loading: transactionLoading } = useQuery(MY_TRANSACTIONS);
+  
+  
+
+
 
   const handleFund = async () => {
-    const amt = parseFloat(amount); // convert string to number
+    const amt = parseFloat(amount); 
         if (isNaN(amt) || amt <= 0) {
             alert("Enter a valid amount");
             return;
@@ -137,9 +168,22 @@ const MyPayment = () => {
                   </span>
                 </div>
                 <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
-                  <GroceryShoppingDiv />
-                  <GroceryShoppingDiv />
+                  {ordersLoading ? (
+                    <p className="text-center text-gray-500">Loading orders...</p>
+                  ) : ordersData?.myOrders?.length ? (
+                    ordersData.myOrders.map((order: any) => (
+                      <GroceryShoppingDiv
+                        key={order.id}
+                        title={`Order #${order.id.slice(-6)}`}
+                        date={new Date(order.createdAt).toLocaleDateString()}
+                        amount={order.totalAmount}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-center text-gray-500">No orders yet</p>
+                  )}
                 </div>
+
               </div>
 
               <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
@@ -149,9 +193,23 @@ const MyPayment = () => {
                   </span>
                 </div>
                 <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
-                  <GroceryShoppingDiv />
-                  <GroceryShoppingDiv />
+                  {transactionLoading ? (
+                    <p className="text-center text-gray-500">Loading transactions...</p>
+                  ) : transactionData?.myWalletTransactions?.length ? (
+                    transactionData.myWalletTransactions.map((txn: any) => (
+                      <GroceryShoppingDiv
+                      key={txn.id}
+                      title={txn.description || txn.type}
+                      date={new Date(txn.createdAt).toLocaleDateString()}
+                      amount={txn.amount}
+                      type={txn.type}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-center text-gray-500">No wallet transactions yet</p>
+                  )}
                 </div>
+
               </div>
             </div>
           </div>
@@ -231,18 +289,31 @@ const MyPayment = () => {
 
 export default MyPayment;
 
-export const GroceryShoppingDiv = () => {
+export const GroceryShoppingDiv = ({
+  title,
+  date,
+  amount,
+  type,
+}: {
+  title: string;
+  date: string;
+  amount: number;
+  type?: "CREDIT" | "DEBIT";
+}) => {
+  const isCredit = type === "CREDIT";
   return (
     <div className="flex items-center justify-between w-[85%] mx-auto border-b-[1px] border-[#D9D9D9] py-[5px]">
       <div className="flex items-center gap-[10px]">
-        <div className="w-[82px] h-[82px] bg-[#D9D9D9] rounded-[50%]"></div>
+        <div className="w-[82px] h-[82px] bg-[#D9D9D9] rounded-full"></div>
         <div>
-          <p className="text-[#55A7FF] font-[600] text-[16px]">Grocery Shopping</p>
-          <p className="text-[#939090] font-[400] text-[16px]">16th Nov. 2022</p>
+          <p className="text-[#55A7FF] font-[600] text-[16px]">{title}</p>
+          <p className="text-[#939090] font-[400] text-[16px]">{date}</p>
         </div>
       </div>
       <div>
-        <span className="font-[600] text-[20px]">₦9,480.00</span>
+        <span className={`font-[600] text-[20px] ${isCredit ? "text-green-600" : "text-red-600"}`}>
+          ₦{(amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </span>
       </div>
     </div>
   );

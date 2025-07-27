@@ -29,6 +29,11 @@ export const walletResolvers = {
         updatedAt: user.updatedAt,
       };
     },
+    myWalletTransactions: async (_: any, __: any, context: any) => {
+      const user = context.user;
+      const transactions = await walletmodel.find({ user: user.id }).sort({ createdAt: -1 });
+      return transactions;
+    },
   },
 
   Mutation: {

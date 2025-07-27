@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { LogOut, AlertTriangle } from 'lucide-react';
-import AccountLayout from '../../../../components/accounts/Accountlayout';
+import AccountLayout from '../layout';
 import AccountSettingsHeader from '../../../../components/accounts/AccountSettingHeader';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
