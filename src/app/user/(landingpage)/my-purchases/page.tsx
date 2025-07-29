@@ -5,12 +5,7 @@ import Image from "next/image";
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 export const GET_USER_ORDERS = gql`
   query GetMyOrders {
@@ -40,8 +35,8 @@ export const GET_USER_ORDERS = gql`
 function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
   const items = Array.isArray(o.items) ? o.items : [];
   const totalQty = items.reduce((sum, it) => sum + (it?.quantity ?? 0), 0);
+  console.log("Order Items:", items, "Total Amount:", o.totalAmount);
 
-  // pick first item’s product (UI only shows one anyway)
   const first = items[0];
   const p = first?.product;
 
@@ -52,6 +47,27 @@ function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
 
   const fallbackImages = p?.images && Array.isArray(p.images) ? p.images : [];
   const fallbackPrice = p?.price ?? 0;
+
+  console.log("Raw estimatedDeliveryDate from server:", o.estimatedDeliveryDate);
+  let adjustedDeliveryDate = o.estimatedDeliveryDate;
+  if (!adjustedDeliveryDate || typeof adjustedDeliveryDate === "number") {
+    const createdDate =
+  typeof o.createdAt === "number"
+    ? new Date(o.createdAt)
+    : new Date(o.createdAt); // let Date parse the ISO string
+
+    adjustedDeliveryDate = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000)
+    console.log("Calculated estimatedDeliveryDate from createdAt:", adjustedDeliveryDate);
+  } else {
+    const estDate = new Date(adjustedDeliveryDate);
+    if (isNaN(estDate.getTime()) || estDate < new Date()) {
+      const createdDate = new Date(typeof o.createdAt === "number" ? o.createdAt : parseInt(o.createdAt));
+      adjustedDeliveryDate = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+      console.log("Adjusted invalid or past estimatedDeliveryDate to:", adjustedDeliveryDate);
+    } else {
+      console.log("Using valid estimatedDeliveryDate:", adjustedDeliveryDate);
+    }
+  }
 
   return {
     id: o.id,
@@ -67,29 +83,9 @@ function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
     status: o.status,
     createdAt: o.createdAt,
     updatedAt: o.updatedAt,
-    estimatedDeliveryDate: o.estimatedDeliveryDate ?? undefined,
+    estimatedDeliveryDate: adjustedDeliveryDate,
   };
 }
-
-
-type DeliveryCardProps = {
-  order: {
-    id: string;
-    product: {
-      name: string;
-      images: string[] | string | null;
-      price: number;
-      averageRating?: number;
-      totalReviews?: number;
-    };
-    quantity: number;
-    totalAmount: number;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-    estimatedDeliveryDate?: string;
-  };
-};
 
 type GqlOrderItem = {
   quantity: number;
@@ -108,40 +104,112 @@ type GqlOrder = {
   id: string;
   totalAmount: number;
   status: string;
-  estimatedDeliveryDate?: string | null;
+  estimatedDeliveryDate?: string | number | null;
   createdAt: string;
   updatedAt: string;
   items: GqlOrderItem[];
 };
 
+type DeliveryCardProps = {
+  order: {
+    id: string;
+    product: {
+      name: string;
+      images: string[] | string | null;
+      price: number;
+      averageRating?: number;
+      totalReviews?: number;
+    };
+    quantity: number;
+    totalAmount: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    estimatedDeliveryDate?: string | undefined;
+  };
+};
 
 const getStatusProgress = (status: string): number => {
   switch (status) {
-    case "PENDING": return 25;
-    case "PROCESSING": return 50;
-    case "SHIPPED": return 75;
-    case "DELIVERED": return 100;
-    default: return 0;
+    case "PENDING":
+      return 25;
+    case "PROCESSING":
+      return 50;
+    case "SHIPPED":
+      return 75;
+    case "DELIVERED":
+    case "CANCELLED":
+      return 100; // Both completed and cancelled at 100%
+    default:
+      return 0;
   }
 };
 
-const getDaysLeft = (estimatedDate?: string): string => {
-  if (!estimatedDate) return "--";
-  const estDate = new Date(estimatedDate);
+const getDaysLeft = (estimatedDate?: string, status?: string): string => {
+
+  if (status === "DELIVERED") {
+    return "Done";
+  } else if (status === "CANCELLED") {
+    return "Cancelled";
+  }
+
+  let estDate: Date;
+  if (!estimatedDate) {
+    console.log("estimatedDate is falsy:", estimatedDate);
+    estDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+  } else {
+    estDate = new Date(estimatedDate);
+    if (isNaN(estDate.getTime())) {
+      console.log("Invalid date detected:", estimatedDate, "using fallback");
+      estDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    }
+  }
   const now = new Date();
+  console.log("estDate:", estDate.toISOString(), "now:", now.toISOString());
   const diffMs = estDate.getTime() - now.getTime();
   const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  console.log("days:", days);
   return days > 0 ? `${days} day${days > 1 ? "s" : ""} left` : days === 0 ? "Today" : "Overdue";
 };
 
-const ProgressCircle = ({ progress, daysLeft }: { progress: number; daysLeft: string }) => {
+function toSafeDate(v: unknown): Date | null {
+  if (typeof v === "number") return new Date(v);
+  if (typeof v === "string") {
+    // If it's a numeric string (epoch in ms), coerce to number first
+    if (/^\d+$/.test(v)) return new Date(Number(v));
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  return null;
+}
+
+
+const ProgressCircle = ({ progress, daysLeft, status }: { progress: number; daysLeft: string; status: string }) => {
+const getProgressColor = (status: string) => {
+  switch (status) {
+    case "PENDING":
+      return "#FF6B6B"; // Red
+    case "PROCESSING":
+      return "#4ECDC4"; // Teal
+    case "SHIPPED":
+      return "#FFD700"; // Gold
+    case "DELIVERED":
+      return "#00cc66"; // Green
+    case "CANCELLED":
+      return "#FF6B6B"; // Red for cancelled
+    default:
+      return "#CCCCCC"; // Gray
+  }
+  };
+
   const data = [
     { name: "Progress", value: progress },
     { name: "Remaining", value: 100 - progress },
   ];
 
   return (
-    <div className="relative w-[60px] h-[60px]">
+    <div className="relative w-[70px] h-[70px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -154,7 +222,10 @@ const ProgressCircle = ({ progress, daysLeft }: { progress: number; daysLeft: st
             stroke="none"
           >
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={index === 0 ? "#00cc66" : "#f3f3f3"} />
+              <Cell
+                key={`cell-${index}`}
+                fill={index === 0 ? getProgressColor(status) : "#f3f3f3"}
+              />
             ))}
           </Pie>
         </PieChart>
@@ -171,7 +242,7 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
   if (!order?.product) return null;
   const { product, quantity, totalAmount, status, createdAt, estimatedDeliveryDate } = order;
   const progress = getStatusProgress(status);
-  const daysLeft = getDaysLeft(estimatedDeliveryDate);
+  const daysLeft = getDaysLeft(estimatedDeliveryDate, status);
 
   const averageRating = product.averageRating || 0;
   const totalReviews = product.totalReviews || 0;
@@ -179,22 +250,20 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
   const hasHalfStar = averageRating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
   const imgSrc = Array.isArray(product.images) && product.images.length > 0
-  ? product.images[0]
-  : typeof product.images === "string" && product.images
-    ? product.images
-    : "/fallback.jpg";
-
+    ? product.images[0]
+    : typeof product.images === "string" && product.images
+      ? product.images
+      : "/fallback.jpg";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex-shrink-0 hover:border hover:border-blue-600 transition-all duration-500 ease-in-out">
+    <div className="bg-white rounded-2xl border border-[#CCE5FF] h-[45vh] w-[280px] flex-shrink-0 hover:border hover:border-blue-600 transition-all duration-500 ease-in-out">
       <div className="relative w-full h-[180px] rounded-t-2xl overflow-hidden">
-      <Image
-        src={imgSrc}
-        alt={product.name}
-        fill
-        style={{ objectFit: "cover" }}
-      />
-
+        <Image
+          src={imgSrc}
+          alt={product.name}
+          fill
+          style={{ objectFit: "cover" }}
+        />
         <div className="absolute top-2 right-2 bg-white text-[16px] text-[#007bff] font-bold px-2 py-1 rounded-full shadow">
           {quantity === 1 ? "1 piece" : `${quantity} pieces`}
         </div>
@@ -209,10 +278,15 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
           {Array(fullStars).fill(0).map((_, i) => <AiFillStar key={`full-${i}`} />)}
           {hasHalfStar && <AiFillStar key="half-star" className="opacity-50" />}
           {Array(emptyStars).fill(0).map((_, i) => <AiOutlineStar key={`empty-${i}`} />)}
-          <span className="text-sm text-gray-600 ml-1">({averageRating.toFixed(1)})</span>
+          {/* <span className="text-sm text-gray-600 ml-1">({averageRating.toFixed(1)})</span> */}
+          <span className="text-sm text-gray-600 ml-1">
+            {`(${product.averageRating || 0})`}
+          </span>
+          {/* <span className="text-sm text-gray-600 ml-1"> {product.totalReviews || "N/A"}</span> */}
         </div>
         <span className="text-sm text-[#858383]">₦ {product.price.toLocaleString()}</span>
-        <ProgressCircle progress={progress} daysLeft={daysLeft} />
+        
+        <ProgressCircle progress={progress} daysLeft={daysLeft} status={status} />
       </div>
 
       <p className="font-semibold text-[18px] text-[#0063c6] ml-4">
@@ -222,19 +296,23 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
   );
 };
 
-
-
 export default function PurchasesWrapper() {
-  const { data, loading, error } = useQuery(GET_USER_ORDERS, {
-    pollInterval: 30000, 
+  const { data, loading, error, refetch } = useQuery(GET_USER_ORDERS, {
+    pollInterval: 30000,
   });
+
+  useEffect(() => {
+    refetch(); // Force refetch on mount
+  }, [refetch]);
+
   const [orders, setOrders] = useState<DeliveryCardProps["order"][]>([]);
   useEffect(() => {
     if (!data?.myOrders) return;
+    console.log("My Orders Data:", JSON.stringify(data.myOrders, null, 2));
     const normalized = data.myOrders.map(normalizeOrder);
     setOrders(normalized);
   }, [data]);
-  
+
   const pendingRef = useRef<HTMLDivElement>(null);
   const completedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -268,6 +346,7 @@ export default function PurchasesWrapper() {
   );
 
   const deliveryHistoryOrders = completedOrders;
+ 
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 sm:px-6 md:px-12 py-6 md:py-10">
@@ -323,6 +402,7 @@ export default function PurchasesWrapper() {
         <h2 className="text-[24px] font-semibold mb-4 text-[#939090]">Delivery History</h2>
         {deliveryHistoryOrders.length > 0 ? (
           deliveryHistoryOrders.map((order) => (
+            
             <div key={order.id} className="bg-white rounded-lg shadow-sm mb-6 p-4">
               <div className="flex flex-wrap gap-2">
                 {[order.product.name].map((item, i) => (
@@ -331,8 +411,18 @@ export default function PurchasesWrapper() {
                   </span>
                 ))}
               </div>
-              <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-                <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+          <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
+            {(() => {
+              const created = toSafeDate(order.createdAt);
+              return (
+                <span>
+                  {created
+                    ? created.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                    : "Unknown Date"}
+                </span>
+              );
+            })()}
+
                 <div className="flex gap-2">
                   <button className="rounded-full w-6 h-6 bg-gray-100 text-gray-500">❮</button>
                   <button className="rounded-full w-6 h-6 bg-gray-100 text-gray-500">❯</button>
@@ -349,4 +439,3 @@ export default function PurchasesWrapper() {
     </div>
   );
 }
-

@@ -1,9 +1,8 @@
-import Headers from "../components/header/index"
-import Footer from "../components/footer/index"
+
 const About = () => {
     return ( 
 <div>
-    <Headers/>
+   
 
  <div className="min-h-screen bg-white px-4 py-16">
       <div className="max-w-3xl mx-auto">
@@ -16,7 +15,7 @@ Do not hesitate to report any suspicious activity. Once reported, we will invest
         </p>
       </div>
     </div>
-    <Footer/>
+
 </div>
      );
 }

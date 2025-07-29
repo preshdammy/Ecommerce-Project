@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { BsCartCheck } from 'react-icons/bs';
 import { CiUser, CiPhone, CiCreditCard1, CiLocationOn, CiLock } from "react-icons/ci";
 import { CiWarning } from "react-icons/ci";
-import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { GoInbox } from "react-icons/go";
 import { BsArrowCounterclockwise } from "react-icons/bs";
 import { PiClockClockwise } from "react-icons/pi";
@@ -19,7 +18,7 @@ const sidebarItems = [
   { icon: <BsCartCheck />, label: 'Orders', path: '/user/account-settings/orders' },
   { icon: <BsArrowCounterclockwise />, label: 'Refunds', path: '/user/account-settings/refunds' },
   { icon: <GoInbox />, label: 'Inbox', path: '/user/account-settings/inbox' },
-  { icon: <PiClockClockwise />, label: 'Track Order', path: '/user/account-settings/track-order' },
+  { icon: <PiClockClockwise />, label: 'Track Order', path: '/user/account-settings/track-orders' },
   { icon: <CiCreditCard1 />, label: 'Payment Methods', path: '/user/account-settings/payment-methods' },
   { icon: <CiLocationOn />, label: 'Address', path: '/user/account-settings/address' },
   { icon: <CiWarning/>, label: 'Complaints', path: '/user/account-settings/complaints' },

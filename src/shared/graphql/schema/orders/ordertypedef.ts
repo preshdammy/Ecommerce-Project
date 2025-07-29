@@ -14,6 +14,7 @@ enum PaymentMethod {
   PAYSTACK_USSD
   PAYSTACK_MOBILE_MONEY
   PAYSTACK_QR
+  WALLET_BALANCE 
 }
 
 enum PaymentStatus {
@@ -36,6 +37,13 @@ input ShippingAddressInput {
   country: String!
 }
 
+input UpdateOrderStatusInput {
+  orderId: ID!
+  status: String!
+  manualOverride: Boolean   
+}
+
+
 type PaystackInitResponse {
   authorizationUrl: String!
   reference: String!
@@ -56,6 +64,7 @@ type Order {
   vendors: [Vendor!]!
   totalAmount: Float!
   shippingFee: Float!
+  manualOverride: Boolean!
   shippingAddress: ShippingAddress!
   paymentMethod: PaymentMethod!
   paymentStatus: PaymentStatus!
@@ -63,8 +72,17 @@ type Order {
   status: OrderStatus!
   createdAt: String!
   updatedAt: String!
-  estimatedDeliveryDate: String
+  shippedAt: Date
+  deliveredAt: Date
 }
+
+type WalletPaymentResponse {
+  success: Boolean!
+  message: String
+  updatedBalance: Float
+}
+
+scalar Date
 
 type ShippingAddress {
   street: String!
@@ -79,6 +97,7 @@ extend type Query {
   vendorOrders: [Order!]!
   allOrders: [Order!]!
   order(id: ID!): Order
+  ordersByStatus(status: String!): [Order!]!
 }
 
 extend type Mutation {
@@ -94,9 +113,14 @@ extend type Mutation {
   ): Order!
 
   markOrderShipped(id: ID!): Order!
+  markOrderDelivered(id: ID!): Order!
+
+  vendorUpdateOrderStatus(orderId: ID!, status: String!): Order!
 
   initiatePaystackPayment(orderId: ID!): PaystackInitResponse!
   verifyPaystackPayment(reference: String!): Order!
+
+  payWithWallet(orderId: ID!): WalletPaymentResponse!
 }
 
 `;

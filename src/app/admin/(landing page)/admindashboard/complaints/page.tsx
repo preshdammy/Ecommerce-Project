@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useQuery, gql, useMutation } from "@apollo/client";
@@ -85,52 +86,71 @@ export default function ComplaintsPage() {
 
   const complaints = data?.complaints || [];
 
-  if (loading) return <div>Loading complaints…</div>;
-  if (error) return <div>Error loading complaints</div>;
-
   return (
-    <div className="w-full font-sans p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl mb-6">Complaints</h1>
+    <div className="max-w-5xl mx-auto p-6 md:p-8 min-h-screen font-sans">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 tracking-tight">
+        Complaints
+      </h1>
 
-      {complaints.length === 0 ? (
-        <p className="text-gray-600">No complaints yet.</p>
+      {loading && (
+        <div className="flex justify-center items-center py-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="ml-3 text-gray-600">Loading complaints...</p>
+        </div>
+      )}
+      {error && (
+        <p className="text-red-500 bg-red-50 p-4 rounded-lg text-center font-medium">
+          Error loading complaints
+        </p>
+      )}
+
+      {!loading && !error && complaints.length === 0 ? (
+        <p className="text-gray-500 bg-gray-50 p-4 rounded-lg text-center text-sm">
+          No complaints yet.
+        </p>
       ) : (
-        complaints.map((c: any) => (
-          <div
-            key={c.id}
-            className="mb-4 border p-4 rounded-lg flex justify-between"
-          >
-            <div className="flex-1">
-              <p className="mb-2 text-gray-800">{c.message}</p>
-              <p className="text-sm text-gray-500">
-                Filed by{" "}
-                {c.user
-                  ? `${c.user.name} (${c.user.email})`
-                  : c.vendor
-                  ? `${c.vendor.name} (${c.vendor.email})`
-                  : "Unknown"}
-              </p>
-
-              <p className="text-sm text-gray-600 mt-1">
-                Status:{" "}
-                <span
-                  className={`font-semibold ${
-                    c.status === "Resolved"
-                      ? "text-green-600"
-                      : c.status === "In Review"
-                      ? "text-yellow-600"
-                      : "text-orange-500"
-                  }`}
-                >
-                  {c.status}
-                </span>
-              </p>
-
-              <div className="flex items-center gap-2 mt-2">
-                {c.status === "Resolved" ? (
-                   <></> // No buttons, no extra message
-                ) : (
-                  <>
+        <div className="space-y-4">
+          {complaints.map((c: any) => (
+            <div
+              key={c.id}
+              className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex justify-between items-start"
+            >
+              <div className="flex-1">
+                <p className="text-gray-800 text-base leading-relaxed mb-3">
+                  {c.message}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Filed by{" "}
+                  {c.user
+                    ? `${c.user.name} (${c.user.email})`
+                    : c.vendor
+                    ? `${c.vendor.name} (${c.vendor.email})`
+                    : "Unknown"}
+                </p>
+                <div className="flex items-center gap-2 mt-3">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      c.status === "Resolved"
+                        ? "bg-green-100 text-green-700"
+                        : c.status === "In Review"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                  >
+                    Status: {c.status}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  {new Date(c.createdAt).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+                {c.status !== "Resolved" && (
+                  <div className="flex items-center gap-3 mt-4">
                     {c.status !== "In Review" && (
                       <button
                         onClick={() =>
@@ -138,7 +158,7 @@ export default function ComplaintsPage() {
                             variables: { id: c.id, status: "In Review" },
                           })
                         }
-                        className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
+                        className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300"
                       >
                         Mark as In Review
                       </button>
@@ -147,25 +167,21 @@ export default function ComplaintsPage() {
                       onClick={() =>
                         updateComplaintStatus({
                           variables: { id: c.id, status: "Resolved" },
-                        })
-                      }
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                          })
+                        }
+                        className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-full text-sm font-medium hover:from-green-700 hover:to-green-800 transition-all duration-300"
                     >
                       Mark as Resolved
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
-
-              <p className="text-xs text-gray-400 mt-2">
-                {new Date(c.createdAt).toLocaleString()}
-              </p>
+              <div className="flex items-center">
+                <IoIosArrowDown className="text-xl text-gray-400 hover:text-gray-600 transition-colors duration-200" />
+              </div>
             </div>
-            <div className="flex items-center">
-              <IoIosArrowDown className="text-xl text-gray-400" />
-            </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );
