@@ -48,7 +48,15 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { string } from "zod";
+
+
+import laptopLogo from "../../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
+import tamanna from "../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
+import cosmetics from "../../../../public/figma images/Frame 493 2.png"
+import clothing from "../../../../public/figma images/Frame 493 (1).png"
+import furniture from "../../../../public/figma images/Frame 493 (2).png"
+import automobile from "../../../../public/figma images/Frame 493 (3).png"
+import food from "../../../../public/figma images/Frame 493 (4).png"
 
 
 
@@ -63,6 +71,45 @@ const Header = () => {
   const [showUsername, setShowUsername] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const Router = useRouter()
+  const [showDropdown, setShowDropdown] = useState(false)
+  const categories = [
+    {
+      name: "Computers and Laptops",
+      slug: "computers-and-laptops",
+      icon: laptopLogo, 
+    },
+    {
+      name: "Cosmetics and Body Care",
+      slug: "cosmetics-and-body-care",
+      icon: cosmetics,
+    },
+    {
+      name: "Clothing and Shoes",
+      slug: "clothing-and-shoes",
+      icon: clothing,
+    },
+    {
+      name: "Furniture and Outdoors",
+      slug: "furniture-and-outdoors",
+      icon: furniture,
+    },
+    {
+      name: "Automobiles and Spare Parts",
+      slug: "automobiles-and-spare-parts",
+      icon: automobile,
+    },
+    {
+      name: "Food, Groceries and Bev...",
+      slug: "food-groceries-and-beverages",
+      icon: food,
+    },
+    {
+      name: "Others",
+      slug: "others",
+      icon: tamanna,
+    },
+  ];
+  
   
   
   interface Product {
@@ -130,10 +177,46 @@ const Header = () => {
       <div className="max-w-[1536px] mx-auto font-sans">
         <div className="w-full bg-blue-500 lg:hidden">
           <div className="md:h-[75px] w-[85%] h-[25px] text-[8px] gap-[16px] flex mx-auto sm:text-[16px] sm:h-[60px] md:text-[20px] items-center sm:gap-[6%] text-white ">
-            <Link  href="">Home</Link>
-            <Link href="">About Us</Link>
-            <Link href="">Contact Us</Link>
-            <Link href="">Help</Link>
+            <Link  
+            href={isAuthentication ? "/user/landingpage" : "/"}
+            className={`${
+              pathname.startsWith("/user/landingpage") || (!isAuthentication && pathname.startsWith("/"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+            Home
+            </Link>
+            <Link 
+            href={isAuthentication ? "/user/about" : "/about"}
+            className={`${
+              pathname.startsWith("/user/about") || (!isAuthentication && pathname.startsWith("/about"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+              About Us
+            </Link>
+            <Link 
+            href={isAuthentication ? "/user/billing-policy" : "/billing-policy"}
+            className={`${
+              pathname.startsWith("/user/billing-policy") || (!isAuthentication && pathname.startsWith("/billing-policy"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+              Contact Us
+            </Link>
+            <Link 
+            href={isAuthentication ? "/user/privacy-policy" : "/privacy-policy"}
+            className={`${
+              pathname.startsWith("/user/privacy-policy") || (!isAuthentication && pathname.startsWith("/privacy-policy"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+              Help
+            </Link>
           </div>
         </div>
 
@@ -268,7 +351,7 @@ const Header = () => {
             <Image
               onClick={() => {
                 const alreadyInCart = cartItems.find((c) => c.id === item.id);
-                if (!alreadyInCart) cartItemsVar([...cartItems, item,]);
+                if (!alreadyInCart) cartItemsVar([...cartItems, {...item, quantity: 1}]);
               }}
               src={cart}
               alt=''
@@ -308,31 +391,36 @@ const Header = () => {
         <p className='text-center text-[18px] text-gray-500 mt-[100px]'>Your cart is empty.</p>
       ) : (
         cartItems.map((item, index) => {
-          const quantity = counts[item.id] || 1;
+          const quantity = item.quantity || 1;
           const totalPrice = item.price * quantity;
 
           return (
             <div key={index} className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
               <div className='flex flex-col items-center'>
-                <IoIosAddCircle
-                  onClick={() =>
-                    setCounts((prev) => ({
-                      ...prev,
-                      [item.id]: (prev[item.id] || 1) + 1,
-                    }))
-                  }
-                  className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
-                />
-                <p className='text-[24px] font-[600]'>{quantity}</p>
-                <GrSubtractCircle
-                  onClick={() =>
-                    setCounts((prev) => ({
-                      ...prev,
-                      [item.id]: Math.max(1, quantity - 1),
-                    }))
-                  }
-                  className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
-                />
+              <IoIosAddCircle
+               className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                    onClick={() => {
+                      const updatedCart = cartItems.map((cartItem) =>
+                        cartItem.id === item.id
+                          ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+                          : cartItem
+                      );
+                      cartItemsVar(updatedCart);
+                    }}
+                  />
+                  <p className='text-[24px] font-[600]'>{quantity}</p>
+                  <GrSubtractCircle
+                    className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                    onClick={() => {
+                      const updatedCart = cartItems.map((cartItem) =>
+                        cartItem.id === item.id
+                          ? { ...cartItem, quantity: Math.max(1, (cartItem.quantity || 1) - 1) }
+                          : cartItem
+                      );
+                      cartItemsVar(updatedCart);
+                    }}
+                  />
+
               </div>
 
               <Image src={item.image || shirt} alt='' />
@@ -360,7 +448,7 @@ const Header = () => {
           Checkout Now (₦{" "}
           {cartItems
             .reduce((sum, item) => {
-              const quantity = counts[item.id] || 1;
+              const quantity = item.quantity || 1;
               return sum + item.price * quantity;
             }, 0)
             .toLocaleString()}
@@ -377,6 +465,7 @@ const Header = () => {
           <div className=" w-full h-[87px] bg-[#007BFF] lg:block hidden">
             <div className="w-[85%] h-[100%] mx-auto flex items-center justify-between">
               <div className=" h-[100%] flex items-end">
+              <div className="relative">
                 <div className="w-[255px] h-[72px] bg-white rounded-t-[16px] flex gap-[16px] justify-center items-center">
                   <div className="flex items-center gap-[8px]">
                     <Image
@@ -389,22 +478,90 @@ const Header = () => {
                     </span>
                   </div>
 
-                  <button>
+                  <button onClick={() => setShowDropdown((prev) => !prev)}>
                     <Image
                       className="w-[24px] h-[24px]"
                       src={chevronDown}
                       alt=""
                     />
                   </button>
+                  {showDropdown && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-b-[16px] shadow z-50">
+                      {categories.map((category, index) => (
+                        <li key={index} onClick={() => setShowDropdown(false)}>
+                          <Link
+                            href={`/user/category/${category.slug}`} 
+                            className="flex items-center gap-3 px-4 py-2 text-[16px] font-[400] hover:bg-gray-100 cursor-pointer"
+                          >
+                            <Image
+                              src={category.icon} 
+                              alt={category.name}
+                              width={20}
+                              height={20}
+                              className="w-[20px] h-[20px] object-contain"
+                            />
+                            <span>{category.name}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 </div>
               </div>
-              <div className="flex w-[642px] font-sans font-[600] text-white text-[20px]  justify-around items-center">
-                <Link href=""> Home</Link>
-                <Link href="">Best Selling</Link>
-                <Link href=""> Products</Link>
-                <Link href=""> Events</Link>
-                <Link href=""> FAQ</Link>
+              <div className="flex w-[642px] font-sans font-[600] text-[20px] justify-around items-center">
+                <Link
+                 href={isAuthentication ? "/user/landingpage" : "/"}
+                 className={`${
+                   pathname.startsWith("/user/landingpage") || (!isAuthentication && pathname.startsWith("/"))
+                     ? "text-black"
+                     : "text-white"
+                 }`}
+               >
+                 Home
+                </Link>
+                <Link  
+                href={isAuthentication ? "/user/best-selling" : "/best-selling"}
+                className={`${
+                  pathname.startsWith("/user/best-selling") || (!isAuthentication && pathname.startsWith("/best-selling"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                Best Selling
+                </Link>
+                <Link 
+                href={isAuthentication ? "/user/products" : "/products"}
+                className={`${
+                  pathname.startsWith("/user/products") || (!isAuthentication && pathname.startsWith("/products"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                  Products
+                  </Link>
+                <Link 
+                href={isAuthentication ? "/user/events" : "/events"}
+                className={`${
+                  pathname.startsWith("/user/events") || (!isAuthentication && pathname.startsWith("/events"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                  Events
+                  </Link>
+                <Link 
+                href={isAuthentication ? "/user/faq" : "/faq"}
+                className={`${
+                  pathname.startsWith("/user/faq") || (!isAuthentication && pathname.startsWith("/faq"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                  FAQ
+                  </Link>
               </div>
+
               
                 <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike}/>
               

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { Router } from "next/router";
 import { useRouter } from "next/navigation";
@@ -81,7 +81,7 @@ const VendorOrders = () => {
   const { data, loading, refetch } = useQuery<OrdersData>(GET_VENDOR_ORDERS, {
     pollInterval: 60000,
   });
-
+  
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState("");
 
