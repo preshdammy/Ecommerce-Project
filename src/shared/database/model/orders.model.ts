@@ -25,12 +25,15 @@ export interface IOrder extends Document {
   shippingAddress: IShippingAddress;
   paymentMethod: string;
   paymentStatus: "UNPAID" | "PENDING" | "PAID" | "FAILED";
+  manualOverride: boolean;
   paystackReference?: string;
   paystackSplitCode?: string;
   status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   estimatedDeliveryDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+  shippedAt: Date;
+  deliveredAt: Date;
 }
 
 const orderItemSchema = new Schema<IOrderItem>(
@@ -63,7 +66,7 @@ const orderSchema = new Schema<IOrder>(
     totalAmount: { type: Number, required: true },
     shippingFee: { type: Number, required: true },
     shippingAddress: { type: shippingAddressSchema, required: true },
-    paymentMethod: { type: String, enum: ["POD", "PAYSTACK_CARD", "PAYSTACK_TRANSFER", "PAYSTACK_USSD", "PAYSTACK_MOBILE_MONEY", "PAYSTACK_QR"], required: true },
+    paymentMethod: { type: String, enum: ["POD", "PAYSTACK_CARD", "PAYSTACK_TRANSFER", "PAYSTACK_USSD", "PAYSTACK_MOBILE_MONEY", "PAYSTACK_QR", "WALLET_BALANCE"], required: true },
     paymentStatus: { type: String, enum: ["UNPAID", "PENDING", "PAID", "FAILED"], default: "UNPAID" },
     paystackReference: { type: String },
     paystackSplitCode: { type: String },
@@ -76,7 +79,18 @@ const orderSchema = new Schema<IOrder>(
     type: Date,
     required: false,
     },
-
+    manualOverride: {
+      type: Boolean,
+      default: false,
+    },
+    shippedAt: {
+      type: Date,
+      default: null,
+    },
+    deliveredAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

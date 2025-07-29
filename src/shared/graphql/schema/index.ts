@@ -15,6 +15,8 @@ import { notificationresolver } from './notifcations/notifresolvers'
 import { notificationTypeDef } from './notifcations/notiftypedefs'
 import { orderResolvers } from './orders/orderresolver';
 import { orderTypeDef } from './orders/ordertypedef';
+import { walletTypeDefs } from "./wallets/wallettypdef";
+import { walletResolvers } from "./wallets/walletresolver"
 
 export const resolvers = mergeResolvers([
 
@@ -25,6 +27,7 @@ export const resolvers = mergeResolvers([
     reviewresolver,
     notificationresolver,
     orderResolvers,
+    walletResolvers
 ])
 export const typeDefs = mergeTypeDefs([
     usertypedef,
@@ -34,6 +37,7 @@ export const typeDefs = mergeTypeDefs([
     reviewtypedef,
     notificationTypeDef,
     orderTypeDef,
+    walletTypeDefs
   ])
   
 

@@ -1,12 +1,41 @@
-// src/shared/graphql/schema/orders/orderResolvers.ts
 
 import { OrderModel, IOrder } from "@/shared/database/model/orders.model";
 import { productModel } from "@/shared/database/model/product.model";
 import { vendorModel } from "@/shared/database/model/vendor.model";
 import { usermodel } from "@/shared/database/model/user.model";
+import { walletmodel } from "@/shared/database/model/wallet.model";
 import { NotificationModel } from "@/shared/database/model/notifications.model";
+import cron from "node-cron";
 import axios from "axios";
 import { Types } from "mongoose";
+
+
+cron.schedule("*/5 * * * *", async () => {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000); 
+
+  try {
+    const updated = await OrderModel.updateMany(
+      {
+        status: { $in: ["PENDING", "PROCESSING"] },
+        createdAt: { $lt: cutoff },
+        manualOverride: false,
+        $or: [
+          { paymentMethod: "POD", paymentStatus: "UNPAID" },
+          { paymentMethod: { $ne: "POD" }, paymentStatus: "PAID" },
+        ],
+      },
+      {
+        $set: { status: "SHIPPED", shippedAt: new Date() },
+      }
+    );
+
+    if (updated.modifiedCount > 0) {
+      console.log(`[CRON] Marked ${updated.modifiedCount} orders as SHIPPED`);
+    }
+  } catch (error) {
+    console.error("[CRON ERROR] Failed to auto-ship orders:", error);
+  }
+});
 
 /* -------------------------------------------------------------------------------------------------
  * Shipping Fee
@@ -157,6 +186,11 @@ async function populateOrderById(orderId: string) {
     .exec();
 }
 
+interface VendorUpdateOrderStatusArgs {
+  orderId: string;
+  status: "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+}
+
 /* -------------------------------------------------------------------------------------------------
  * Resolver
  * ------------------------------------------------------------------------------------------------- */
@@ -211,13 +245,14 @@ export const orderResolvers = {
       if (context.admin || buyerMatch || vendorMatch) return order;
       throw new Error("Unauthorized");
     },
+    ordersByStatus: async (_: any, { status }: { status: string }) => {
+      return await OrderModel.find({ status }).populate("items.product buyer vendors");
+    },
+    
     
   },
 
   Mutation: {
-    /* ---------------------------------------------------------------------------
-     * createOrder
-     * ------------------------------------------------------------------------ */
     async createOrder(
       _: unknown,
       {
@@ -274,11 +309,19 @@ export const orderResolvers = {
         .filter((v: any) => v.paystackSubaccountCode)
         .map((v: any) => {
           const vTotal = vendorTotals.get(v._id.toString()) || 0;
-          const pct = productsSubtotal > 0 ? (vTotal / productsSubtotal) * 100 : 0;
+          const pct = productsSubtotal > 0 ? (vTotal / productsSubtotal) * 90 : 0;
           return {
             subaccount: v.paystackSubaccountCode,
             share: Math.round(pct),
           };
+        });
+
+        const adminSubaccountCode = process.env.ADMIN_SUBACCOUNT_CODE;
+        if (!adminSubaccountCode) throw new Error("Missing ADMIN_SUBACCOUNT_CODE in env");
+        
+        vendorSharesRaw.push({
+          subaccount: adminSubaccountCode,
+          share: 10,
         });
 
       let splitCode: string | undefined;
@@ -305,6 +348,7 @@ export const orderResolvers = {
         status: "PENDING",
       });
 
+
       // Notifications
       for (const vendorId of vendorTotals.keys()) {
         await NotificationModel.create({
@@ -320,6 +364,7 @@ export const orderResolvers = {
       return populateOrderById(order._id.toString());
     },
 
+<<<<<<< HEAD
     /* ---------------------------------------------------------------------------
      * updateOrderStatus
 
@@ -384,6 +429,88 @@ export const orderResolvers = {
   return populateOrderById(id);
     },
 
+=======
+    async payWithWallet(
+      _: unknown,
+      { orderId }: { orderId: string },
+      context: Ctx
+    ): Promise<{ success: boolean; message: string; updatedBalance?: number }> {
+      if (!context.user) throw new Error("Unauthorized");
+    
+      const userId = context.user.id;
+    
+      const order = await OrderModel.findOne({
+        _id: orderId,
+        buyer: userId,
+      });
+    
+      if (!order) {
+        return {
+          success: false,
+          message: "Order not found",
+        };
+      }
+    
+      if (order.paymentMethod !== "WALLET_BALANCE") {
+        return {
+          success: false,
+          message: "Order is not set to use wallet payment",
+        };
+      }
+    
+      if (order.paymentStatus === "PAID") {
+        return {
+          success: false,
+          message: "Order is already paid",
+        };
+      }
+    
+      const user = await usermodel.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: "User not found",
+        };
+      }
+    
+      if (user.walletBalance < order.totalAmount) {
+        return {
+          success: false,
+          message: "Insufficient wallet balance",
+        };
+      }
+    
+      // Deduct from user wallet balance
+      user.walletBalance -= order.totalAmount;
+      await user.save();
+    
+      // Update order status
+      order.paymentStatus = "PAID";
+      order.status = "PROCESSING";
+      await order.save();
+      console.log("Wallet Payment Order Updated:", order.status, order.paymentStatus);
+
+    
+      // Notify vendors
+      for (const vendorId of order.vendors) {
+        await NotificationModel.create({
+          recipientId: vendorId,
+          recipientRole: "VENDOR",
+          type: "ORDER",
+          title: "New Paid Order",
+          message: "An order has been paid using wallet balance.",
+          isRead: false,
+        });
+      }
+    
+      return {
+        success: true,
+        message: "Wallet payment successful",
+        updatedBalance: user.walletBalance,
+      };
+    },
+    
+>>>>>>> ac0c3790cdc914c414e101e9bd8b59d962a25d36
 
     async initiatePaystackPayment(
       _: unknown,
@@ -410,7 +537,112 @@ export const orderResolvers = {
         reference: init.reference,
       };
     },
+
+    // async markOrderShipped(_: unknown, { id }: { id: string }, context: Ctx) {
+    //   if (!context.admin && !context.vendor) throw new Error("Unauthorized");
     
+    //   const order = await OrderModel.findById(id);
+    //   if (!order) throw new Error("Order not found");
+    
+    //   // Optional: if vendors are allowed to call this, validate vendor ownership
+    //   if (context.vendor) {
+    //     const isVendorInOrder = order.vendors
+    //       .map((v: any) => v.toString())
+    //       .includes(context.vendor.id);
+    //     if (!isVendorInOrder) throw new Error("You cannot update this order");
+    //   }
+    
+    //   if (order.status !== "PROCESSING" && order.status !== "PENDING") {
+    //     throw new Error("Order must be in PROCESSING or PENDING state to be marked as SHIPPED");
+    //   }
+    
+    //   order.status = "SHIPPED";
+    //   order.shippedAt = new Date();
+    //   order.manualOverride = true;
+    //   await order.save();
+    //   return populateOrderById(order._id.toString());
+    // },
+
+    // async markOrderDelivered(
+    //   _: unknown,
+    //   { id }: { id: string },
+    //   context: Ctx
+    // ) {
+    //   if (!context.admin && !context.vendor) {
+    //     throw new Error("Unauthorized");
+    //   }
+    
+    //   const order = await OrderModel.findById(id);
+    //   if (!order) throw new Error("Order not found");
+    
+    //   // Optional: validate vendor permission
+    //   if (context.vendor) {
+    //     const isVendorInOrder = order.vendors
+    //       .map((v: any) => v.toString())
+    //       .includes(context.vendor.id);
+    //     if (!isVendorInOrder) {
+    //       throw new Error("You cannot update this order");
+    //     }
+    //   }
+    
+    //   if (order.status !== "SHIPPED") {
+    //     throw new Error("Order must be in SHIPPED state to be marked as DELIVERED");
+    //   }
+    
+    //   order.status = "DELIVERED";
+    //   order.deliveredAt = new Date();
+    //   order.manualOverride = true;
+    //   await order.save();
+    
+    //   return populateOrderById(order._id.toString());
+    // },
+    
+    
+    async vendorUpdateOrderStatus(
+      _: unknown,
+      { orderId, status }: VendorUpdateOrderStatusArgs,
+      context: any
+    ): Promise<IOrder> {
+      const user = context.vendor;
+      console.log(user);
+      
+    
+      if (!user) {
+        throw new Error("Unauthorized");
+      }
+    
+      const order = await OrderModel.findOne({
+        _id: new Types.ObjectId(orderId),
+        vendors: new Types.ObjectId(user.id),
+      });
+    
+      if (!order) {
+        throw new Error("Order not found or not your order");
+      }
+    
+      const validStatuses: VendorUpdateOrderStatusArgs["status"][] = [
+        "PENDING",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELLED",
+      ];
+      if (!validStatuses.includes(status)) {
+        throw new Error("Invalid status");
+      }
+      if (status === "SHIPPED") {
+        order.shippedAt = new Date();
+      }
+      if (status === "DELIVERED") {
+        order.deliveredAt = new Date();
+      }
+      
+    
+      order.status = status;
+      order.manualOverride = true;
+      await order.save();
+    
+      return order;
+    },
    
     async verifyPaystackPayment(
       _: unknown,

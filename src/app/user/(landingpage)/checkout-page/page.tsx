@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, FormEvent } from "react";
-import { gql, useMutation } from "@apollo/client";
+import React, { useState, useMemo, FormEvent, useEffect } from "react";
+import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import { useReactiveVar } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { cartItemsVar } from "@/shared/lib/apolloClient"; 
@@ -14,7 +14,7 @@ const accentCoral = "#FF5A3D";
 const accentCoralHover = "#FF3E1C";
 const accentCoralLight = "#FFE5DF";
 const neutralBg = "#F9FAFD";
-const textDark = "#1A1A1A";
+const textDark = "#374151";
 
 
 export const CREATE_ORDER = gql`
@@ -66,6 +66,24 @@ export const VERIFY_PAYSTACK_PAYMENT = gql`
   }
 `;
 
+const GET_BALANCE = gql`
+  query GetBalance {
+    getWalletBalance {
+      balance
+    }
+  }
+`;
+
+export const PAY_WITH_WALLET = gql`
+  mutation PayWithWallet($orderId: ID!) {
+    payWithWallet(orderId: $orderId) {
+      success
+      message
+      updatedBalance
+    }
+  }
+`;
+
 
 const SHIPPING_RATE_BY_STATE_NGN: Record<string, number> = {
   Lagos: 1500,
@@ -85,6 +103,7 @@ const PAYSTACK_METHODS = [
   { value: "PAYSTACK_USSD", label: "USSD" },
   { value: "PAYSTACK_MOBILE_MONEY", label: "Mobile Money" },
   { value: "PAYSTACK_QR", label: "QR" },
+  { value: "WALLET_BALANCE", label: "Pay with Wallet Balance" },
 ] as const;
 
 type PayMethod =
@@ -93,7 +112,8 @@ type PayMethod =
   | "PAYSTACK_TRANSFER"
   | "PAYSTACK_USSD"
   | "PAYSTACK_MOBILE_MONEY"
-  | "PAYSTACK_QR";
+  | "PAYSTACK_QR"
+  | "WALLET_BALANCE";
 
 
 const steps = ["Details", "Confirm", "Done"];
@@ -139,8 +159,32 @@ export default function CheckoutPage() {
 
   /* ----- Mutations ----- */
   const [createOrder, { loading: creatingOrder }] = useMutation(CREATE_ORDER);
+  const [payWithWallet, { loading: payingWithWallet }] = useMutation(PAY_WITH_WALLET);
+  const [getWalletBalance, { data, refetch }] = useLazyQuery(GET_BALANCE);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+
   const [initiatePaystackPayment, { loading: initiatingPaystack }] =
     useMutation(INITIATE_PAYSTACK_PAYMENT);
+
+
+    useEffect(() => {
+      if (paymentMethod === "WALLET_BALANCE") {
+        getWalletBalance();
+      }
+    }, [paymentMethod, getWalletBalance]);
+    
+    // Update wallet balance when data comes in
+    useEffect(() => {
+      if (data?.getWalletBalance?.balance !== undefined) {
+        setWalletBalance(data.getWalletBalance.balance);
+      }
+    }, [data]);
+
+    const insufficientFunds =
+    paymentMethod === "WALLET_BALANCE" &&
+    walletBalance !== null &&
+    walletBalance < grandTotal;
+
 
   
   const formValid =
@@ -194,6 +238,18 @@ export default function CheckoutPage() {
         router.push(`/user/checkout-page/success?orderId=${orderId}`);
         return;
       }
+
+       // 💼 Handle Wallet Payment
+    if (paymentMethod === "WALLET_BALANCE") {
+      const { data: walletRes } = await payWithWallet({ variables: { orderId } });
+      if (walletRes?.payWithWallet?.success) {
+        cartItemsVar([]);
+        router.push(`/user/checkout-page/success?orderId=${orderId}`);
+      } else {
+        throw new Error(walletRes?.payWithWallet?.message || "Wallet payment failed.");
+      }
+      return;
+    }
 
       const res = await initiatePaystackPayment({ variables: { orderId } });
       const { authorizationUrl } = res.data.initiatePaystackPayment;
@@ -303,8 +359,8 @@ export default function CheckoutPage() {
           <label
             className={`flex cursor-pointer items-center gap-3 rounded border p-3 text-sm transition ${
               paymentMethod === "POD"
-                ? "border-transparent bg-white shadow ring-2 ring-offset-2"
-                : "border-gray-300 bg-gray-50"
+                ? "border-transparent bg-white shadow ring-2 ring-offset-2 ring-blue-300"
+                : "border-gray-300 bg-gray-50 hover:border-blue-200"
             }`}
             style={
               paymentMethod === "POD"
@@ -338,8 +394,8 @@ export default function CheckoutPage() {
                 key={m.value}
                 className={`flex cursor-pointer items-center gap-2 rounded border p-2 text-sm transition ${
                   paymentMethod === m.value
-                    ? "border-transparent bg-white shadow ring-2 ring-offset-2 ring-brandBlue ring-offset-brandBlueLight"
-                    : "border-gray-300 bg-gray-50"
+                    ? "border-transparent bg-white shadow ring-2 ring-offset-2 ring-blue-300"
+                    : "border-gray-300 bg-gray-50 hover:border-blue-200"
                 }`}
               >
                 <input
@@ -355,18 +411,24 @@ export default function CheckoutPage() {
             </div>
           )}
         </div>
+        {insufficientFunds && (
+          <p className="text-red-500 text-sm flex justify-center mt-2">
+            Insufficient wallet balance (₦{walletBalance?.toLocaleString()}). Please fund your wallet.
+          </p>
+        )}
       </SectionCard>
 
       {/* Continue */}
-      <div className="pt-4">
+      <div className="pt-4 hidden lg:block">
         <button
           type="submit"
-          disabled={!formValid}
+          disabled={!formValid || insufficientFunds}
           className="w-full rounded px-6 py-3 text-white disabled:opacity-40 sm:w-auto"
           style={{ background: brandBlue }}
         >
           Continue to Confirm
         </button>
+
       </div>
     </form>
   );
@@ -413,6 +475,7 @@ export default function CheckoutPage() {
         />
       </SectionCard>
 
+      <div className="hidden lg:block">
       <button
         onClick={handlePlaceOrder}
         disabled={creatingOrder || initiatingPaystack}
@@ -423,6 +486,7 @@ export default function CheckoutPage() {
       >
         {paymentMethod === "POD" ? "Confirm Order" : "Pay Now"}
       </button>
+      </div>
     </div>
   );
 
@@ -440,9 +504,7 @@ export default function CheckoutPage() {
     </div>
   );
 
-  /* -----------------------------------------------------------------------------
-   * Main Layout
-   * -------------------------------------------------------------------------- */
+  
   return (
     <div
       className="min-h-screen w-full"
@@ -460,7 +522,8 @@ export default function CheckoutPage() {
           </div>
 
           {/* Right Summary */}
-          <aside className="sticky top-4 max-h-[80vh] overflow-auto rounded bg-white p-4 shadow sm:p-6">
+          {currentStep === 0 && (
+          <aside className="block lg:block sticky top-4 max-h-[80vh] overflow-auto rounded bg-white p-4 shadow sm:p-6">
             <h3 className="mb-4 text-lg font-semibold" style={{ color: textDark }}>
               Order Summary
             </h3>
@@ -503,6 +566,7 @@ export default function CheckoutPage() {
               accent={accentCoral}
             />
           </aside>
+          )}
         </div>
 
         {/* Mobile bottom nav */}
@@ -518,14 +582,15 @@ export default function CheckoutPage() {
           )}
           {currentStep === 0 && (
             <button
-              className="ml-auto rounded px-4 py-2 text-sm text-white disabled:opacity-40"
+              className="ml-auto rounded px-6 py-3 text-white disabled:opacity-40"
               disabled={!formValid}
               onClick={goConfirm}
               style={{ background: brandBlue }}
             >
-              Next
+              Continue to Confirm
             </button>
           )}
+
           {currentStep === 1 && (
             <button
               className="ml-auto rounded px-4 py-2 text-sm text-white disabled:opacity-40"
@@ -547,8 +612,8 @@ export default function CheckoutPage() {
 
 function inputClass() {
   return [
-    "w-full rounded border p-2 text-sm",
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
+   "w-full rounded-md bg-gray-100 p-2 text-sm text-gray-700",
+    "focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-300",
   ].join(" ");
 }
 
@@ -651,16 +716,16 @@ function Totals({
 }) {
   return (
     <div className="space-y-1 text-sm">
-      <div className="flex justify-between">
+      <div className="flex justify-between text-gray-700">
         <span>Subtotal</span>
         <span>₦{subtotal.toLocaleString()}</span>
       </div>
-      <div className="flex justify-between">
+      <div className="flex justify-between text-gray-700">
         <span>Shipping</span>
         <span>₦{shipping.toLocaleString()}</span>
       </div>
       <div className="mt-2 border-t pt-2 font-semibold">
-        <div className="flex justify-between">
+        <div className="flex justify-between text-gray-700">
           <span>Total</span>
           <span style={{ color: accent }}>
             ₦{total.toLocaleString()}
@@ -688,49 +753,52 @@ function StepBar({
 
   return (
     <div className="relative mb-8 flex items-center justify-between">
-     
-      <div
-        className="absolute left-0 right-0 top-1/2 z-0 h-2 -translate-y-1/2 transform rounded-full"
-        style={{ background: brandBlueLight }}
-      />
-      
-      <div
-        className="absolute left-0 top-1/2 z-0 h-2 -translate-y-1/2 transform rounded-full transition-[width] duration-300 ease-in-out"
-        style={{
-          width: `${pct}%`,
-          background: `linear-gradient(90deg, ${brandBlue} 0%, #4C8DFF 100%)`,
-        }}
-      />
-      
-      {steps.map((label, index) => {
-        const active = index <= currentStep;
-        return (
-          <div
-            key={label}
-            className="relative z-10 flex flex-col items-center gap-1"
-          >
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
-                active
-                  ? "text-white"
-                  : "text-gray-600 bg-white border"
-              }`}
-              style={{
-                background: active ? brandBlue : undefined,
-                borderColor: active ? brandBlue : brandBlueLight,
-              }}
-            >
-              {index + 1}
-            </div>
-            <span
-              className="hidden text-[10px] font-medium sm:block sm:text-xs"
-              style={{ color: active ? brandBlue : "#6B7280" }}
-            >
-              {label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
+  {/* Background track */}
+  <div
+    className="absolute top-1/2 z-0 h-2 -translate-y-1/2 rounded-full"
+    style={{
+      left: "calc(1.5rem)",  
+      right: "calc(1.5rem)", 
+      background: brandBlueLight,
+    }}
+  />
+
+  {/* Progress fill */}
+  <div
+    className="absolute top-1/2 z-0 h-2 -translate-y-1/2 rounded-full transition-[width] duration-300 ease-in-out"
+    style={{
+      left: "calc(1.5rem)",
+      width: `calc(${pct}% - 1.5rem)`, 
+      background: `linear-gradient(90deg, ${brandBlue} 0%, #4C8DFF 100%)`,
+    }}
+  />
+
+  {/* Steps */}
+  {steps.map((label, index) => {
+    const active = index <= currentStep;
+    return (
+      <div key={label} className="relative z-10 flex flex-col items-center gap-1">
+        <div
+          className={`flex h-8 w-8 items-center md:mt-[15px] justify-center rounded-full text-xs font-semibold ${
+            active ? "text-white" : "text-gray-600 bg-white border"
+          }`}
+          style={{
+            background: active ? brandBlue : undefined,
+            borderColor: active ? brandBlue : brandBlueLight,
+          }}
+        >
+          {index + 1}
+        </div>
+        <span
+          className="hidden text-[10px] font-medium sm:block sm:text-xs"
+          style={{ color: active ? brandBlue : "#6B7280" }}
+        >
+          {label}
+        </span>
+      </div>
+    );
+  })}
+</div>
+
   );
 }

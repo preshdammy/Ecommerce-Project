@@ -72,8 +72,10 @@ type Order {
   status: OrderStatus!
   createdAt: String!
   updatedAt: String!
+  estimatedDeliveryDate: String
   shippedAt: Date
   deliveredAt: Date
+
 }
 
 type WalletPaymentResponse {

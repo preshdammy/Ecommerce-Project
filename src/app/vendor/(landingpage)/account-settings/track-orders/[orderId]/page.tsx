@@ -30,6 +30,8 @@ const GET_ORDER_STATUS = gql`
 const statusStages = ["Pending", "Processing", "Shipped", "Delivered"];
 
 const TrackOrder = () => {
+  
+
   const params = useParams();
   const orderId = params?.orderId as string;
 
@@ -51,7 +53,6 @@ const TrackOrder = () => {
   const currentIndex = statusStages.findIndex(
     (s) => s.toLowerCase() === order.status.toLowerCase()
   );
-  
 
   return (
     <div className="p-4 sm:p-6 max-w-xl mx-auto space-y-6">
@@ -90,12 +91,13 @@ const TrackOrder = () => {
             </span>
             {isActive && (
             <span className="text-xs text-gray-500">
-                {stage === "Pending" && order.orderedAt && new Date(order.orderedAt).toLocaleString()}
-                {stage === "Processing" && order.processedAt && new Date(order.processedAt).toLocaleString()}
+                {stage === "Pending" }
+                {stage === "Processing" }
                 {stage === "Shipped" && order.shippedAt && new Date(order.shippedAt).toLocaleString()}
                 {stage === "Delivered" && order.deliveredAt && new Date(order.deliveredAt).toLocaleString()}
             </span>
             )}
+
 
         </div>
       </div>
