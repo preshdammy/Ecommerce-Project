@@ -102,8 +102,7 @@ const PAYSTACK_METHODS = [
   { value: "PAYSTACK_TRANSFER", label: "Bank Transfer" },
   { value: "PAYSTACK_USSD", label: "USSD" },
   { value: "PAYSTACK_MOBILE_MONEY", label: "Mobile Money" },
-  { value: "PAYSTACK_QR", label: "QR" },
-  { value: "WALLET_BALANCE", label: "Pay with Wallet Balance" },
+  { value: "PAYSTACK_QR", label: "QR" }
 ] as const;
 
 type PayMethod =
@@ -166,6 +165,9 @@ export default function CheckoutPage() {
   const [initiatePaystackPayment, { loading: initiatingPaystack }] =
     useMutation(INITIATE_PAYSTACK_PAYMENT);
 
+    useEffect(() => {
+      getWalletBalance(); 
+    }, []);
 
     useEffect(() => {
       if (paymentMethod === "WALLET_BALANCE") {
@@ -352,7 +354,7 @@ export default function CheckoutPage() {
       <SectionCard title="Delivery & Payment">
         <p className="mb-4 text-sm text-gray-600">
           Default is <strong>Pay on Delivery</strong>. Prefer to pay now? Choose a Paystack
-          option.
+          option, or pay via wallet.
         </p>
         <div className="space-y-3">
           {/* POD */}
@@ -377,6 +379,35 @@ export default function CheckoutPage() {
             <span>Pay on Delivery</span>
           </label>
 
+          <label
+              className={`flex cursor-pointer items-center gap-3 rounded border p-3 text-sm transition ${
+                paymentMethod === "WALLET_BALANCE"
+                  ? "border-transparent bg-white shadow ring-2 ring-offset-2 ring-blue-300"
+                  : "border-gray-300 bg-gray-50 hover:border-blue-200"
+              }`}
+            >
+              <input
+                type="radio"
+                value="WALLET_BALANCE"
+                checked={paymentMethod === "WALLET_BALANCE"}
+                onChange={() => setPaymentMethod("WALLET_BALANCE")}
+              />
+              <div className="flex flex-col">
+                <span>Pay with Wallet Balance</span>
+                <span className="text-[11px] text-gray-500">
+                  {walletBalance === null
+                    ? "Checking balance..."
+                    : `Balance: ₦${walletBalance.toLocaleString()}`}
+                </span>
+              </div>
+            </label>
+            {insufficientFunds && (
+          <p className="text-red-500 text-sm flex justify-center mt-2">
+            Insufficient wallet balance (₦{walletBalance?.toLocaleString()}). Please fund your wallet.
+          </p>
+        )}
+
+
           {/* Toggle more */}
           <button
             type="button"
@@ -390,24 +421,27 @@ export default function CheckoutPage() {
           {showMorePaystack && (
             <div className="ml-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {PAYSTACK_METHODS.map((m) => (
-                <label
-                key={m.value}
-                className={`flex cursor-pointer items-center gap-2 rounded border p-2 text-sm transition ${
-                  paymentMethod === m.value
-                    ? "border-transparent bg-white shadow ring-2 ring-offset-2 ring-blue-300"
-                    : "border-gray-300 bg-gray-50 hover:border-blue-200"
-                }`}
-              >
-                <input
-                  type="radio"
-                  value={m.value}
-                  checked={paymentMethod === m.value}
-                  onChange={() => setPaymentMethod(m.value as PayMethod)}
-                />
-                <span>{m.label}</span>
-              </label>
-              
-              ))}
+                  <label
+                    key={m.value}
+                    className={`flex flex-col cursor-pointer gap-2 rounded border p-2 text-sm transition ${
+                      paymentMethod === m.value
+                        ? "border-transparent bg-white shadow ring-2 ring-offset-2 ring-blue-300"
+                        : "border-gray-300 bg-gray-50 hover:border-blue-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        value={m.value}
+                        checked={paymentMethod === m.value}
+                        onChange={() => setPaymentMethod(m.value as PayMethod)}
+                      />
+                      <span>{m.label}</span>
+                    </div>
+
+                  </label>
+                ))}
+
             </div>
           )}
         </div>
@@ -458,12 +492,14 @@ export default function CheckoutPage() {
         <p className="text-sm text-gray-700">
           {paymentMethod === "POD"
             ? "Pay on Delivery"
+            : paymentMethod === "WALLET_BALANCE"
+            ? "Pay with Wallet Balance"
             : `Paystack ${
-                PAYSTACK_METHODS.find((m) => m.value === paymentMethod)?.label ||
-                "Online"
+                PAYSTACK_METHODS.find((m) => m.value === paymentMethod)?.label || "Online"
               }`}
         </p>
       </SectionCard>
+
 
       {/* Totals */}
       <SectionCard compact>

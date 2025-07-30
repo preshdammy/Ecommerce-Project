@@ -51,7 +51,7 @@ export const producttypedef = `
 
     type Mutation {
         createProduct(name: String!, category: String!, description: String!, extendedDescription: String, subCategory: String!, color: String!, condition: String!, minimumOrder: Int!, stock: Int! price: Float!, images: [String!]!, originalPrice: Float): Product!
-        updateProduct(id: ID!, name: String, category: String, description: String, extendedDescription: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String], originalPrice: Float): Product
+        updateProduct(id: ID!, name: String, category: String, description: String, extendedDescription: String, subCategory: String, color: String, condition: String, minimumOrder: Int, price: Float, images: [String], originalPrice: Float, stock: Int): Product
         deleteProduct(id: ID!): Boolean!  
     }
 `

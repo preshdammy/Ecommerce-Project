@@ -1,10 +1,13 @@
 "use client";
 
-import { FaRegHeart, FaStar } from "react-icons/fa";
-import { CiStar, CiLocationOn } from "react-icons/ci";
+import { useReactiveVar } from "@apollo/client";
+import { cartItemsVar, likedItemsVar } from "@/shared/lib/apolloClient";
+import { toast } from "react-toastify";
+import { AiFillHeart, AiFillStar, AiOutlineEye, AiOutlineStar } from "react-icons/ai";
+import { IoCartOutline } from "react-icons/io5";
+import { IoIosHeartEmpty } from "react-icons/io";
 import Image from "next/image";
 import Link from "next/link";
-import { log } from "console";
 
 interface ProductType {
   id: string;
@@ -14,9 +17,11 @@ interface ProductType {
   price: number;
   images: string[];
   averageRating: number;
+  stock: number;
   seller: {
     id: string;
   };
+  totalReviews?: number;
 }
 
 interface Props {
@@ -25,70 +30,130 @@ interface Props {
 }
 
 const CategoryClientComponent = ({ products, formattedCategory }: Props) => {
-  console.log("Products in category:", products);
-  console.log("Formatted Category:", formattedCategory);
-  
-  
-  const renderStars = (rating: number) => (
-    <div className="flex gap-1">
-      {[...Array(5)].map((_, i) =>
-        i < rating ? (
-          <FaStar key={i} className="text-[#FABE22] text-[14px]" />
-        ) : (
-          <CiStar key={i} className="text-[#FABE22] text-[14px]" />
-        )
-      )}
-    </div>
-  );
+  const cartItems = useReactiveVar(cartItemsVar);
+  const likedItems = useReactiveVar(likedItemsVar);
+
+  const handleAddToCart = (product: ProductType) => {
+    if (product.stock === 0) {
+      toast.error("Product is out of stock");
+      return;
+    }
+
+    const exists = cartItems.some((item) => item.id === product.id);
+    if (exists) {
+      toast.info("Already in cart");
+    } else {
+      cartItemsVar([...cartItems, product]);
+      toast.success("Added to cart");
+    }
+  };
+
+  const toggleLike = (product: ProductType) => {
+    if (product.stock === 0) {
+      toast.error("Cannot like out-of-stock product");
+      return;
+    }
+
+    const isLiked = likedItems.some((item) => item.id === product.id);
+    if (isLiked) {
+      likedItemsVar(likedItems.filter((item) => item.id !== product.id));
+      toast.info("Removed from likes");
+    } else {
+      likedItemsVar([...likedItems, product]);
+      toast.success("Added to likes");
+    }
+  };
+
+  const renderStars = (averageRating: number, totalReviews?: number) => {
+    const fullStars = Math.floor(averageRating);
+    const hasHalfStar = averageRating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return (
+      <div className="flex items-center text-[#FFB800] text-[16px] mt-[8px]">
+        {Array(fullStars)
+          .fill(0)
+          .map((_, i) => <AiFillStar key={`full-${i}`} />)}
+        {hasHalfStar && <AiFillStar className="opacity-50" />}
+        {Array(emptyStars)
+          .fill(0)
+          .map((_, i) => <AiOutlineStar key={`empty-${i}`} />)}
+        <span className="text-sm text-gray-600 ml-1">({totalReviews ?? 0})</span>
+      </div>
+    );
+  };
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen relative">
+    <div className="bg-[#F8F8F8] min-h-screen relative pt-[12vh]">
       <h1 className="text-2xl font-semibold px-4 mt-6">Products in: {formattedCategory}</h1>
 
       <div className="container mx-auto px-4 py-8">
         {products.length === 0 ? (
-          <p className="text-center text-gray-500 text-lg">
-            No products found in this category.
-          </p>
+          <p className="text-center text-gray-500 text-lg">No products found in this category.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-md p-3 cursor-pointer hover:shadow"
-              >
-                <div className="w-full h-40 relative mb-3">
-                  <Image
-                    src={product.images?.[0] || "/placeholder.png"}
-                    alt={product.name}
-                    fill
-                    className="rounded object-cover"
-                  />
+            {products.map((product) => {
+              const isLiked = likedItems.some((item) => item.id === product.id);
+
+              return (
+                <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
+                  <div className="flex h-[140px] justify-between relative">
+                    <div className="w-[205px] h-[140px] relative">
+                      {product.stock === 0 && (
+                        <div className="absolute top-0 left-0 w-full h-full bg-black/70 z-10 flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">Out of Stock</span>
+                        </div>
+                      )}
+                      <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                    </div>
+
+                    <div className="w-[35px] flex flex-col gap-[12px] items-center justify-center h-[140px] z-20">
+                      <button onClick={() => toggleLike(product)} disabled={product.stock === 0}>
+                        {isLiked ? (
+                          <AiFillHeart className="text-red-500 text-[24px]" />
+                        ) : (
+                          <IoIosHeartEmpty
+                            className={`text-[24px] ${
+                              product.stock === 0 ? "text-gray-300 cursor-not-allowed" : "text-gray-400"
+                            }`}
+                          />
+                        )}
+                      </button>
+
+                      <AiOutlineEye className="cursor-pointer hover:text-[#00bfff] text-[24px]" />
+
+                      <IoCartOutline
+                        className={`text-[24px] ${
+                          product.stock === 0 ? "text-gray-400 cursor-not-allowed" : "cursor-pointer hover:text-[#00bfff]"
+                        }`}
+                        onClick={() => handleAddToCart(product)}
+                      />
+                    </div>
+                  </div>
+
+                  <Link href={`landingpage/product/${product.slug}`} className="cursor-pointer">
+                    <div className="mx-auto w-[90%]">
+                      <p className="text-[12px] font-[500] text-[#007BFF] font-sans mt-[10px]">{product.name}</p>
+                      <p className="font-sans font-[400] text-[16px] mt-[10px]">
+                        {product.description.length > 39 ? product.description.slice(0, 39) + "..." : product.description}
+                      </p>
+
+                      {renderStars(product.averageRating, product.totalReviews)}
+
+                      <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {product.price.toLocaleString()}</p>
+
+                      <p className="text-[16px] font-[600] font-sans text-right">
+                        {product.stock === 0 ? (
+                          <span className="text-red-500">Out of Stock</span>
+                        ) : (
+                          <span className="text-[#FF4C3B]">{product.stock} available</span>
+                        )}
+                      </p>
+                    </div>
+                  </Link>
                 </div>
-
-                <span className="text-[#007BFF] text-xs font-medium">
-                  {product.name || "Unknown product"}
-                </span>
-
-                <p className="text-[#272222] text-sm mt-1">  {product.description.length > 39
-                    ? product.description.slice(0, 39) + "..."
-                    : product.description}</p>
-                {renderStars(Math.round(product.averageRating || 0))}
-                <span className="text-[#272222] text-base font-semibold block mt-1">
-                  ₦{product.price}
-                </span>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-[#007BFF] text-xs flex items-center">
-                    <CiLocationOn className="mr-1" />
-                    { "Not set"}
-                  </span>
-                </div>
-
-                <Link href={`/product/${product.slug}`}>
-                  <button className="text-[#007BFF] mt-2 text-sm underline">See more</button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

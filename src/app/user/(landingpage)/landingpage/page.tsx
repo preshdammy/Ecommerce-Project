@@ -353,6 +353,12 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
           <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
             <div className="flex h-[140px] justify-between">
               <div className="w-[205px] h-[140px] relative">
+              {product.stock === 0 && (
+                <div className="absolute top-0 left-0 w-full h-full bg-black/70 bg-opacity-50 flex items-center justify-center z-10">
+                  <span className="text-white text-sm font-semibold">Out of Stock</span>
+                </div>
+              )}
+
                 <Image
                   src={product.images[0] || iphoneImage}
                   alt={product.name}
@@ -362,15 +368,36 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
               </div>
 
               <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                <button onClick={() => toggleLike(product)} >
-                  {likedItems.some((item) => item.id === product.id) ? (
-                    <AiFillHeart className="text-red-500 text-[24px]" />
+              {product.stock === 0 ? (
+                    <button
+                      onClick={() => toast.error("Cannot like out-of-stock product")}
+                      disabled
+                    >
+                      <IoIosHeartEmpty className="text-gray-300 text-[24px] cursor-not-allowed" />
+                    </button>
                   ) : (
-                    <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                    <button onClick={() => toggleLike(product)}>
+                      {likedItems.some((item) => item.id === product.id) ? (
+                        <AiFillHeart className="text-red-500 text-[24px]" />
+                      ) : (
+                        <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                      )}
+                    </button>
                   )}
-                </button>
+
                 <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]" />
-                <IoCartOutline className="cursor-pointer hover:text-[#00bfff]" onClick={() => handleAddToCart(product)} />
+                {product.stock === 0 ? (
+                    <IoCartOutline
+                      className="text-gray-400 cursor-not-allowed"
+                      onClick={() => toast.error("Product is out of stock")}
+                    />
+                  ) : (
+                    <IoCartOutline
+                      className="cursor-pointer hover:text-[#00bfff]"
+                      onClick={() => handleAddToCart(product)}
+                    />
+                  )}
+
               </div>
             </div>
 
@@ -416,9 +443,14 @@ export const ProductFrameOne = ({ data }: { data: { bestDeals: DealProduct[] } }
                   </div>
                 )}
 
-                <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">
-                  {product.stock + " available"}
+                <p className="text-[16px] font-[600] font-sans text-right">
+                  {product.stock === 0 ? (
+                    <span className="text-red-500">Out of Stock</span>
+                  ) : (
+                    <span className="text-[#FF4C3B]">{product.stock} available</span>
+                  )}
                 </p>
+
               </div>
             </Link>
           </div>
@@ -470,6 +502,12 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
             <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
               <div className="flex h-[140px] justify-between ">
                 <div className="w-[205px] h-[140px] relative">
+                {product.stock === 0 && (
+                    <div className="absolute top-0 left-0 w-full h-full bg-black/70 bg-opacity-50 flex items-center justify-center z-10">
+                      <span className="text-white text-sm font-semibold">Out of Stock</span>
+                    </div>
+                  )}
+
                   <Image
                     src={product.images[0] || iphoneImage}
                     alt={product.name}
@@ -479,15 +517,36 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                 </div>
   
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                <button onClick={() => toggleLike(product)} >
-                  {likedItems.some((item) => item.id === product.id) ? (
-                    <AiFillHeart className="text-red-500 text-[24px]" />
+                {product.stock === 0 ? (
+                    <button
+                      onClick={() => toast.error("Cannot like out-of-stock product")}
+                      disabled
+                    >
+                      <IoIosHeartEmpty className="text-gray-300 text-[24px] cursor-not-allowed" />
+                    </button>
                   ) : (
-                    <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                    <button onClick={() => toggleLike(product)}>
+                      {likedItems.some((item) => item.id === product.id) ? (
+                        <AiFillHeart className="text-red-500 text-[24px]" />
+                      ) : (
+                        <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                      )}
+                    </button>
                   )}
-                </button>
+
                   <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
-                  <IoCartOutline className="cursor-pointer hover:text-[#00bfff]" onClick={() => handleAddToCart(product)}/>
+                  {product.stock === 0 ? (
+                    <IoCartOutline
+                      className="text-gray-400 cursor-not-allowed"
+                      onClick={() => toast.error("Product is out of stock")}
+                    />
+                  ) : (
+                    <IoCartOutline
+                      className="cursor-pointer hover:text-[#00bfff]"
+                      onClick={() => handleAddToCart(product)}
+                    />
+                  )}
+
                 </div>
               </div>
   
@@ -518,8 +577,12 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                   </div>
   
                   <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {price.toLocaleString()}</p>
-                  <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">
-                    {stock + " available"}
+                  <p className="text-[16px] font-[600] font-sans text-right">
+                    {product.stock === 0 ? (
+                      <span className="text-red-500">Out of Stock</span>
+                    ) : (
+                      <span className="text-[#FF4C3B]">{product.stock} available</span>
+                    )}
                   </p>
                 </div>
               </Link>

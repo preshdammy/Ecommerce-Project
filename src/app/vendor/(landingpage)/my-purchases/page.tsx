@@ -11,18 +11,22 @@ export const GET_VENDOR_ORDERS = gql`
   query GetVendorOrders {
     vendorOrders {
       id
-      quantity
       totalAmount
       status
+      estimatedDeliveryDate
       createdAt
       updatedAt
-      estimatedDeliveryDate
-      product {
-        name
-        images
-        price
-        averageRating
-        totalReviews
+      items {
+        quantity
+        lineTotal
+        product {
+          id
+          name
+          images
+          price
+          averageRating
+          totalReviews
+        }
       }
     }
     getVendorProfile {
@@ -30,6 +34,62 @@ export const GET_VENDOR_ORDERS = gql`
     }
   }
 `;
+
+function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
+  const items = Array.isArray(o.items) ? o.items : [];
+  const totalQty = items.reduce((sum, it) => sum + (it?.quantity ?? 0), 0);
+
+  const first = items[0];
+  const p = first?.product;
+
+  const fallbackName =
+    items.length > 1
+      ? `${items.length} items`
+      : p?.name ?? "Product unavailable";
+
+  const fallbackImages = p?.images && Array.isArray(p.images) ? p.images : [];
+  const fallbackPrice = p?.price ?? 0;
+
+  return {
+    id: o.id,
+    product: {
+      name: fallbackName,
+      images: fallbackImages,
+      price: fallbackPrice,
+      averageRating: p?.averageRating ?? 0,
+      totalReviews: p?.totalReviews ?? 0,
+    },
+    quantity: totalQty,
+    totalAmount: o.totalAmount,
+    status: o.status,
+    createdAt: o.createdAt,
+    updatedAt: o.updatedAt,
+  };
+}
+
+
+type GqlOrderItem = {
+  quantity: number;
+  lineTotal: number;
+  product: {
+    id: string;
+    name: string;
+    images?: string[] | null;
+    price: number;
+    averageRating?: number | null;
+    totalReviews?: number | null;
+  } | null;
+};
+
+type GqlOrder = {
+  id: string;
+  totalAmount: number;
+  status: string;
+  estimatedDeliveryDate?: string | number | null;
+  createdAt: string;
+  updatedAt: string;
+  items: GqlOrderItem[];
+};
 
 type DeliveryCardProps = {
   order: {
@@ -46,37 +106,82 @@ type DeliveryCardProps = {
     status: string;
     createdAt: string;
     updatedAt: string;
-    estimatedDeliveryDate?: string;
   };
 };
 
+
+
+
 const getStatusProgress = (status: string): number => {
   switch (status) {
-    case "PENDING": return 25;
-    case "PROCESSING": return 50;
-    case "SHIPPED": return 75;
-    case "DELIVERED": return 100;
-    default: return 0;
+    case "PENDING":
+      return 25;
+    case "PROCESSING":
+      return 50;
+    case "SHIPPED":
+      return 75;
+    case "DELIVERED":
+    case "CANCELLED":
+      return 100;
+    default:
+      return 0;
   }
 };
 
-const getDaysLeft = (estimatedDate?: string): string => {
-  if (!estimatedDate) return "--";
-  const estDate = new Date(estimatedDate);
-  const now = new Date();
-  const diffMs = estDate.getTime() - now.getTime();
-  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  return days > 0 ? `${days} day${days > 1 ? "s" : ""} left` : days === 0 ? "Today" : "Overdue";
+const getStatusText = (status: string): string => {
+  switch (status) {
+    case "PENDING":
+      return "Pending";
+    case "PROCESSING":
+      return "Processing";
+    case "SHIPPED":
+      return "Shipped";
+    case "DELIVERED":
+      return "Delivered";
+    case "CANCELLED":
+      return "Cancelled";
+    default:
+      return "Unknown";
+  }
 };
 
-const ProgressCircle = ({ progress, daysLeft }: { progress: number; daysLeft: string }) => {
+
+function toSafeDate(v: unknown): Date | null {
+  if (typeof v === "number") return new Date(v);
+  if (typeof v === "string") {
+    if (/^\d+$/.test(v)) return new Date(Number(v));
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  return null;
+}
+
+const ProgressCircle = ({ progress, daysLeft, status }: { progress: number; daysLeft: string; status: string }) => {
+  const getProgressColor = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "#FF6B6B";
+      case "PROCESSING":
+        return "#4ECDC4";
+      case "SHIPPED":
+        return "#FFD700";
+      case "DELIVERED":
+        return "#00cc66";
+      case "CANCELLED":
+        return "#FF6B6B";
+      default:
+        return "#CCCCCC";
+    }
+  };
+
   const data = [
     { name: "Progress", value: progress },
     { name: "Remaining", value: 100 - progress },
   ];
 
   return (
-    <div className="relative w-[60px] h-[60px]">
+    <div className="relative w-[70px] h-[70px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -89,7 +194,10 @@ const ProgressCircle = ({ progress, daysLeft }: { progress: number; daysLeft: st
             stroke="none"
           >
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={index === 0 ? "#00cc66" : "#f3f3f3"} />
+              <Cell
+                key={`cell-${index}`}
+                fill={index === 0 ? getProgressColor(status) : "#f3f3f3"}
+              />
             ))}
           </Pie>
         </PieChart>
@@ -103,24 +211,31 @@ const ProgressCircle = ({ progress, daysLeft }: { progress: number; daysLeft: st
 };
 
 const DeliveryCard = ({ order }: DeliveryCardProps) => {
-  const { product, quantity, totalAmount, status, createdAt, estimatedDeliveryDate } = order;
+  if (!order?.product) return null;
+  const { product, quantity, totalAmount, status, createdAt } = order;
   const progress = getStatusProgress(status);
-  const daysLeft = getDaysLeft(estimatedDeliveryDate);
+  const daysLeft = getStatusText(status);
+
 
   const averageRating = product.averageRating || 0;
   const totalReviews = product.totalReviews || 0;
   const fullStars = Math.floor(averageRating);
   const hasHalfStar = averageRating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  const imgSrc = Array.isArray(product.images) && product.images.length > 0
+    ? product.images[0]
+    : typeof product.images === "string" && product.images
+      ? product.images
+      : "/fallback.jpg";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex-shrink-0 hover:border hover:border-blue-600 transition-all duration-500 ease-in-out">
+    <div className="bg-white rounded-2xl border border-[#CCE5FF] h-[45vh] w-[280px] flex-shrink-0 hover:border hover:border-blue-600 transition-all duration-500 ease-in-out">
       <div className="relative w-full h-[180px] rounded-t-2xl overflow-hidden">
         <Image
-          src={Array.isArray(product?.images) ? product.images[0] : product.images || "/fallback.jpg"}
+          src={imgSrc}
           alt={product.name}
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: "cover" }}
         />
         <div className="absolute top-2 right-2 bg-white text-[16px] text-[#007bff] font-bold px-2 py-1 rounded-full shadow">
           {quantity === 1 ? "1 piece" : `${quantity} pieces`}
@@ -139,7 +254,7 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
           <span className="text-sm text-gray-600 ml-1">({averageRating.toFixed(1)})</span>
         </div>
         <span className="text-sm text-[#858383]">₦ {product.price.toLocaleString()}</span>
-        <ProgressCircle progress={progress} daysLeft={daysLeft} />
+        <ProgressCircle progress={progress} daysLeft={daysLeft} status={status} />
       </div>
 
       <p className="font-semibold text-[18px] text-[#0063c6] ml-4">
@@ -150,16 +265,21 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
 };
 
 export default function PurchasesWrapper() {
-  const { data, loading, error } = useQuery(GET_VENDOR_ORDERS, {
+  const { data, loading, error, refetch } = useQuery(GET_VENDOR_ORDERS, {
     pollInterval: 30000,
-    fetchPolicy: "cache-and-network",
   });
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
   const [orders, setOrders] = useState<DeliveryCardProps["order"][]>([]);
   useEffect(() => {
-    if (data?.vendorOrders) {
-      setOrders(data.vendorOrders);
-    }
+    if (!data?.vendorOrders) return;
+    const normalized = data.vendorOrders.map(normalizeOrder);
+    setOrders(normalized);
   }, [data]);
+
   const pendingRef = useRef<HTMLDivElement>(null);
   const completedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -259,7 +379,16 @@ export default function PurchasesWrapper() {
                 ))}
               </div>
               <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-                <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                {(() => {
+                  const created = toSafeDate(order.createdAt);
+                  return (
+                    <span>
+                      {created
+                        ? created.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                        : "Unknown Date"}
+                    </span>
+                  );
+                })()}
                 <div className="flex gap-2">
                   <button className="rounded-full w-6 h-6 bg-gray-100 text-gray-500">❮</button>
                   <button className="rounded-full w-6 h-6 bg-gray-100 text-gray-500">❯</button>

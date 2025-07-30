@@ -13,6 +13,8 @@ const GET_PRODUCTS_BY_CATEGORY = gql`
       price
       images
       averageRating
+      stock
+      totalReviews
       seller {
         id
       }

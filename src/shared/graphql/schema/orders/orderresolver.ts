@@ -191,6 +191,21 @@ interface VendorUpdateOrderStatusArgs {
   status: "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 }
 
+interface OrderItem {
+  product: Types.ObjectId | any; // adjust if populated
+  vendor: Types.ObjectId | any;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+interface OrderType extends Document {
+  _id: Types.ObjectId;
+  items: OrderItem[];
+  // other fields like buyer, totalAmount, etc.
+  toObject: () => any;
+}
+
 /* -------------------------------------------------------------------------------------------------
  * Resolver
  * ------------------------------------------------------------------------------------------------- */
@@ -209,14 +224,34 @@ export const orderResolvers = {
 
     async vendorOrders(_: unknown, __: unknown, context: Ctx) {
       if (!context.vendor) throw new Error("Unauthorized");
-      return OrderModel.find({ vendors: context.vendor.id })
+    
+      const orders = await OrderModel.find({ vendors: context.vendor.id })
         .sort({ createdAt: -1 })
         .populate({ path: "items.product", select: "name images price seller" })
         .populate({ path: "items.vendor", select: "businessName paystackSubaccountCode" })
         .populate({ path: "buyer", select: "name email" })
         .populate({ path: "vendors", select: "businessName" })
         .exec();
-    },
+    
+     
+        return orders.map((order: any) => {
+          const filteredItems = order.items.filter(
+            (item: any) => item.vendor?._id.toString() === context.vendor!.id
+          );
+      
+          const totalAmount = filteredItems.reduce((sum: number, item: any) => {
+            return sum + item.quantity * item.product.price;
+          }, 0);
+      
+          return {
+            ...order.toObject(),
+            id: order._id.toString(),
+            items: filteredItems,
+            totalAmount, 
+          };
+        });
+      },
+    
 
     async allOrders(_: unknown, __: unknown, context: Ctx) {
       if (!context.admin) throw new Error("Unauthorized");
@@ -278,8 +313,17 @@ export const orderResolvers = {
       for (const { productId, quantity } of items) {
         const product = await productModel
           .findById(productId)
-          .select("price seller name");
+          .select("price seller name stock");
         if (!product) throw new Error(`Product not found: ${productId}`);
+
+        if (product.stock < quantity) {
+          throw new Error(`Not enough stock for ${product.name}`);
+        }
+      
+        product.stock -= quantity;
+        if (isNaN(product.stock)) throw new Error(`Stock calculation failed for ${product.name}`);
+        await product.save();
+
 
         const sellerId = product.seller.toString();
         const lineTotal = product.price * quantity;
