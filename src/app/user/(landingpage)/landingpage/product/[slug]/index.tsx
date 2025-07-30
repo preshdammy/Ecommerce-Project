@@ -281,73 +281,117 @@ const ProductDescription = ({slug}:{slug: string}) => {
               {/* Right Product Details */}
               
               {product && (
-                <div className="flex flex-col gap-[25px]">
-                  <h2 className="w-[504px] font-sans text-[32px] font-[600]">
-                    {product.name}
-                  </h2>
-                  <p className="w-[504px] text-[16px] font-[500] font-sans text-[#939090]">
-                    {product.description}
-                  </p>
-                  <p className="font-[700] font-sans text-[20px]">₦ {(product.price * quantity).toLocaleString()}</p>
+                          <div className="flex flex-col gap-[25px] relative">
+                            {product.stock === 0 && (
+                              <div className="absolute top-0 right-0 bg-red-500 text-white text-[12px] font-semibold px-3 py-1 rounded-bl z-10">
+                                Out of Stock
+                              </div>
+                            )}
 
-                  <div className="font-[600] text-[12px] flex justify-between items-center">
-                    <div>
-                      <span onClick={decreaseQty} className="bg-[#55A7FF] cursor-pointer rounded-[3px] py-[7px] px-[12px] text-white">-</span>
-                      <span className="rounded-[3px] py-[7px] px-[12px] bg-white">{quantity}</span>
-                      <span onClick={increaseQty} className="bg-[#55A7FF] cursor-pointer rounded-[3px] py-[7px] px-[12px] text-white">+</span>
-                    </div>
-                    <div onClick={() => toggleLike(product)} className="cursor-pointer">
-                      {isLiked ? (
-                        <AiFillHeart className="text-red-500 text-[24px]" />
-                      ) : (
-                        <CiHeart className="text-[24px] text-blue-500" />
-                      )}
-                    </div>
+                            <h2 className="w-[504px] font-sans text-[32px] font-[600]">
+                              {product.name}
+                            </h2>
 
-                  </div>
+                            <p className="w-[504px] text-[16px] font-[500] font-sans text-[#939090]">
+                              {product.description}
+                            </p>
 
-                  <button onClick={handleAddToCart} className="flex gap-[8px] py-[10px] w-[150px] rounded-[5px] px-[16px] bg-[#FF4C3B] font-[600] items-center text-[16px] text-white">
-                    <span>Add to cart</span>
-                    <RiShoppingCart2Line className="text-[18px] font-[700]" />
-                  </button>
+                            <p className="font-[700] font-sans text-[20px]">
+                              ₦ {(product.price * quantity).toLocaleString()}
+                            </p>
 
-                  <div className="bg-[#F5FAFF] font-sans w-[340px] h-[75px]">
-                    <div className="flex h-[100%] w-[100%] justify-around items-center">
-                      <div className="w-[180px] h-[42px] flex">
-                        <Image
-                          className="w-[45px] h-[45px] rounded-[50%]"
-                          src={product.seller.profilePicture} 
-                          alt=""
-                          width={45}
-                          height={45}
-                        />
-                        <div className="flex flex-col justify-between ml-2">
-                          <p className="font-[600] text-[12px]">{product.seller.businessName}</p>
-                          <p className="text-[#939090] font-[400] text-[10px]">
-                            {getReviews?.productReviews?.length
-                              ? `(${(
-                                  getReviews.productReviews.reduce(
-                                    (sum: number, review: any) => sum + review.rating,
-                                    0
-                                  ) / getReviews.productReviews.length
-                                ).toFixed(1)} ⭐)`
-                              : "(No ratings yet)"}
-                          </p>
+                            <div className="font-[600] text-[12px] flex justify-between items-center">
+                              <div>
+                                <span
+                                  onClick={product.stock > 0 ? decreaseQty : undefined}
+                                  className={`rounded-[3px] py-[7px] px-[12px] ${
+                                    product.stock > 0 ? "bg-[#55A7FF] text-white cursor-pointer" : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  }`}
+                                >
+                                  -
+                                </span>
+                                <span className="rounded-[3px] py-[7px] px-[12px] bg-white">
+                                  {quantity}
+                                </span>
+                                <span
+                                  onClick={product.stock > quantity ? increaseQty : undefined}
+                                  className={`rounded-[3px] py-[7px] px-[12px] ${
+                                    product.stock > quantity ? "bg-[#55A7FF] text-white cursor-pointer" : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  }`}
+                                >
+                                  +
+                                </span>
+                              </div>
+
+                              <div
+                                onClick={() =>
+                                  product.stock > 0
+                                    ? toggleLike(product)
+                                    : toast.error("Cannot like out-of-stock product")
+                                }
+                                className={`cursor-pointer ${product.stock === 0 ? "pointer-events-none opacity-40" : ""}`}
+                              >
+                                {isLiked ? (
+                                  <AiFillHeart className="text-red-500 text-[24px]" />
+                                ) : (
+                                  <CiHeart className="text-[24px] text-blue-500" />
+                                )}
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() =>
+                                product.stock > 0
+                                  ? handleAddToCart()
+                                  : toast.error("Product is out of stock")
+                              }
+                              className={`flex gap-[8px] py-[10px] w-[150px] rounded-[5px] px-[16px] font-[600] items-center text-[16px] text-white ${
+                                product.stock === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-[#FF4C3B]"
+                              }`}
+                              disabled={product.stock === 0}
+                            >
+                              <span>Add to cart</span>
+                              <RiShoppingCart2Line className="text-[18px] font-[700]" />
+                            </button>
+
+                            <div className="bg-[#F5FAFF] font-sans w-[340px] h-[75px]">
+                              <div className="flex h-[100%] w-[100%] justify-around items-center">
+                                <div className="w-[180px] h-[42px] flex">
+                                  <Image
+                                    className="w-[45px] h-[45px] rounded-[50%]"
+                                    src={product.seller.profilePicture}
+                                    alt=""
+                                    width={45}
+                                    height={45}
+                                  />
+                                  <div className="flex flex-col justify-between ml-2">
+                                    <p className="font-[600] text-[12px]">
+                                      {product.seller.businessName}
+                                    </p>
+                                    <p className="text-[#939090] font-[400] text-[10px]">
+                                      {getReviews?.productReviews?.length
+                                        ? `(${(
+                                            getReviews.productReviews.reduce(
+                                              (sum: number, review: any) => sum + review.rating,
+                                              0
+                                            ) / getReviews.productReviews.length
+                                          ).toFixed(1)} ⭐)`
+                                        : "(No ratings yet)"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => setIsModalOpen(true)}
+                                  className="flex items-center py-[10px] px-[12px] gap-[8px] cursor-pointer hover:bg-blue-100 rounded transition"
+                                >
+                                  <span className="font-[600] text-[12px]">Message Seller</span>
+                                  <IoChatboxOutline className="text-[16px]" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                         </div>
-                      </div>
-                      <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center py-[10px] px-[12px] gap-[8px] cursor-pointer hover:bg-blue-100 rounded transition"
-                      >
-                        <span className="font-[600] text-[12px]">Message Seller</span>
-                        <IoChatboxOutline className="text-[16px]" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </div>
 
                        {/* Tabs */}
                        <div className="bg-white pt-[20px] w-full">
@@ -584,6 +628,12 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
             <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
               <div className="flex h-[140px] justify-between ">
                 <div className="w-[205px] h-[140px] relative">
+                {product.stock === 0 && (
+                  <div className="absolute top-0 left-0 w-full h-full bg-black/70 bg-opacity-50 flex items-center justify-center z-10">
+                    <span className="text-white text-sm font-semibold">Out of Stock</span>
+                  </div>
+                )}
+
                   <Image
                     src={product.images[0] || iphoneImage}
                     alt={product.name}
@@ -593,15 +643,36 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
                 </div>
   
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                <button onClick={() => toggleLike(product)} >
-                  {likedItems.some((item) => item.id === product.id) ? (
-                    <AiFillHeart className="text-red-500 text-[24px]" />
-                  ) : (
-                    <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
-                  )}
-                </button>
+                {product.stock === 0 ? (
+                        <button
+                          onClick={() => toast.error("Cannot like out-of-stock product")}
+                          disabled
+                        >
+                          <IoIosHeartEmpty className="text-gray-300 text-[24px] cursor-not-allowed" />
+                        </button>
+                      ) : (
+                        <button onClick={() => toggleLike(product)}>
+                          {likedItems.some((item) => item.id === product.id) ? (
+                            <AiFillHeart className="text-red-500 text-[24px]" />
+                          ) : (
+                            <IoIosHeartEmpty className="text-gray-400 text-[24px]" />
+                          )}
+                        </button>
+                      )}
+
                   <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
-                  <IoCartOutline className="cursor-pointer hover:text-[#00bfff]" onClick={() => handleAddToCart(product)}/>
+                  {product.stock === 0 ? (
+                    <IoCartOutline
+                      className="text-gray-400 cursor-not-allowed"
+                      onClick={() => toast.error("Product is out of stock")}
+                    />
+                  ) : (
+                    <IoCartOutline
+                      className="cursor-pointer hover:text-[#00bfff]"
+                      onClick={() => handleAddToCart(product)}
+                    />
+                  )}
+
                 </div>
               </div>
   
@@ -632,9 +703,14 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
                   </div>
   
                   <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {price.toLocaleString()}</p>
-                  <p className="text-[16px] font-[600] font-sans text-right text-[#FF4C3B]">
-                    {stock + " available"}
+                  <p className="text-[16px] font-[600] font-sans text-right">
+                    {product.stock === 0 ? (
+                      <span className="text-red-500">Out of Stock</span>
+                    ) : (
+                      <span className="text-[#FF4C3B]">{product.stock} available</span>
+                    )}
                   </p>
+
                 </div>
               </Link>
             </div>
