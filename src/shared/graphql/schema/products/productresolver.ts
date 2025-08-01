@@ -342,7 +342,7 @@ export const productresolver = {
           
           
         updateProduct: async (_: any, arg: product, context: any) => {
-            const  {id, name, category, description, extendedDescription, subCategory, color, condition, minimumOrder, price, images} = arg
+            const  {id, name, category, description, extendedDescription, subCategory, color, condition, minimumOrder, price, images, stock} = arg
             try {
               const {vendor} = context 
               console.log(vendor);
@@ -368,7 +368,8 @@ export const productresolver = {
                 condition,
                 minimumOrder,
                 price,
-                images
+                images,
+                stock
               }, { new: true})
               return updatedproduct
             } catch (error) {

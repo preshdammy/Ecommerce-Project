@@ -51,6 +51,7 @@ const UPDATE_PRODUCT = gql`
     $category: String!
     $description: String!
     $price: Float!
+    $stock: Int!
   ) {
     updateProduct(
       id: $id
@@ -58,12 +59,14 @@ const UPDATE_PRODUCT = gql`
       category: $category
       description: $description
       price: $price
+      stock: $stock
     ) {
       id
       name
       category
       description
       price
+      stock
     }
   }
 `;
@@ -220,6 +223,7 @@ useEffect(() => {
         category: selectedProduct.category,
         description: selectedProduct.description,
         price: selectedProduct.price,
+        stock: selectedProduct.stock
       },
     });
   };
@@ -288,11 +292,18 @@ useEffect(() => {
       className="bg-white shadow-md rounded-[16px] w-[232px] h-auto ml-[18px] flex flex-col"
     >
       {/* Product Image */}
-      <img
-        className="w-[232px] h-[203px] object-cover rounded-tr-[16px] rounded-tl-[16px]"
-        src={product.images[0] || "/figma images/Frame 89.png"}
-        alt={product.name}
-      />
+      <div className="relative">
+    <img
+      className="w-[232px] h-[203px] object-cover rounded-tr-[16px] rounded-tl-[16px]"
+      src={product.images[0] || "/figma images/Frame 89.png"}
+      alt={product.name}
+    />
+    {product.stock === 0 && (
+      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow">
+        Out of Stock
+      </div>
+    )}
+  </div>
   
       {/* Price */}
       <h4 className="border-t border-gray-300 pt-2 pb-2 pl-4 text-[16px] font-[600]">
@@ -414,6 +425,19 @@ useEffect(() => {
           }
           className="w-full p-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 text-gray-700"
         />
+        <input
+            type="number"
+            placeholder="Stock"
+            value={selectedProduct.stock}
+            onChange={(e) =>
+              setSelectedProduct({
+                ...selectedProduct,
+                stock: parseInt(e.target.value, 10),
+              })
+            }
+            className="w-full p-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 text-gray-700"
+          />
+
 
         <div className="flex justify-end gap-3 pt-4">
           <button
