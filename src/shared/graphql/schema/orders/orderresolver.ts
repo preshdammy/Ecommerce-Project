@@ -364,7 +364,7 @@ export const orderResolvers = {
       return populateOrderById(order._id.toString());
     },
 
-<<<<<<< HEAD
+
     /* ---------------------------------------------------------------------------
      * updateOrderStatus
 
@@ -429,7 +429,7 @@ export const orderResolvers = {
   return populateOrderById(id);
     },
 
-=======
+
     async payWithWallet(
       _: unknown,
       { orderId }: { orderId: string },
@@ -508,9 +508,7 @@ export const orderResolvers = {
         message: "Wallet payment successful",
         updatedBalance: user.walletBalance,
       };
-    },
-    
->>>>>>> ac0c3790cdc914c414e101e9bd8b59d962a25d36
+    },    
 
     async initiatePaystackPayment(
       _: unknown,

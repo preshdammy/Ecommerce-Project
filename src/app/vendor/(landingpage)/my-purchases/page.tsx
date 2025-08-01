@@ -38,7 +38,6 @@ export const GET_VENDOR_ORDERS = gql`
 function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
   const items = Array.isArray(o.items) ? o.items : [];
   const totalQty = items.reduce((sum, it) => sum + (it?.quantity ?? 0), 0);
-  console.log("Order Items:", items, "Total Amount:", o.totalAmount);
 
   const first = items[0];
   const p = first?.product;
@@ -50,27 +49,6 @@ function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
 
   const fallbackImages = p?.images && Array.isArray(p.images) ? p.images : [];
   const fallbackPrice = p?.price ?? 0;
-
-  console.log("Raw estimatedDeliveryDate from server:", o.estimatedDeliveryDate);
-  let adjustedDeliveryDate = o.estimatedDeliveryDate;
-  if (!adjustedDeliveryDate || typeof adjustedDeliveryDate === "number") {
-    const createdDate =
-  typeof o.createdAt === "number"
-    ? new Date(o.createdAt)
-    : new Date(o.createdAt); // let Date parse the ISO string
-
-    adjustedDeliveryDate = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000)
-    console.log("Calculated estimatedDeliveryDate from createdAt:", adjustedDeliveryDate);
-  } else {
-    const estDate = new Date(adjustedDeliveryDate);
-    if (isNaN(estDate.getTime()) || estDate < new Date()) {
-      const createdDate = new Date(typeof o.createdAt === "number" ? o.createdAt : parseInt(o.createdAt));
-      adjustedDeliveryDate = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000)
-      console.log("Adjusted invalid or past estimatedDeliveryDate to:", adjustedDeliveryDate);
-    } else {
-      console.log("Using valid estimatedDeliveryDate:", adjustedDeliveryDate);
-    }
-  }
 
   return {
     id: o.id,
@@ -86,9 +64,9 @@ function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
     status: o.status,
     createdAt: o.createdAt,
     updatedAt: o.updatedAt,
-    estimatedDeliveryDate: adjustedDeliveryDate,
   };
 }
+
 
 type GqlOrderItem = {
   quantity: number;
@@ -128,9 +106,9 @@ type DeliveryCardProps = {
     status: string;
     createdAt: string;
     updatedAt: string;
-    estimatedDeliveryDate?: string | undefined;
   };
 };
+
 
 
 
@@ -150,32 +128,23 @@ const getStatusProgress = (status: string): number => {
   }
 };
 
-const getDaysLeft = (estimatedDate?: string, status?: string): string => {
-
-  if (status === "DELIVERED") {
-    return "Done";
-  } else if (status === "CANCELLED") {
-    return "Cancelled";
+const getStatusText = (status: string): string => {
+  switch (status) {
+    case "PENDING":
+      return "Pending";
+    case "PROCESSING":
+      return "Processing";
+    case "SHIPPED":
+      return "Shipped";
+    case "DELIVERED":
+      return "Delivered";
+    case "CANCELLED":
+      return "Cancelled";
+    default:
+      return "Unknown";
   }
-
-  let estDate: Date;
-  if (!estimatedDate) {
-    console.log("estimatedDate is falsy:", estimatedDate);
-    estDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-  } else {
-    estDate = new Date(estimatedDate);
-    if (isNaN(estDate.getTime())) {
-      console.log("Invalid date detected:", estimatedDate, "using fallback");
-      estDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-    }
-  }
-  const now = new Date();
-  console.log("estDate:", estDate.toISOString(), "now:", now.toISOString());
-  const diffMs = estDate.getTime() - now.getTime();
-  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  console.log("days:", days);
-  return days > 0 ? `${days} day${days > 1 ? "s" : ""} left` : days === 0 ? "Today" : "Overdue";
 };
+
 
 function toSafeDate(v: unknown): Date | null {
   if (typeof v === "number") return new Date(v);
@@ -243,9 +212,10 @@ const ProgressCircle = ({ progress, daysLeft, status }: { progress: number; days
 
 const DeliveryCard = ({ order }: DeliveryCardProps) => {
   if (!order?.product) return null;
-  const { product, quantity, totalAmount, status, createdAt, estimatedDeliveryDate } = order;
+  const { product, quantity, totalAmount, status, createdAt } = order;
   const progress = getStatusProgress(status);
-  const daysLeft = getDaysLeft(estimatedDeliveryDate, status);
+  const daysLeft = getStatusText(status);
+
 
   const averageRating = product.averageRating || 0;
   const totalReviews = product.totalReviews || 0;
