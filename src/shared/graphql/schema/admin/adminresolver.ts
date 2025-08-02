@@ -29,7 +29,7 @@ export const adminresolver = {
     allVendors: async () => {
       return await vendorModel
         .find()
-        .select("name email storeName avatar phone location createdAt")
+        .select("name email storeName avatar phone location createdAt status suspendedUntil")
         .lean();
     },
 
@@ -209,6 +209,30 @@ user: async (_: any, { id }: { id: string }) => {
       },
 
     getDashboardMetrics: async () => {
+      const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        const yesterdayCommissionAgg = await OrderModel.aggregate([
+          {
+            $match: {
+              status: "DELIVERED",
+              createdAt: { $gte: yesterday, $lt: today },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$adminCommission" },
+            },
+          },
+        ]);
+
+      const yesterdayAdminCommission = yesterdayCommissionAgg[0]?.total || 0;
+      const adminCommissionAgg = await OrderModel.aggregate([
+        { $match: { status: "DELIVERED" } },
+        { $group: { _id: null, total: { $sum: "$adminCommission" } } },
+      ]);
       const totalUsers = await usermodel.countDocuments();
       const totalVendors = await vendorModel.countDocuments();
       const totalOrders = await OrderModel.countDocuments();
@@ -216,13 +240,56 @@ user: async (_: any, { id }: { id: string }) => {
         { $match: { status: "DELIVERED" } },
         { $group: { _id: null, total: { $sum: "$totalAmount" } } },
       ]);
+      
       return {
         totalUsers,
         totalVendors,
         totalOrders,
         totalSales: totalSalesAgg[0]?.total || 0,
+        totalAdminCommission: adminCommissionAgg[0]?.total || 0,
+        yesterdayAdminCommission
       };
+    
     },
+
+    weeklyAdminCommissions: async () => {
+      const today = new Date();
+      const past7Days = [...Array(7)].map((_, i) => {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        return date.toISOString().slice(0, 10); 
+      });
+      
+      const commissions = await OrderModel.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(past7Days[past7Days.length - 1]),
+            },
+            status: "DELIVERED",
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+            },
+            total: { $sum: "$adminCommission" },
+          },
+        },
+      ]);
+      
+      // Ensure all 7 days are returned
+      const fullData = past7Days.map((date) => {
+        const match = commissions.find((d) => d._id === date);
+        return { date, total: match?.total || 0 };
+      });
+      
+      return fullData.reverse(); // Chronological order
+      
+    },
+
+    
    myComplaints: async (_: any, __: any, context: { user?: any; vendor?: any }) => {
   const { user, vendor } = context;
 
@@ -235,6 +302,27 @@ user: async (_: any, { id }: { id: string }) => {
   return complaints  // 👈 Ensure it's a proper string
   ;
 },
+
+recentAdminCommissions: async () => {
+  const recentOrders = await OrderModel.find({
+    status: "DELIVERED",
+  })
+    .sort({ createdAt: -1 })
+    .limit(3)
+    .populate("buyer")
+    .populate("items.product");
+
+  return recentOrders.map((order) => ({
+    buyerName: order.buyer?.name || "Someone",
+    productName: order.items[0]?.product?.name || "a product",
+    amount: order.adminCommission,
+    createdAt: order.createdAt.toISOString(),
+  }));
+}
+
+
+
+    
 
   },
 
@@ -293,12 +381,6 @@ user: async (_: any, { id }: { id: string }) => {
       await vendorModel.findByIdAndDelete(args.id);
       return "Vendor deleted";
     },
-
-    banVendor: async (_: any, args: { id: string }) =>
-      await vendorModel.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
-
-    
-
 
     deleteUser: async (_: any, args: { id: string }) => {
       await usermodel.findByIdAndDelete(args.id);
@@ -370,7 +452,96 @@ user: async (_: any, { id }: { id: string }) => {
     if (!complaint) throw new Error("Complaint not found");
     return complaint;
   },
+  approveVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
+    const admin = context?.admin;
+    
 
+    if (!admin) throw new Error("Unauthorized");
+  
+    const vendor = await vendorModel.findById(vendorId);
+    if (!vendor) throw new Error("Vendor not found");
+  
+    vendor.status = "APPROVED";
+    vendor.suspendedUntil = null;
+    
+  
+    vendor.actions.push({
+      action: "APPROVED",
+      performedBy: admin.email,
+      performedAt: new Date(),
+      notes: "Vendor approved by admin",
+    });
+  
+    await vendor.save();
+    return vendor;
+  },
+  
+  suspendVendor: async (
+    _: any,
+    { vendorId, until }: { vendorId: string; until: string },
+    context: any
+  ) => {
+    const admin = context?.admin;
 
-  },  
+    if (!admin) throw new Error("Unauthorized");
+  
+    const vendor = await vendorModel.findById(vendorId);
+    if (!vendor) throw new Error("Vendor not found");
+  
+    const date = new Date(until);
+    vendor.status = "SUSPENDED";
+    vendor.suspendedUntil = date;
+  
+    vendor.actions.push({
+      action: "SUSPENDED",
+      performedBy: admin.email,
+      performedAt: new Date(),
+      notes: `Vendor suspended until ${date.toISOString()}`,
+    });
+  
+    await vendor.save();
+    return vendor;
+  },
+  unsuspendVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
+    const admin = context?.admin;
+    if (!admin) throw new Error("Unauthorized");
+  
+    const vendor = await vendorModel.findById(vendorId);
+    if (!vendor) throw new Error("Vendor not found");
+  
+    vendor.suspendedUntil = null;
+    vendor.status = "APPROVED";
+  
+    vendor.actions.push({
+      action: "UNSUSPENDED",
+      performedBy: admin.email,
+      performedAt: new Date(),
+      notes: "Vendor unsuspended by admin",
+    });
+  
+    await vendor.save();
+    return vendor;
+  },
+  
+  
+  banVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
+    const admin = context?.admin;
+    if (!admin) throw new Error("Unauthorized");
+  
+    const vendor = await vendorModel.findById(vendorId);
+    if (!vendor) throw new Error("Vendor not found");
+  
+    vendor.status = "BANNED";
+    vendor.suspendedUntil = null;
+  
+    vendor.actions.push({
+      action: "BANNED",
+      performedBy: admin.email,
+      performedAt: new Date(),
+      notes: "Vendor banned by admin",
+    });
+  
+    await vendor.save();
+    return vendor;
+  }},  
 };

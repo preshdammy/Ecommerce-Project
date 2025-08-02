@@ -21,6 +21,7 @@ import bagImage from "../../../../../../../public/figma images/robert-gomez-vXdu
 import { cartItemsVar } from "@/shared/lib/apolloClient";
 import { likedItemsVar } from "@/shared/lib/apolloClient";
 import { useReactiveVar } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 
 
 const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
@@ -32,6 +33,7 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
       extendedDescription
       price
       images
+      stock
       seller {
         id
         name
@@ -238,7 +240,6 @@ const ProductDescription = ({slug}:{slug: string}) => {
       
       
       
-      
 
   return (
     <>
@@ -281,6 +282,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
               {/* Right Product Details */}
               
               {product && (
+                
                           <div className="flex flex-col gap-[25px] relative">
                             {product.stock === 0 && (
                               <div className="absolute top-0 right-0 bg-red-500 text-white text-[12px] font-semibold px-3 py-1 rounded-bl z-10">
@@ -536,8 +538,8 @@ const ProductDescription = ({slug}:{slug: string}) => {
             <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[10vh]">
                     <h1 className="font-[500] text-[32px] font-sans w-[85%] ">Related Products</h1>
            
-                    <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-                         <ProductFrame data={{ relatedProducts: data?.relatedProducts?.slice(0, 8) || [] }} />
+                    <div className="bg-[#F8F8F8] w-[100%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                         <ProductFrame data={{ relatedProducts: relatedData?.relatedProducts?.slice(0, 8) || [] }} />
                     </div>
                     </div>
 
@@ -628,7 +630,7 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
             <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
               <div className="flex h-[140px] justify-between ">
                 <div className="w-[205px] h-[140px] relative">
-                {product.stock === 0 && (
+                {stock === 0 && (
                   <div className="absolute top-0 left-0 w-full h-full bg-black/70 bg-opacity-50 flex items-center justify-center z-10">
                     <span className="text-white text-sm font-semibold">Out of Stock</span>
                   </div>
@@ -643,7 +645,7 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
                 </div>
   
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                {product.stock === 0 ? (
+                {stock === 0 ? (
                         <button
                           onClick={() => toast.error("Cannot like out-of-stock product")}
                           disabled
@@ -661,7 +663,7 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
                       )}
 
                   <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
-                  {product.stock === 0 ? (
+                  {stock === 0 ? (
                     <IoCartOutline
                       className="text-gray-400 cursor-not-allowed"
                       onClick={() => toast.error("Product is out of stock")}
@@ -704,10 +706,10 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
   
                   <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {price.toLocaleString()}</p>
                   <p className="text-[16px] font-[600] font-sans text-right">
-                    {product.stock === 0 ? (
+                    {stock === 0 ? (
                       <span className="text-red-500">Out of Stock</span>
                     ) : (
-                      <span className="text-[#FF4C3B]">{product.stock} available</span>
+                      <span className="text-[#FF4C3B]">{stock} available</span>
                     )}
                   </p>
 

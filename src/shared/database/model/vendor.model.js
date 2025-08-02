@@ -28,6 +28,37 @@ const VendorSchema = new Schema({
   businessOpeningTime: { type: String },
   businessClosingTime: { type: String },
   businessAvailability: { type: String },
+  product: [{ type: mongoose.Schema.Types.ObjectId, ref: 'products'}],
+  
+  status: {
+    type: String,
+    enum: ["PENDING", "APPROVED", "SUSPENDED", "BANNED"],
+    default: "PENDING",
+  },
+  suspendedUntil: {
+    type: Date,
+    default: null,
+  },
+  actions: [
+    {
+      action: String, 
+      performedBy: String,
+      performedAt: Date,
+      notes: String,
+    },
+  ],
+  stats: {
+    totalSales: Number,
+    productCount: Number,
+    ratingAverage: Number,
+    salesPerMonth: [
+      {
+        month: String,  
+        total: Number,  
+      },
+    ],
+  },
+  
 
 }, { timestamps: true });
 

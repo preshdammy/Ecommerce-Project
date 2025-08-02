@@ -34,6 +34,8 @@ export interface IOrder extends Document {
   updatedAt: Date;
   shippedAt: Date;
   deliveredAt: Date;
+  adminCommission: number;
+
 }
 
 const orderItemSchema = new Schema<IOrderItem>(
@@ -67,12 +69,12 @@ const orderSchema = new Schema<IOrder>(
     shippingFee: { type: Number, required: true },
     shippingAddress: { type: shippingAddressSchema, required: true },
     paymentMethod: { type: String, enum: ["POD", "PAYSTACK_CARD", "PAYSTACK_TRANSFER", "PAYSTACK_USSD", "PAYSTACK_MOBILE_MONEY", "PAYSTACK_QR", "WALLET_BALANCE"], required: true },
-    paymentStatus: { type: String, enum: ["UNPAID", "PENDING", "PAID", "FAILED"], default: "UNPAID" },
+    paymentStatus: { type: String, enum: ["UNPAID", "PENDING", "PAID", "FAILED", "REFUNDED"], default: "UNPAID" },
     paystackReference: { type: String },
     paystackSplitCode: { type: String },
     status: {
       type: String,
-      enum: ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"],
+      enum: ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"],
       default: "PENDING",
     },
     estimatedDeliveryDate: {
@@ -91,6 +93,11 @@ const orderSchema = new Schema<IOrder>(
       type: Date,
       default: null,
     },
+    adminCommission: {
+      type: Number,
+      default: 0,
+    },
+    
   },
   { timestamps: true }
 );

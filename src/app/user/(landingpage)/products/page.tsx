@@ -70,36 +70,34 @@ const AllProductsPage = () => {
     toast.info("Product already in cart");
   };
 
-  const toggleLike = (product: FeaturedProduct) => {
-    const isLiked = likedItems.some((item) => item.id === product.id);
+        const toggleLike = (product: FeaturedProduct) => {
+          const isLiked = likedItems.some((item) => item.id === product.id);
+        
+          if (isLiked) {
+            likedItemsVar(likedItems.filter((item) => item.id !== product.id));
+            toast.info("Removed from Likes");
+          } else {
+            likedItemsVar([...likedItems, product]);
+            toast.success("Added to Likes");
+          }
+        };
+        
 
-    if (isLiked) {
-      likedItemsVar(likedItems.filter((item) => item.id !== product.id));
-      toast.info("Removed from Likes");
-    } else {
-      likedItemsVar([...likedItems, product]);
-      toast.success("Added to Likes");
-    }
-  };
-
-  if (loading) return <p>Loading products...</p>;
-  if (error) return <p>Error fetching products: {error.message}</p>;
-
-  return (
-    <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[20vh]">
-      <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto">All Products</h1>
-      <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-        {data?.allProducts?.map((product: FeaturedProduct) => {
+    return (
+      <>
+        {data?.featuredProducts?.map((product: FeaturedProduct) => {
           const { averageRating = 0, price, stock } = product;
           const fullStars = Math.floor(averageRating);
           const hasHalfStar = averageRating % 1 >= 0.5;
           const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+          
 
+  
           return (
             <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
               <div className="flex h-[140px] justify-between">
                 <div className="w-[205px] h-[140px] relative">
-                  {product.stock === 0 && (
+                {stock === 0 && (
                     <div className="absolute top-0 left-0 w-full h-full bg-black/70 bg-opacity-50 flex items-center justify-center z-10">
                       <span className="text-white text-sm font-semibold">Out of Stock</span>
                     </div>
@@ -112,7 +110,7 @@ const AllProductsPage = () => {
                   />
                 </div>
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                  {product.stock === 0 ? (
+                {stock === 0 ? (
                     <button
                       onClick={() => toast.error("Cannot like out-of-stock product")}
                       disabled
@@ -128,8 +126,9 @@ const AllProductsPage = () => {
                       )}
                     </button>
                   )}
-                  <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]" />
-                  {product.stock === 0 ? (
+
+                  <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
+                  {stock === 0 ? (
                     <IoCartOutline
                       className="text-gray-400 cursor-not-allowed"
                       onClick={() => toast.error("Product is out of stock")}
@@ -168,10 +167,10 @@ const AllProductsPage = () => {
                   </div>
                   <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {price.toLocaleString()}</p>
                   <p className="text-[16px] font-[600] font-sans text-right">
-                    {product.stock === 0 ? (
+                    {stock === 0 ? (
                       <span className="text-red-500">Out of Stock</span>
                     ) : (
-                      <span className="text-[#FF4C3B]">{product.stock} available</span>
+                      <span className="text-[#FF4C3B]">{stock} available</span>
                     )}
                   </p>
                 </div>
@@ -179,8 +178,7 @@ const AllProductsPage = () => {
             </div>
           );
         })}
-      </div>
-      <div className="flex justify-center mt-8 gap-4">
+              <div className="flex justify-center mt-8 gap-4">
         <button
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={page === 1}
@@ -204,7 +202,8 @@ const AllProductsPage = () => {
           Next
         </button>
       </div>
-    </div>
+    
+</>
   );
 };
 

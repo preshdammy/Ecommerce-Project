@@ -19,6 +19,8 @@ export const adminTypeDefs = `
     phone: String
     location: String
     createdAt: String
+    status: String
+    suspendedUntil: DateTime
   }
 
  
@@ -84,6 +86,8 @@ type User {
     totalVendors: Int!
     totalOrders: Int!
     totalSales: Int!
+    totalAdminCommission: Float
+    yesterdayAdminCommission: Float
   }
 
   type Token {
@@ -100,6 +104,17 @@ type User {
   vendor: Vendor
 }
 
+type RecentCommission {
+  buyerName: String
+  productName: String
+  amount: Float
+  createdAt: String
+}
+
+type DailyCommission {
+  date: String
+  total: Float
+}
 
   type Query {
     adminProfile: Admin!
@@ -111,6 +126,9 @@ type User {
     getDashboardMetrics: Metrics!
     complaints: [Complaint!]!
     myComplaints: [Complaint!]!
+    recentAdminCommissions: [RecentCommission]
+    weeklyAdminCommissions: [DailyCommission]
+
   }
 
   type Mutation {
@@ -120,7 +138,6 @@ type User {
     deleteAdmin(id: ID!): String!
     addVendor(name: String!, email: String!): Vendor!
     deleteVendor(id: ID!): String!
-    banVendor(id: ID!): Vendor!
     deleteUser(id: ID!): String!
     banUser(id: ID!): User!
     unbanUser(id: ID!): User!
@@ -130,6 +147,13 @@ type User {
     resetPassword(token: String!, newPassword: String!): Boolean!
     addComplaint(message: String!): Complaint!
     updateComplaintStatus(id: ID!, status: String!): Complaint!
+
+
+    approveVendor(vendorId: ID!): Vendor!
+    suspendVendor(vendorId: ID!, until: DateTime!): Vendor!
+    unsuspendVendor(vendorId: ID!): Vendor!
+    banVendor(vendorId: ID!): Vendor! 
+
   
   }
 `;

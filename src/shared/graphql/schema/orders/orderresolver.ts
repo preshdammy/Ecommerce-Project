@@ -253,7 +253,7 @@ export const orderResolvers = {
       },
     
 
-    async allOrders(_: unknown, __: unknown, context: Ctx) {
+   async allOrders(_: unknown, __: unknown, context: Ctx) {
       if (!context.admin) throw new Error("Unauthorized");
       return OrderModel.find()
         .sort({ createdAt: -1 })
@@ -262,7 +262,7 @@ export const orderResolvers = {
         .populate({ path: "buyer", select: "name email" })
         .populate({ path: "vendors", select: "businessName" })
         .exec();
-    },
+    }, 
 
     async order(_: unknown, { id }: { id: string }, context: Ctx) {
       const order = await populateOrderById(id);
@@ -377,6 +377,7 @@ export const orderResolvers = {
       const vendorIds = Array.from(vendorTotals.keys()).map((id) => new Types.ObjectId(id));
 
       const estimatedDeliveryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+      const adminCommission = productsSubtotal * 0.1;
 
       const order = await OrderModel.create({
         items: orderItems,
@@ -390,6 +391,7 @@ export const orderResolvers = {
         paymentStatus: paymentMethod === "POD" ? "UNPAID" : "PENDING",
         paystackSplitCode: splitCode,
         status: "PENDING",
+        adminCommission
       });
 
 
@@ -685,7 +687,7 @@ export const orderResolvers = {
     
       return order;
     },
-   
+
     async verifyPaystackPayment(
       _: unknown,
       { reference }: { reference: string },
@@ -709,5 +711,56 @@ export const orderResolvers = {
 
       return populateOrderById(order._id.toString());
     },
+
+    async adminUpdateOrderStatus(
+      _: unknown,
+      { orderId, status }: { orderId: string; status: string },
+      context: any
+    ): Promise<IOrder> {
+      const user = context.admin;
+    
+      if (!user) throw new Error("Unauthorized");
+    
+      const order = await OrderModel.findById(orderId).populate("buyer");
+      if (!order) throw new Error("Order not found");
+    
+      const validStatuses = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"];
+      if (!validStatuses.includes(status)) throw new Error("Invalid status");
+    
+      if (status === "SHIPPED") {
+        order.shippedAt = new Date();
+      }
+    
+      if (status === "DELIVERED") {
+        order.deliveredAt = new Date();
+      }
+    
+      if (status === "REFUNDED") {
+        // Check if already refunded
+        if (order.status === "REFUNDED" || order.refundedAt) {
+          throw new Error("Order has already been refunded");
+        }
+    
+        if (order.paymentStatus !== "PAID") {
+          throw new Error("Cannot refund unpaid order");
+        }
+    
+        const buyer = order.buyer as any; // populated user
+    
+        buyer.walletBalance += order.totalAmount;
+        await buyer.save();
+    
+        order.paymentStatus = "REFUNDED";
+        order.refundedAt = new Date();
+      }
+    
+      order.status = status;
+      order.manualOverride = true;
+    
+      await order.save();
+    
+      return order;
+    },
+    
   },
 };
