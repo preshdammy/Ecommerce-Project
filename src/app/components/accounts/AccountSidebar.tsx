@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { BsCartCheck } from 'react-icons/bs';
 import { CiUser, CiPhone, CiCreditCard1, CiLocationOn, CiLock } from "react-icons/ci";
 import { CiWarning } from "react-icons/ci";
-import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { GoInbox } from "react-icons/go";
 import { BsArrowCounterclockwise } from "react-icons/bs";
 import { PiClockClockwise } from "react-icons/pi";

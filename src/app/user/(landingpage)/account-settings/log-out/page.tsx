@@ -20,7 +20,7 @@ export default function LogoutPage() {
   }
 
   return (
-    <AccountLayout>
+    <>
 
       <div className=" flex items-center gap-2 mb-4 text-blue-600">
         <Link href="/user/account-settings" className="flex items-center gap-2">
@@ -59,6 +59,6 @@ export default function LogoutPage() {
           </button>
         </div>
       </div>
-    </AccountLayout>
+    </>
   );
 }

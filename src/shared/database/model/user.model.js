@@ -9,13 +9,12 @@ const userSchema = new mongoose.Schema({
   state: { type: String },
   city: { type: String },
   gender: { type: String },
-  dateOfBirth: { type: Date},
-  walletBalance: {
-    type: Number,
-    default: 0,
-  }   
+  dateOfBirth: { type: Date },
+  walletBalance: { type: Number, default: 0 },
+  isBanned: { 
+    type: Boolean, 
+    default: false 
+  }
 }, { timestamps: true });
-
-
 
 export const usermodel = models.usercollection || model("usercollection", userSchema);

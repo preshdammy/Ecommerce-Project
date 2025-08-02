@@ -12,8 +12,8 @@ export const adminTypeDefs = `
 
   type Vendor {
     id: ID!
-    name: String!
-    email: String!
+    name: String
+    email: String
     storeName: String
     avatar: String
     phone: String
@@ -23,16 +23,23 @@ export const adminTypeDefs = `
     suspendedUntil: DateTime
   }
 
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-    profilePicture: String
-    city: String
-    state: String
-    gender: String
-    dateOfBirth: String
-  }
+ 
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  password: String!
+  profilePicture: String
+  address: String
+  state: String
+  city: String
+  gender: String
+  dateOfBirth: String
+  walletBalance: Float
+  isBanned: Boolean!
+  complaints: [Complaint!]!
+  orders: [Order!]!
+}
 
   type Product {
    id: ID!
@@ -56,7 +63,7 @@ export const adminTypeDefs = `
 
  type Order {
   id: ID!
-  product: Product!
+  product: Product
   buyer: User!
   vendor: Vendor!
   quantity: Int!
@@ -133,6 +140,7 @@ type DailyCommission {
     deleteVendor(id: ID!): String!
     deleteUser(id: ID!): String!
     banUser(id: ID!): User!
+    unbanUser(id: ID!): User!
     markOrderAsDelivered(orderId: ID!): String!
     refundOrder(orderId: ID!): String!
     requestPasswordReset(email: String!): Boolean!

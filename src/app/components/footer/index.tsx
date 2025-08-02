@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import React from 'react'
-import Image from 'next/image'
 
 const Footer = () => {
   return (
@@ -10,30 +9,30 @@ const Footer = () => {
         {/* About Us */}
         <div className='flex flex-col gap-[15px]'>
           <h2 className='text-[20px] md:text-[22px] lg:text-[24px] font-normal'>About us</h2>
-          <Link className='text-[14px] md:text-[16px]' href=''>About Time Shoppy</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>We are hiring!</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Terms and Conditions</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Privacy Policy</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Billing Policy</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Cookie Policy</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Copyright Infringement Policy</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/about'>About Time Shoppy</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/we-are-hiring'>We are hiring!</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/terms-and-conditions'>Terms and Conditions</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/privacy-policy'>Privacy Policy</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/billing-policy'>Billing Policy</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/cookie-policy'>Cookie Policy</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/copyright'>Copyright Infringement Policy</Link>
         </div>
 
         {/* Support */}
         <div className='flex flex-col gap-[15px]'>
           <h2 className='text-[20px] md:text-[22px] lg:text-[24px] font-normal'>Support</h2>
-          <Link className='text-[14px] md:text-[16px]' href=''>support@timeshoppy.ng</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Contact us</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>FAQ</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/support'>support@timeshoppy.ng</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/contact-us'>Contact us</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/faq'>FAQ</Link>
         </div>
 
         {/* Resources */}
         <div className='flex flex-col gap-[15px]'>
           <h2 className='text-[20px] md:text-[22px] lg:text-[24px] font-normal'>Our resources</h2>
-          <Link className='text-[14px] md:text-[16px]' href=''>Our blog</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Facebook</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Instagram</Link>
-          <Link className='text-[14px] md:text-[16px]' href=''>Twitter</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href='/blog'>Our blog</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href=''>Facebook</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href=''>Instagram</Link>
+          <Link className='text-[14px] md:text-[16px] hover:underline underline-offset-2' href=''>Twitter</Link>
         </div>
         
       </div>
