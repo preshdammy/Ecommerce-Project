@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import { complaintModel } from "@/shared/database/model/complaint.model";
 
 
+
 export const adminresolver = {
   Query: {
     adminProfile: async (_: any, __: any, context: any) => {
@@ -32,21 +33,174 @@ export const adminresolver = {
         .lean();
     },
 
-    allProducts: async () => await productModel.find(),
+    
+allProducts: async () => {
+  const products = await productModel.find();
+  return Promise.all(products.map(async product => ({
+    ...product.toObject(),
+    seller: product.seller ? await vendorModel.findById(product.seller).select("name email") : "",
+    
+  })));
+},
 
-    allOrders: async () =>
-      await OrderModel.find()
-        .populate('buyer')
-        .populate('product')
-        .populate('vendor'),
+product: async (_: any, { id }: { id: string }) => {
+  const product = await productModel.findById(id);
+  if (!product) throw new Error("Product not found");
+  return {
+    ...product.toObject(),
+    seller: product.seller ? await vendorModel.findById(product.seller).select("name email") : "",
+  };
+},
 
-    allUsers: async () => {
-      return await usermodel
-        .find()
-        .select("name email profilePicture city state gender dateOfBirth")
-        .lean();
-    },
+allUsers: async (_: any, __: any, context: any) => {
+  console.log("Admin context:", context.admin);
+  const users = await usermodel
+    .find()
+    .select("name email profilePicture city state gender dateOfBirth")
+    .lean();
+  console.log("Raw users from DB:", users); // Log all users
+  return users.map(user => {
+    
+    return {
+      id: (user as any)._id?.toString() || (user as any).id || null, // Ensure id is set
+      name: user.name,
+      email: user.email,
+    };
+  }).filter(Boolean);
+},
 
+user: async (_: any, { id }: { id: string }) => {
+  const user = await usermodel
+    .findById(id)
+    .select("name email password profilePicture address state city gender dateOfBirth walletBalance isBanned createdAt updatedAt")
+    .lean();
+
+  if (!user) throw new Error("User not found");
+  
+  // If user is an array, skip or handle accordingly
+  if (Array.isArray(user)) {
+    throw new Error("User not found");
+  }
+
+  // Fetch related complaints and orders
+  const [complaints, orders] = await Promise.all([
+    complaintModel.find({ user: id }),
+   OrderModel.find({ buyer: id })
+    .populate({
+      path: 'items.product',
+      model: 'products', // Must match your product model name
+      select: 'name price images' // Only get needed fields
+    })
+    .populate({
+      path: 'items.vendor',
+      model: 'vendor_collection',
+      select: 'name storeName'
+    })
+  ]);
+
+  interface UserComplaint {
+    id: string;
+    message: string;
+    status: string;
+    createdAt: Date;
+  }
+
+  interface OrderProduct {
+    id: string;
+    name: string;
+    price: number;
+    image: string | null;
+  }
+
+  interface OrderItem {
+    product: OrderProduct;
+    quantity: number;
+  }
+
+  interface UserOrder {
+    id: string;
+    totalAmount: number;
+    status: string;
+    createdAt: Date;
+    items: OrderItem[];
+  }
+
+  interface UserDetails {
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    profilePicture: string | null;
+    address: string | null;
+    state: string | null;
+    city: string | null;
+    gender: string | null;
+    dateOfBirth: Date | null;
+    walletBalance: number;
+    isBanned: boolean;
+    orders: UserOrder[];
+    complaints: UserComplaint[];
+  }
+
+  return {
+    id: (user._id as string | { toString(): string }).toString(),
+    name: user.name,
+    email: user.email,
+    password: user.password,
+    profilePicture: user.profilePicture || "",
+    address: user.address || "",
+    state: user.state || "",
+    city: user.city || "",
+    gender: user.gender || "",
+    dateOfBirth: user.dateOfBirth || "",
+    walletBalance: user.walletBalance || 0,
+    isBanned: user.isBanned || false, // Default to false if not set
+    orders: orders.map((order: any): UserOrder => ({
+      id: order._id.toString(),
+      totalAmount: order.totalAmount,
+      status: order.status,
+      createdAt: order.createdAt,
+      items: order.items.map((item: any): OrderItem => ({
+        product: item.product ? {
+          id: item.product._id?.toString() || 'unknown',
+          name: item.product.name || 'Deleted Product',
+          price: item.product.price || 0,
+          image: item.product.images?.[0] || null
+        } : {
+          id: 'unknown',
+          name: 'Deleted Product',
+          price: 0,
+          image: null
+        },
+        quantity: item.quantity
+      }))
+    })),
+    complaints: complaints.map((c: any): UserComplaint => ({
+      id: c._id.toString(),
+      message: c.message,
+      status: c.status,
+      createdAt: c.createdAt
+    }))
+  } as UserDetails;
+},
+  
+
+   allOrders: async () => {
+  const orders = await OrderModel.find()
+    .populate({
+      path: 'buyer',
+      match: { id: { $ne: null } }, 
+      select: "name email"
+    })
+    .populate('product')
+    .populate('vendor');
+  return orders.map(order => ({
+    ...order.toObject(),
+    buyer: order.buyer ? order.buyer : null, 
+  }));
+},
+
+  
     complaints: async () => {
       return complaintModel
         .find()
@@ -81,9 +235,6 @@ export const adminresolver = {
   return complaints  // 👈 Ensure it's a proper string
   ;
 },
-
-
-    
 
   },
 
@@ -146,13 +297,29 @@ export const adminresolver = {
     banVendor: async (_: any, args: { id: string }) =>
       await vendorModel.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
 
+    
+
+
     deleteUser: async (_: any, args: { id: string }) => {
       await usermodel.findByIdAndDelete(args.id);
       return "User deleted";
     },
 
-    banUser: async (_: any, args: { id: string }) =>
-      await usermodel.findByIdAndUpdate(args.id, { isBanned: true }, { new: true }),
+   banUser: async (_: any, { id }: { id: string }) => {
+  return await usermodel.findByIdAndUpdate(
+    id, 
+    { isBanned: true }, 
+    { new: true } // Returns the updated document
+  ).select('-password'); // Exclude password
+  },
+
+  unbanUser: async (_: any, { id }: { id: string }) => {
+  return await usermodel.findByIdAndUpdate(
+    id,
+    { isBanned: false },
+    { new: true }
+  ).select('-password');
+},
 
     deleteProduct: async (_: any, args: { id: string }) => {
       await productModel.findByIdAndDelete(args.id);

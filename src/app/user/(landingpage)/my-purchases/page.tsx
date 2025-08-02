@@ -7,6 +7,7 @@ import { gql, useQuery } from "@apollo/client";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
+
 export const GET_USER_ORDERS = gql`
   query GetMyOrders {
     myOrders {
@@ -35,39 +36,14 @@ export const GET_USER_ORDERS = gql`
 function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
   const items = Array.isArray(o.items) ? o.items : [];
   const totalQty = items.reduce((sum, it) => sum + (it?.quantity ?? 0), 0);
-  console.log("Order Items:", items, "Total Amount:", o.totalAmount);
-
   const first = items[0];
   const p = first?.product;
 
   const fallbackName =
-    items.length > 1
-      ? `${items.length} items`
-      : p?.name ?? "Product unavailable";
+    items.length > 1 ? `${items.length} items` : p?.name ?? "Product unavailable";
 
   const fallbackImages = p?.images && Array.isArray(p.images) ? p.images : [];
   const fallbackPrice = p?.price ?? 0;
-
-  console.log("Raw estimatedDeliveryDate from server:", o.estimatedDeliveryDate);
-  let adjustedDeliveryDate = o.estimatedDeliveryDate;
-  if (!adjustedDeliveryDate || typeof adjustedDeliveryDate === "number") {
-    const createdDate =
-  typeof o.createdAt === "number"
-    ? new Date(o.createdAt)
-    : new Date(o.createdAt); // let Date parse the ISO string
-
-    adjustedDeliveryDate = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000)
-    console.log("Calculated estimatedDeliveryDate from createdAt:", adjustedDeliveryDate);
-  } else {
-    const estDate = new Date(adjustedDeliveryDate);
-    if (isNaN(estDate.getTime()) || estDate < new Date()) {
-      const createdDate = new Date(typeof o.createdAt === "number" ? o.createdAt : parseInt(o.createdAt));
-      adjustedDeliveryDate = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
-      console.log("Adjusted invalid or past estimatedDeliveryDate to:", adjustedDeliveryDate);
-    } else {
-      console.log("Using valid estimatedDeliveryDate:", adjustedDeliveryDate);
-    }
-  }
 
   return {
     id: o.id,
@@ -83,9 +59,10 @@ function normalizeOrder(o: GqlOrder): DeliveryCardProps["order"] {
     status: o.status,
     createdAt: o.createdAt,
     updatedAt: o.updatedAt,
-    estimatedDeliveryDate: adjustedDeliveryDate,
   };
 }
+
+
 
 type GqlOrderItem = {
   quantity: number;
@@ -139,43 +116,33 @@ const getStatusProgress = (status: string): number => {
       return 75;
     case "DELIVERED":
     case "CANCELLED":
-      return 100; // Both completed and cancelled at 100%
+      return 100; 
     default:
       return 0;
   }
 };
 
-const getDaysLeft = (estimatedDate?: string, status?: string): string => {
-
-  if (status === "DELIVERED") {
-    return "Done";
-  } else if (status === "CANCELLED") {
-    return "Cancelled";
+const getStatusText = (status: string): string => {
+  switch (status) {
+    case "PENDING":
+      return "Pending";
+    case "PROCESSING":
+      return "Processing";
+    case "SHIPPED":
+      return "Shipped";
+    case "DELIVERED":
+      return "Delivered";
+    case "CANCELLED":
+      return "Cancelled";
+    default:
+      return "Unknown";
   }
-
-  let estDate: Date;
-  if (!estimatedDate) {
-    console.log("estimatedDate is falsy:", estimatedDate);
-    estDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-  } else {
-    estDate = new Date(estimatedDate);
-    if (isNaN(estDate.getTime())) {
-      console.log("Invalid date detected:", estimatedDate, "using fallback");
-      estDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-    }
-  }
-  const now = new Date();
-  console.log("estDate:", estDate.toISOString(), "now:", now.toISOString());
-  const diffMs = estDate.getTime() - now.getTime();
-  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  console.log("days:", days);
-  return days > 0 ? `${days} day${days > 1 ? "s" : ""} left` : days === 0 ? "Today" : "Overdue";
 };
 
 function toSafeDate(v: unknown): Date | null {
   if (typeof v === "number") return new Date(v);
   if (typeof v === "string") {
-    // If it's a numeric string (epoch in ms), coerce to number first
+   
     if (/^\d+$/.test(v)) return new Date(Number(v));
     const d = new Date(v);
     return isNaN(d.getTime()) ? null : d;
@@ -189,17 +156,17 @@ const ProgressCircle = ({ progress, daysLeft, status }: { progress: number; days
 const getProgressColor = (status: string) => {
   switch (status) {
     case "PENDING":
-      return "#FF6B6B"; // Red
+      return "#FF6B6B"; 
     case "PROCESSING":
-      return "#4ECDC4"; // Teal
+      return "#4ECDC4"; 
     case "SHIPPED":
-      return "#FFD700"; // Gold
+      return "#FFD700"; 
     case "DELIVERED":
-      return "#00cc66"; // Green
+      return "#00cc66"; 
     case "CANCELLED":
-      return "#FF6B6B"; // Red for cancelled
+      return "#FF6B6B"; 
     default:
-      return "#CCCCCC"; // Gray
+      return "#CCCCCC"; 
   }
   };
 
@@ -242,7 +209,7 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
   if (!order?.product) return null;
   const { product, quantity, totalAmount, status, createdAt, estimatedDeliveryDate } = order;
   const progress = getStatusProgress(status);
-  const daysLeft = getDaysLeft(estimatedDeliveryDate, status);
+  const daysLeft =getStatusText(status);
 
   const averageRating = product.averageRating || 0;
   const totalReviews = product.totalReviews || 0;
@@ -278,11 +245,9 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
           {Array(fullStars).fill(0).map((_, i) => <AiFillStar key={`full-${i}`} />)}
           {hasHalfStar && <AiFillStar key="half-star" className="opacity-50" />}
           {Array(emptyStars).fill(0).map((_, i) => <AiOutlineStar key={`empty-${i}`} />)}
-          {/* <span className="text-sm text-gray-600 ml-1">({averageRating.toFixed(1)})</span> */}
           <span className="text-sm text-gray-600 ml-1">
-            {`(${product.averageRating || 0})`}
+            {`(${Math.floor(product.averageRating ?? 0)})`}
           </span>
-          {/* <span className="text-sm text-gray-600 ml-1"> {product.totalReviews || "N/A"}</span> */}
         </div>
         <span className="text-sm text-[#858383]">₦ {product.price.toLocaleString()}</span>
         
@@ -302,7 +267,7 @@ export default function PurchasesWrapper() {
   });
 
   useEffect(() => {
-    refetch(); // Force refetch on mount
+    refetch(); 
   }, [refetch]);
 
   const [orders, setOrders] = useState<DeliveryCardProps["order"][]>([]);

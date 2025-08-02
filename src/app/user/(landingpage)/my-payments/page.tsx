@@ -1,8 +1,8 @@
-
 "use client";
 
 import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 // GraphQL Queries and Mutations
 const INIT_WALLET_FUNDING = gql`
@@ -44,7 +44,14 @@ const MY_ORDERS = gql`
       id
       totalAmount
       createdAt
-      
+      items {
+        quantity
+        product {
+          id
+          name
+          images
+        }
+      }
     }
   }
 `;
@@ -61,8 +68,6 @@ const MY_TRANSACTIONS = gql`
   }
 `;
 
-
-
 const MyPayment = () => {
   const [showFundModal, setShowFundModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -74,17 +79,13 @@ const MyPayment = () => {
   const [getWalletBalance, { data, refetch }] = useLazyQuery(GET_BALANCE);
   const { data: ordersData, loading: ordersLoading } = useQuery(MY_ORDERS);
   const { data: transactionData, loading: transactionLoading } = useQuery(MY_TRANSACTIONS);
-  
-  
-
-
 
   const handleFund = async () => {
-    const amt = parseFloat(amount); 
-        if (isNaN(amt) || amt <= 0) {
-            alert("Enter a valid amount");
-            return;
-        }
+    const amt = parseFloat(amount);
+    if (isNaN(amt) || amt <= 0) {
+      alert("Enter a valid amount");
+      return;
+    }
     try {
       const { data } = await initWallet({
         variables: { amount: amt }
@@ -92,7 +93,7 @@ const MyPayment = () => {
 
       const url = data.initializeWalletFunding.authorization_url;
       if (url) {
-        window.location.href = url;  
+        window.location.href = url;
       }
     } catch (error) {
       console.error("Funding error", error);
@@ -157,63 +158,70 @@ const MyPayment = () => {
             </div>
           </div>
 
-          <div className="w-full mt-[20vh]">
-            <h2 className="text-[#939090] font-[600] text-[24px]">Payment History</h2>
+        <div className="w-full mt-[20vh]">
+          <h2 className="text-[#939090] font-[600] text-[24px]">Payment History</h2>
 
-            <div className="w-full flex justify-between mt-[5vh]">
-              <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
-                <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
-                  <span className="font-[600] text-[24px] text-white ml-[20px]">
-                    My spending history
-                  </span>
-                </div>
-                <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
+          <div className="flex gap-[6%]">
+            <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
+              <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
+                <span className="font-[600] text-[24px] text-white ml-[20px]">
+                  My spending history
+                </span>
+              </div>
+              <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
                 {ordersLoading ? (
-                    <p className="text-center text-gray-500">Loading orders...</p>
-                  ) : ordersData?.myOrders?.length ? (
-                    ordersData.myOrders.map((order: any) => (
+                  <p className="text-center text-gray-500">Loading orders...</p>
+                ) : ordersData?.myOrders?.length ? (
+                  ordersData.myOrders.map((order: any) => {
+                    const firstItem = order.items[0];
+                    const productName = firstItem?.product?.name || "Unknown Product";
+                    const productImage = Array.isArray(firstItem?.product?.images) && firstItem?.product?.images.length > 0
+                      ? firstItem.product.images[0]
+                      : "/fallback.jpg";
+                    console.log("Order createdAt raw:", order.createdAt);
+                    const parsedDate = /^\d+$/.test(order.createdAt) ? new Date(Number(order.createdAt)) : new Date(order.createdAt);
+                    const displayDate = isNaN(parsedDate.getTime()) ? "Invalid Date" : parsedDate.toLocaleDateString();
+                    return (
                       <GroceryShoppingDiv
                         key={order.id}
-                        title={`Order #${order.id.slice(-6)}`}
-                        date={new Date(order.createdAt).toLocaleDateString()}
+                        title={productName}
+                        date={displayDate}
                         amount={order.totalAmount}
+                        image={productImage}
                       />
-                    ))
-                  ) : (
-                    <p className="text-center text-gray-500">No orders yet</p>
-                  )}
-
-                </div>
-
+                    );
+                  })
+                ) : (
+                  <p className="text-center text-gray-500">No orders yet</p>
+                )}
               </div>
-
-              <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
-                <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
-                  <span className="font-[600] text-[24px] text-white ml-[20px]">
-                    Incoming transactions
-                  </span>
-                </div>
-                <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
-                  {transactionLoading ? (
-                    <p className="text-center text-gray-500">Loading transactions...</p>
-                  ) : transactionData?.myWalletTransactions?.length ? (
-                    transactionData.myWalletTransactions.map((txn: any) => (
-                      <GroceryShoppingDiv
+            </div>
+            <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
+              <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
+                <span className="font-[600] text-[24px] text-white ml-[20px]">
+                  Incoming transactions
+                </span>
+              </div>
+              <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
+                {transactionLoading ? (
+                  <p className="text-center text-gray-500">Loading transactions...</p>
+                ) : transactionData?.myWalletTransactions?.length ? (
+                  transactionData.myWalletTransactions.map((txn: any) => (
+                    <GroceryShoppingDiv
                       key={txn.id}
                       title={txn.description || txn.type}
                       date={new Date(txn.createdAt).toLocaleDateString()}
                       amount={txn.amount}
                       type={txn.type}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-center text-gray-500">No wallet transactions yet</p>
-                  )}
-                </div>
-
+                    />
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500">No wallet transactions yet</p>
+                )}
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -295,11 +303,13 @@ export const GroceryShoppingDiv = ({
   date,
   amount,
   type,
+  image,
 }: {
   title: string;
   date: string;
   amount: number;
   type?: "CREDIT" | "DEBIT";
+  image?: string;
 }) => {
   const isCredit = type === "CREDIT";
   const isTypeDefined = type !== undefined;
@@ -307,7 +317,16 @@ export const GroceryShoppingDiv = ({
   return (
     <div className="flex items-center justify-between w-[85%] mx-auto border-b-[1px] border-[#D9D9D9] py-[5px]">
       <div className="flex items-center gap-[10px]">
-        <div className="w-[82px] h-[82px] bg-[#D9D9D9] rounded-full"></div>
+           {image && (
+              <img
+                src={image}
+                alt={title}
+                className="w-[82px] h-[82px] object-cover rounded-full"
+              />
+            )}
+        {!image && !type && (
+          <div className="w-[82px] h-[82px] bg-[#D9D9D9] rounded-full"></div>
+        )}
         <div>
           <p className="text-[#55A7FF] font-[600] text-[16px]">{title}</p>
           <p className="text-[#939090] font-[400] text-[16px]">{date}</p>
@@ -326,5 +345,4 @@ export const GroceryShoppingDiv = ({
       </div>
     </div>
   );
-};
-
+}

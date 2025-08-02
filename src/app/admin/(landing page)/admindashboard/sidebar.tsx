@@ -4,6 +4,8 @@ import { PiHouse } from "react-icons/pi";
 import { IoWarningOutline } from "react-icons/io5";
 import { BsPeople } from "react-icons/bs";
 import { GoFileCode } from "react-icons/go";
+import { CiUser } from "react-icons/ci";
+import { AiOutlineProduct } from "react-icons/ai";
 import Link from "next/link";
 
 
@@ -36,6 +38,16 @@ const  Sidebar  = () => {
                 <div className="flex gap-[16px] items-center">
                     <GoFileCode  className="text-[26px]" />
                     <Link href="/admin/admindashboard/transaction" className="text-[24px] font-[300]">Transactions</Link>
+                </div>
+
+                <div className="flex gap-[16px] items-center">
+                    <CiUser  className="text-[26px]" />
+                    <Link href="/admin/admindashboard/users" className="text-[24px] font-[300]">Users</Link>
+                </div>
+
+                <div className="flex gap-[16px] items-center">
+                    <AiOutlineProduct  className="text-[26px]" />
+                    <Link href="/admin/admindashboard/products" className="text-[24px] font-[300]">Products</Link>
                 </div>
 
             </div>
