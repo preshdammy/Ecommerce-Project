@@ -4,6 +4,8 @@ import { PiHouse } from "react-icons/pi";
 import { IoWarningOutline } from "react-icons/io5";
 import { BsPeople } from "react-icons/bs";
 import { GoFileCode } from "react-icons/go";
+import { FaShop } from "react-icons/fa6";
+import { CiShoppingBasket } from "react-icons/ci";
 import Link from "next/link";
 
 
@@ -34,9 +36,15 @@ const  Sidebar  = () => {
                 </div>
 
                 <div className="flex gap-[16px] items-center">
-                    <GoFileCode  className="text-[26px]" />
-                    <Link href="/admin/admindashboard/transaction" className="text-[24px] font-[300]">Transactions</Link>
+                <CiShoppingBasket  className="text-[26px]" />
+                    <Link href="/admin/admindashboard/orders" className="text-[24px] font-[300]">Orders</Link>
                 </div>
+
+                <div className="flex gap-[16px] items-center">
+                    <FaShop  className="text-[26px]" />
+                    <Link href="/admin/admindashboard/vendors" className="text-[24px] font-[300]">Vendors</Link>
+                </div>
+
 
             </div>
 

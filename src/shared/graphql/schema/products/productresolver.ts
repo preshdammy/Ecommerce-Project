@@ -34,11 +34,10 @@ export const productresolver = {
                 .skip(offset);
           
               return products.map((p) => {
-                // Important: Convert toObject to safely access _id as string
                 const obj = p.toObject();
                 return {
                   ...obj,
-                  id: obj._id ? obj._id.toString() : "", // fallback empty string to avoid null
+                  id: obj._id ? obj._id.toString() : "", 
                 };
               });
             } catch (error: any) {
@@ -68,7 +67,6 @@ export const productresolver = {
                 throw new Error("Unauthorized: Only vendors can view their products.");
               }
           
-              // Fetch products AND populate seller
               const myproducts = await productModel
                 .find({ seller: vendor.id })
                 .populate("seller");
@@ -77,17 +75,13 @@ export const productresolver = {
                 throw new Error("No products found for this vendor.");
               }
           
-              // Map each product into a plain object and fix IDs
               return myproducts.map((p) => {
                 const obj = p.toObject();
-                // Convert _id to id string
                 obj.id = p._id.toString();
           
-                // If seller is populated, convert its _id as well
                 if (obj.seller && obj.seller._id) {
                   obj.seller.id = obj.seller._id.toString();
                 } else {
-                  // If not populated, you can set it to null or remove it
                   obj.seller = null;
                 }
           
@@ -121,16 +115,14 @@ export const productresolver = {
             throw new Error("Product not found");
           }
       
-          // Convert _id to id for consistency
           const obj = product.toObject();
           obj.id = product._id.toString();
       
-          // Populate seller id if exists
           if (obj.seller && obj.seller._id) {
             obj.seller.id = obj.seller._id.toString();
           }
       
-          return obj;
+          return obj;          
         } catch (error) {
           handleError(error);
           throw error;

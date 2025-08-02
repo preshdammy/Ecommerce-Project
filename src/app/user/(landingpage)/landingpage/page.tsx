@@ -502,7 +502,7 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
             <div key={product.id} className="w-[240px] pb-[20px] pt-[10px] rounded-[10px] bg-white">
               <div className="flex h-[140px] justify-between ">
                 <div className="w-[205px] h-[140px] relative">
-                {product.stock === 0 && (
+                {stock === 0 && (
                     <div className="absolute top-0 left-0 w-full h-full bg-black/70 bg-opacity-50 flex items-center justify-center z-10">
                       <span className="text-white text-sm font-semibold">Out of Stock</span>
                     </div>
@@ -517,7 +517,7 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                 </div>
   
                 <div className="w-[35px] flex flex-col gap-[12px] justify-center items-center text-[24px] h-[140px]">
-                {product.stock === 0 ? (
+                {stock === 0 ? (
                     <button
                       onClick={() => toast.error("Cannot like out-of-stock product")}
                       disabled
@@ -535,7 +535,7 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
                   )}
 
                   <AiOutlineEye className="cursor-pointer hover:text-[#00bfff]"/>
-                  {product.stock === 0 ? (
+                  {stock === 0 ? (
                     <IoCartOutline
                       className="text-gray-400 cursor-not-allowed"
                       onClick={() => toast.error("Product is out of stock")}
@@ -578,10 +578,10 @@ export const ProductFrameTwo = ({ data }: { data: { featuredProducts: FeaturedPr
   
                   <p className="font-sans text-[16px] font-[600] mt-[15px]">NGN {price.toLocaleString()}</p>
                   <p className="text-[16px] font-[600] font-sans text-right">
-                    {product.stock === 0 ? (
+                    {stock === 0 ? (
                       <span className="text-red-500">Out of Stock</span>
                     ) : (
-                      <span className="text-[#FF4C3B]">{product.stock} available</span>
+                      <span className="text-[#FF4C3B]">{stock} available</span>
                     )}
                   </p>
                 </div>

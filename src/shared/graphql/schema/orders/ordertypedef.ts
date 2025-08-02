@@ -22,6 +22,7 @@ enum PaymentStatus {
   PENDING
   PAID
   FAILED
+  REFUNDED
 }
 
 input OrderItemInput {
@@ -121,6 +122,7 @@ extend type Mutation {
   verifyPaystackPayment(reference: String!): Order!
 
   payWithWallet(orderId: ID!): WalletPaymentResponse!
+  adminUpdateOrderStatus(orderId: ID!, status: String!): Order
 }
 
 `;

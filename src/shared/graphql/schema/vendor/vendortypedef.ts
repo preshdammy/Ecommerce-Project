@@ -1,6 +1,9 @@
 import { gql } from 'graphql-tag';
 
 const vendorTypeDefs = gql`
+  scalar DateTime
+
+
   type Vendor {
     id: ID!
     name: String!
@@ -16,6 +19,13 @@ const vendorTypeDefs = gql`
     joinedDate: String
     location: String
     createdAt: String
+    status: String
+
+    
+    suspendedUntil: DateTime
+    stats: VendorStats
+    products: [Product]
+    actions: [VendorAction]
 
     address: Address
 
@@ -29,12 +39,33 @@ const vendorTypeDefs = gql`
     businessAvailability: String
   }
 
+ 
+
 type Message {
   id: ID!
   senderId: ID!
   receiverId: ID!
   content: String!
    createdAt: String!
+}
+
+type VendorStats {
+  totalSales: Float
+  productCount: Int
+  ratingAverage: Float
+  salesPerMonth: [SalesData]
+}
+
+type SalesData {
+  month: String
+  total: Float
+}
+
+type VendorAction {
+  action: String!
+  performedBy: String
+  performedAt: DateTime
+  notes: String
 }
 
   type VendorAuthPayload {
