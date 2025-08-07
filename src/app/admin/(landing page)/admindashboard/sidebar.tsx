@@ -15,13 +15,13 @@ const  Sidebar  = () => {
     return ( 
 
     <div className="w-[25%] font-sans min-h-screen flex flex-col justify-between py-[20px] items-center">
-        <div className="flex flex-col gap-[8vh]">
+        <div className="flex flex-col gap-[4vh]">
             <div className="flex flex-col gap-[10px] items-center">
             <Image className="h-[57px] w-[220px]" src={timeShoppyLogo} alt="" />
             <h2>Admin Dashboard</h2>
             </div>
 
-            <div className="w-[100%] flex flex-col pl-[30px] gap-[30px]">
+            <div className="w-[100%] flex flex-col pl-[30px] gap-[25px]">
                 <div className="flex gap-[16px] items-center">
                     <PiHouse className="text-[26px]" />
                     <Link href="/admin/admindashboard" className="text-[24px] font-[300] ">Dashboard</Link>
@@ -64,7 +64,7 @@ const  Sidebar  = () => {
         </div>
 
         <div>
-            <button className="font-[600] text-[24px] py-[16px] px-[100px] bg-[#FF4C3B] rounded-[10px] text-white">Log out</button>
+            <button className="font-[600] text-[24px] py-4 px-12 bg-[#FF4C3B] rounded-[10px] text-white">Log out</button>
         </div>
         </div>
      );

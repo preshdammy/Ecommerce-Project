@@ -33,9 +33,22 @@ input UpdateUserInput {
   profilePicture: String
 }
 
+type ChatItem {
+  chatId: ID!
+  vendor: VendorMinimal!
+  latestMessage: Message!
+}
+
+type VendorMinimal {
+  id: ID!
+  name: String!
+  profilePicture: String
+}
+
 type Query {
   users: [User!]!
   user(id: ID!): User
+  userChatList(userId: ID!): [ChatItem!]!
 }
 
 type Mutation {

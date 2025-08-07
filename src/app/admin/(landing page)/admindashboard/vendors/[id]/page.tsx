@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useRouter } from 'next/navigation';
 
 const GET_VENDOR_DETAILS = gql`
   query GetVendorById($id: ID!) {
@@ -81,6 +82,7 @@ const UNSUSPEND_VENDOR = gql`
 export default function VendorDetails() {
   const [showProducts, setShowProducts] = useState(false);
   const [showAllActions, setShowAllActions] = useState(false);
+  const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
 
@@ -147,6 +149,12 @@ export default function VendorDetails() {
 
   return (
     <div className="w-[90%] mx-auto mt-10 h-screen overflow-hidden overflow-y-scroll">
+      <button
+      onClick={() => router.push('/admin/admindashboard/vendors')}
+      className="mb-4 px-2 py-1 bg-gray-200 text-gray-700 text-[12px] rounded hover:bg-gray-300"
+    >
+      ← Back to Vendors
+    </button>
       <h2 className="text-2xl font-bold mb-4">{v.businessName || v.name}</h2>
       <div className="bg-white p-6 rounded-2xl shadow-md mb-6 border border-gray-100 ">
       <div className="grid grid-cols-2 gap-4">
@@ -294,9 +302,9 @@ export default function VendorDetails() {
                   <p className="font-medium text-gray-800">{p.name}</p>
                   <p className="text-sm text-gray-500">₦{Number(p.price).toLocaleString()}</p>
                 </div>
-                <button className="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded hover:bg-indigo-200 transition">
+                {/* <button className="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded hover:bg-indigo-200 transition">
                   Action
-                </button>
+                </button> */}
               </li>
             ))
           ) : (

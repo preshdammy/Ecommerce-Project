@@ -46,7 +46,7 @@ type Message {
   senderId: ID!
   receiverId: ID!
   content: String!
-   createdAt: String!
+  createdAt: String!
 }
 
 type VendorStats {
@@ -112,7 +112,7 @@ type VendorAction {
     country: String
   }
 
-  type Query {
+ type Query {
     vendors: [Vendor!]!
     getVendorProfile: Vendor!
     getVendorById(id: ID!): Vendor!
@@ -158,11 +158,20 @@ type VendorAction {
     ): Vendor
 
      changeVendorPassword(currentPassword: String!, newPassword: String!): Boolean!
-     sendMessage(senderId: ID!, receiverId: ID!, content: String!): Message!
+     sendMessage(chatId: ID!, senderId: ID!, receiverId: ID!, content: String!): Message!
     
   }
-       
-  
+
+  type ChatItem {
+  chatId: ID!
+  buyer: User!
+  latestMessage: Message
+}
+
+extend type Query {
+  vendorChatList(vendorId: ID!): [ChatItem!]!
+}
+
 
 `;
 

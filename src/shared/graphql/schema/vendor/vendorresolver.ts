@@ -1,11 +1,13 @@
 import { vendorModel } from '@/shared/database/model/vendor.model';
 import { productModel } from '@/shared/database/model/product.model';
+import { usermodel } from '@/shared/database/model/user.model';
 import { OrderModel } from '@/shared/database/model/orders.model';
 import bcrypt from 'bcryptjs';
 import cloudinary from '@/shared/utils/cloudinary';
 import jwt from 'jsonwebtoken';
 import { AuthenticationError } from 'apollo-server-express';
 import { messageModel } from '@/shared/database/model/message.model';
+import { GraphQLResolveInfo } from "graphql";
 
 
 const MESSAGE_SENT = 'MESSAGE_SENT';
@@ -27,6 +29,13 @@ interface VendorAction {
 interface ExtendedVendor extends Document {
   actions: VendorAction[];
 }
+
+interface LeanUser {
+  _id: string;
+  name: string;
+  profilePicture?: string;
+}
+
 
 
 export const VendorResolver = {
@@ -113,7 +122,6 @@ export const VendorResolver = {
         stats,
       };
     },
-    
 
     messages: async (_: any, { chatId }: { chatId: string }) => {
       return await messageModel.find({ chatId }).sort({ createdAt: 1 });
@@ -122,7 +130,75 @@ export const VendorResolver = {
     messagesBetween: async (_: any, { senderId, receiverId }: any) => {
       const chatId = [senderId, receiverId].sort().join("_");
       return await messageModel.find({ chatId }).sort({ createdAt: 1 });
+    },
+
+    vendorChatList: async (_: any, __: any, context: any) => {
+      try {
+        const currentVendorId = context.vendor?.id;
+    
+        if (!currentVendorId) {
+          console.error("Vendor ID not found in context.");
+          return [];
+        }
+    
+        // Fetch all messages sent to this vendor
+        const messages = await messageModel
+          .find({ receiverId: currentVendorId })
+          .sort({ createdAt: -1 })
+          .lean();
+    
+        if (!messages.length) {
+          console.log("No messages found for vendor:", currentVendorId);
+          return [];
+        }
+    
+        // Group messages by chatId, only keep the latest
+        const chatMap = new Map<string, typeof messages[0]>();
+        for (const msg of messages) {
+          if (!chatMap.has(msg.chatId)) {
+            chatMap.set(msg.chatId, msg);
+          }
+        }
+    
+        const chatItems: {
+          chatId: string;
+          buyer: {
+            id: string;
+            name: string;
+            profilePicture?: string;
+          };
+          latestMessage: typeof messages[0];
+        }[] = [];
+    
+        for (const [chatId, latestMessage] of chatMap.entries()) {
+          const buyerDoc = await usermodel
+            .findById(latestMessage.senderId)
+            .select("_id name profilePicture")
+            .lean<LeanUser>();
+    
+          if (!buyerDoc) {
+            console.warn(`Buyer not found for senderId: ${latestMessage.senderId}`);
+            continue;
+          }
+    
+          chatItems.push({
+            chatId,
+            buyer: {
+              id: buyerDoc._id?.toString() ?? "",
+              name: buyerDoc.name ?? "Unknown",
+              profilePicture: buyerDoc.profilePicture ?? undefined,
+            },
+            latestMessage,
+          });
+        }
+    
+        return chatItems;
+      } catch (error) {
+        console.error("Error in vendorChatList resolver:", error);
+        return [];
+      }
     }
+    
   },
 
   Mutation: {
@@ -190,6 +266,7 @@ export const VendorResolver = {
       return {
         ...safeVendor,
         token,
+        id: vendor._id
       };
     },
 
@@ -305,7 +382,7 @@ export const VendorResolver = {
         content,
       });
     
-      return message; // ✅ includes createdAt automatically
+      return message; 
     }
     
 

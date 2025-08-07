@@ -22,6 +22,9 @@ import { cartItemsVar } from "@/shared/lib/apolloClient";
 import { likedItemsVar } from "@/shared/lib/apolloClient";
 import { useReactiveVar } from "@apollo/client";
 import { useLazyQuery } from "@apollo/client";
+import Cookies from "js-cookie";
+
+
 
 
 const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
@@ -103,6 +106,18 @@ const GET_RELATED_PRODUCTS = gql`
   }
 `;
 
+const SEND_MESSAGE = gql`
+  mutation SendMessage($senderId: ID!, $receiverId: ID!, $content: String!) {
+    sendMessage(senderId: $senderId, receiverId: $receiverId, content: $content) {
+      id
+      senderId
+      receiverId
+      content
+      createdAt
+    }
+  }
+`;
+
 type RelatedProduct = {
     id: string;
     name: string;
@@ -140,6 +155,49 @@ type RelatedProduct = {
 const ProductDescription = ({slug}:{slug: string}) => {
   const [activeTab, setActiveTab] = useState("details");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [sendMessage] = useMutation(SEND_MESSAGE);
+
+
+  const userInfoString = Cookies.get("userinfo"); 
+  let currentUserId: string | null = null;
+
+  if (userInfoString) {
+    try {
+      const userInfo = JSON.parse(userInfoString);
+      currentUserId = userInfo.id; 
+    } catch (error) {
+      console.error("Failed to parse user info from cookie:", error);
+    }
+  }
+
+
+  const handleSendMessage = async () => {
+  
+    if (!message.trim() || !currentUserId) return;
+
+  try {
+    const sellerId = data.productBySlug.seller.id;
+
+    await sendMessage({
+      variables: {
+        senderId: currentUserId,
+        receiverId: sellerId,
+        content: message,
+      },
+    });
+
+    // Optionally: Show toast or alert here
+    setMessage("");
+    setIsModalOpen(false);
+  } catch (error) {
+    console.error("Failed to send message:", error);
+  }
+  };
+  
+  
+  
+
 
 
   const {data, loading, error} = useQuery(get_products_by_slug, {variables:{slug: slug}})
@@ -572,8 +630,10 @@ const ProductDescription = ({slug}:{slug: string}) => {
                       rows={5}
                       placeholder="Type your message..."
                       className="w-full p-2 border border-gray-300 rounded mb-4"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
                     />
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
+                    <button  onClick={handleSendMessage} className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
                       Send Message
                     </button>
                   </motion.div>
