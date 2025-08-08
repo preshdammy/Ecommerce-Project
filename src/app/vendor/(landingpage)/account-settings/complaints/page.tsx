@@ -28,6 +28,7 @@ const GET_MY_COMPLAINTS = gql`
 
 export default function ComplaintsPage() {
   const [message, setMessage] = useState("");
+  const [showComplaints, setShowComplaints] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(GET_MY_COMPLAINTS);
   const [addComplaint] = useMutation(ADD_COMPLAINT, {
@@ -51,57 +52,103 @@ export default function ComplaintsPage() {
   const complaints = data?.myComplaints ?? [];
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Vendor Complaints</h1>
+    <div className="max-w-4xl mx-auto p-6 md:p-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6 md:mb-8 tracking-tight">
+        Vendor Complaints
+      </h1>
 
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form
+        onSubmit={handleSubmit}
+        className="mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
+      >
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Describe your complaint here..."
-          className="w-full p-3 border border-gray-300 rounded-md resize-none h-32"
+          className="w-full p-4 border border-gray-200 rounded-lg resize-none h-36 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
         />
         <button
           type="submit"
-          className="mt-3 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
         >
           Submit Complaint
         </button>
       </form>
 
-      <h2 className="text-lg font-medium mb-2">Your Complaints</h2>
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowComplaints(!showComplaints)}
+          className={`font-semibold px-5 py-1 shadow-md transition-all duration-300
+            ${
+              showComplaints
+                ? "bg-blue-300 text-white hover:bg-blue-500"
+                : "bg-blue-100 text-blue-500 hover:bg-blue-300 hover:text-white"
+            }`
+          }
+        >
+          {showComplaints ? "Hide Complaints" : "Show Complaints"}
+        </button>
+      </div>
 
-      {loading && <p>Loading complaints...</p>}
-      {error && <p className="text-red-500">Error loading complaints.</p>}
+      {showComplaints && (
+        <>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Your Complaints</h2>
 
-      {!loading && !error && (
-        <ul className="space-y-4">
-          {Array.isArray(complaints) && complaints.length > 0 ? (
-            complaints.map((c) => (
-              <li key={c.id} className="p-4 border rounded-md bg-gray-50">
-                <p className="text-gray-800">{c.message}</p>
-                <span
-                  className={`text-sm mt-1 block ${
-                    c.status === "Resolved"
-                      ? "text-green-600"
-                      : c.status === "In Review"
-                      ? "text-orange-600"
-                      : "text-yellow-600"
-                  }`}
-                >
-                  Status: {c.status}
-                </span>
-                <p className="text-xs text-gray-400 mt-1">
-                  {c.createdAt
-                    ? new Date(c.createdAt).toLocaleString()
-                    : "Unknown date"}
-                </p>
-              </li>
-            ))
-          ) : (
-            <li className="text-sm text-gray-500">No complaints found.</li>
+          {loading && (
+            <div className="flex justify-center items-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              <p className="ml-3 text-gray-600">Loading complaints...</p>
+            </div>
           )}
-        </ul>
+          {error && (
+            <p className="text-red-500 bg-red-50 p-4 rounded-lg text-center">
+              Error loading complaints.
+            </p>
+          )}
+
+          {!loading && !error && (
+            <ul className="space-y-4">
+              {Array.isArray(complaints) && complaints.length > 0 ? (
+                complaints.map((c) => (
+                  <li
+                    key={c.id}
+                    className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+                  >
+                    <p className="text-gray-800 text-base leading-relaxed">
+                      {c.message}
+                    </p>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                        c.status === "Resolved"
+                          ? "bg-green-100 text-green-700"
+                          : c.status === "In Review"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      Status: {c.status}
+                    </span>
+                    <p className="text-xs text-gray-400 mt-2">
+                      {c.createdAt
+                        ? new Date(c.createdAt).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Unknown date"}
+                    </p>
+                  </li>
+                ))
+              ) : (
+                <li className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg text-center">
+                  No complaints found.
+                </li>
+              )}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );

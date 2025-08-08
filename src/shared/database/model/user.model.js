@@ -11,10 +11,23 @@ const userSchema = new mongoose.Schema({
   gender: { type: String },
   dateOfBirth: { type: Date },
   walletBalance: { type: Number, default: 0 },
-  isBanned: { 
-    type: Boolean, 
-    default: false 
-  }
+  status: {
+    type: String,
+    enum: [ "ACTIVE", "SUSPENDED", "BANNED"],
+    default: "ACTIVE",
+  },
+  suspendedUntil: {
+    type: Date,
+    default: null,
+  },
+  actions: [
+    {
+      action: String, 
+      performedBy: String,
+      performedAt: Date,
+      notes: String,
+    },
+  ],
 }, { timestamps: true });
 
 export const usermodel = models.usercollection || model("usercollection", userSchema);

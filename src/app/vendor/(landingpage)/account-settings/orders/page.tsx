@@ -106,7 +106,7 @@ const VendorOrders = () => {
   if (loading) return <p className="text-center py-4 text-gray-500">Loading...</p>;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="h-[100vh] overflow-y-scroll">
       {/* Filter dropdown */}
       <div className="mb-4">
         <label className="font-medium mr-2">Filter by Status:</label>

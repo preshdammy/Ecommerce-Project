@@ -373,7 +373,7 @@ export const orderResolvers = {
         splitCode = await createPaystackSplit(vendorSharesRaw);
       }
 
-      // Vendor id list (as ObjectIds)
+    
       const vendorIds = Array.from(vendorTotals.keys()).map((id) => new Types.ObjectId(id));
 
       const estimatedDeliveryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
@@ -409,73 +409,7 @@ export const orderResolvers = {
 
       return populateOrderById(order._id.toString());
     },
-
-
-    /* ---------------------------------------------------------------------------
-     * updateOrderStatus
-
-      * ------------------------------------------------------------------------ */
-     async updateOrderStatus(
-  _: unknown,
-  { id, status }: { id: string; status: string },
-  context: Ctx
-) {
-  // 1. Ensure authentication
-  if (!context.vendor && !context.admin) {
-    throw new Error("Unauthorized - only vendors or admins can update orders.");
-  }
-
-  // 2. Fetch the order with vendor IDs
-  const order = await OrderModel.findById(id)
-    .populate({ path: "buyer", select: "name email" })
-    .populate({ path: "vendors", select: "_id businessName" }) // ✅ Ensure we have _id
-    .exec();
-
-  if (!order) {
-    throw new Error(`Order with id ${id} not found`);
-  }
-
-  // 3. Extract IDs for authorization
-  const buyerId = order.buyer?._id?.toString() || order.buyer?.id || order.buyer;
-  const vendorIds = Array.isArray(order.vendors)
-    ? order.vendors.map((v: any) => v?._id?.toString() || v?.id || v)
-    : [];
-
-  // Debug logs
-  console.log("Auth Check => Vendor Context:", context.vendor);
-  console.log("Vendor IDs on Order:", vendorIds);
-  console.log("Buyer ID on Order:", buyerId);
-
-  // 4. Check if the request is from an admin or a vendor assigned to the order
-  const vendorMatch = !!(context.vendor && vendorIds.includes(context.vendor.id));
-  const adminMatch = !!context.admin;
-
-  if (!adminMatch && !vendorMatch) {
-    throw new Error("Unauthorized to update this order");
-  }
-
-  // 5. Update the order status
-  order.status = status;
-  order.updatedAt = new Date().toISOString();
-  await order.save();
-
-  // 6. Send notifications based on status
-  if (status === "SHIPPED") {
-    await NotificationModel.create({
-      recipientId: buyerId,
-      recipientRole: "USER",
-      type: "ORDER",
-      title: "Order Shipped",
-      message: "Your order has been shipped.",
-      isRead: false,
-    });
-  }
-
-  // 7. Return updated order with full population
-  return populateOrderById(id);
-    },
-
-
+   
     async payWithWallet(
       _: unknown,
       { orderId }: { orderId: string },
@@ -581,66 +515,6 @@ export const orderResolvers = {
         reference: init.reference,
       };
     },
-
-    // async markOrderShipped(_: unknown, { id }: { id: string }, context: Ctx) {
-    //   if (!context.admin && !context.vendor) throw new Error("Unauthorized");
-    
-    //   const order = await OrderModel.findById(id);
-    //   if (!order) throw new Error("Order not found");
-    
-    //   // Optional: if vendors are allowed to call this, validate vendor ownership
-    //   if (context.vendor) {
-    //     const isVendorInOrder = order.vendors
-    //       .map((v: any) => v.toString())
-    //       .includes(context.vendor.id);
-    //     if (!isVendorInOrder) throw new Error("You cannot update this order");
-    //   }
-    
-    //   if (order.status !== "PROCESSING" && order.status !== "PENDING") {
-    //     throw new Error("Order must be in PROCESSING or PENDING state to be marked as SHIPPED");
-    //   }
-    
-    //   order.status = "SHIPPED";
-    //   order.shippedAt = new Date();
-    //   order.manualOverride = true;
-    //   await order.save();
-    //   return populateOrderById(order._id.toString());
-    // },
-
-    // async markOrderDelivered(
-    //   _: unknown,
-    //   { id }: { id: string },
-    //   context: Ctx
-    // ) {
-    //   if (!context.admin && !context.vendor) {
-    //     throw new Error("Unauthorized");
-    //   }
-    
-    //   const order = await OrderModel.findById(id);
-    //   if (!order) throw new Error("Order not found");
-    
-    //   // Optional: validate vendor permission
-    //   if (context.vendor) {
-    //     const isVendorInOrder = order.vendors
-    //       .map((v: any) => v.toString())
-    //       .includes(context.vendor.id);
-    //     if (!isVendorInOrder) {
-    //       throw new Error("You cannot update this order");
-    //     }
-    //   }
-    
-    //   if (order.status !== "SHIPPED") {
-    //     throw new Error("Order must be in SHIPPED state to be marked as DELIVERED");
-    //   }
-    
-    //   order.status = "DELIVERED";
-    //   order.deliveredAt = new Date();
-    //   order.manualOverride = true;
-    //   await order.save();
-    
-    //   return populateOrderById(order._id.toString());
-    // },
-    
     
     async vendorUpdateOrderStatus(
       _: unknown,
@@ -684,6 +558,17 @@ export const orderResolvers = {
       order.status = status;
       order.manualOverride = true;
       await order.save();
+
+      if (status === "SHIPPED" || status === "DELIVERED") {
+      await NotificationModel.create({
+        recipientId: order.buyer._id.toString(),
+        recipientRole: "USER",
+        type: "ORDER",
+        title: `Order ${status}`,
+        message: `Your order ${orderId} has been ${status.toLowerCase()}.`,
+        isRead: false,
+      });
+    }
     
       return order;
     },
@@ -758,6 +643,19 @@ export const orderResolvers = {
       order.manualOverride = true;
     
       await order.save();
+
+      if (status === "SHIPPED" || status === "DELIVERED") {
+      await NotificationModel.create({
+        recipientId: order.buyer.toString(),
+        recipientRole: "USER",
+        type: "ORDER",
+        title: `Order ${status}`,
+        message: `Your order ${orderId} has been ${status.toLowerCase()}.`,
+        isRead: false,
+      });
+    }
+
+    return order;
     
       return order;
     },

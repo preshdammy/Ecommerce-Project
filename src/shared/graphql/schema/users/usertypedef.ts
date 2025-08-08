@@ -11,6 +11,8 @@ type User {
   gender: String!
   dateOfBirth: String
   profilePicture: String
+  walletBalance: Float
+  status: String
 }
 
 type Token {

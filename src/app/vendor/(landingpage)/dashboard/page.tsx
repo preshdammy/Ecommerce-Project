@@ -7,12 +7,13 @@ import dummy from "../../../../../public/figma images/person-dummy.jpg"
 import { useRouter } from "next/navigation";
 import { toast } from 'react-toastify';
 import Swal from "sweetalert2";
+import { BsArrowLeft, BsArrowRight } from "react-icons/bs"
 
 
 
 export const get_my_products = gql`
-  query GetMyProducts {
-    myProducts {
+   query GetMyProducts($limit: Int!, $offset: Int!) {
+    myProducts(limit: $limit, offset: $offset) {
       id
       name
       category
@@ -113,13 +114,19 @@ const vendor = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const router = useRouter();
-  const { loading, error, data, networkStatus } = useQuery(get_my_products, {
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: "cache-and-network",
-    onError: (err) => {
-      console.error("GraphQL Error:", err);
-    },
-  });
+  const [page, setPage] = useState(1);
+  const limit = 8;
+  const offset = (page - 1) * limit;
+
+ const { loading, error, data, networkStatus } = useQuery(get_my_products, {
+  variables: { limit, offset},
+  notifyOnNetworkStatusChange: true,
+  fetchPolicy: "cache-and-network",
+  onError: (err) => {
+    console.error("GraphQL Error:", err);
+  },
+});
+
   const vendorId = data?.myProducts?.[0]?.seller?.id;
   const {data: vendorData, loading: vendorLoading, error: vendorError} = useQuery(get_vendor_by_id, {
     variables: { id: vendorId },
@@ -227,6 +234,8 @@ useEffect(() => {
       },
     });
   };
+
+ const disableNext = data?.myProducts?.length < limit || !data?.myProducts;
   
   
   
@@ -358,21 +367,42 @@ useEffect(() => {
     </div>
   </div>
   
-  ))
-) : (
-  !loading &&
-  <div className="col-span-full text-center py-10 text-gray-500">
-    No products yet. Click "Add New Product" to get started.
-  </div>
-)}
+      ))
+    ) : (
+      !loading &&
+      <div className="col-span-full text-center py-10 text-gray-500">
+        No products yet. Click "Add New Product" to get started.
+      </div>
+      
+    )}
+                
+    </div>
+    </section>
 
-        
-            
-        </div>
-      </section>
+   <div className="flex justify-center mt-6 gap-4">
+      <button
+        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+        disabled={page === 1}
+        className={`px-6 py-2 rounded-full border-2 border-[#007BFF] text-[#007BFF] font-semibold transition-all duration-200 flex items-center gap-2 mb-2 ${page === 1 ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed" : "bg-white hover:bg-[#007BFF] hover:text-white" }`} >
+          <BsArrowLeft />
+          Previous
+      </button>
+    <button
+          onClick={() => setPage((prev) => prev + 1)}
+          disabled={disableNext}
+          className={`px-6 py-2 rounded-full border-2 border-[#007BFF] text-[#007BFF] font-semibold transition-all duration-200 flex items-center gap-2 mb-2 ${
+            disableNext
+              ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+              : "bg-white hover:bg-[#007BFF] hover:text-white"
+          }`}
+        >
+          Next
+          <BsArrowRight />
+        </button>
 
+</div>
 
-      {isEditModalOpen && selectedProduct && (
+  {isEditModalOpen && selectedProduct && (
   <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
     <div className="bg-[#f5f5f5] w-full max-w-lg p-8 rounded-xl shadow-2xl relative">
       <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">

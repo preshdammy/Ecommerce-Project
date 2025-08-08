@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, models, model } from "mongoose";
 
 export type NotificationRole = "USER" | "VENDOR" | "ADMIN";
-export type NotificationType = "ORDER" | "MESSAGE" | "SYSTEM" | "GENERAL";
+export type NotificationType = "ORDER" | "MESSAGE" | "SYSTEM" | "GENERAL" | "COMPLAINT";
 
 export interface INotification extends Document {
   recipientId: string;
@@ -26,7 +26,7 @@ const notificationSchema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ["ORDER", "MESSAGE", "SYSTEM", "GENERAL"],
+      enum: ["ORDER", "MESSAGE", "SYSTEM", "GENERAL", 'COMPLAINT'],
       default: "GENERAL",
     },
     title: {

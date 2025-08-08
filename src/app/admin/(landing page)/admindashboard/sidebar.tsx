@@ -15,7 +15,7 @@ const  Sidebar  = () => {
     return ( 
 
     <div className="w-[25%] font-sans min-h-screen flex flex-col justify-between py-[20px] items-center">
-        <div className="flex flex-col gap-[8vh]">
+        <div className="flex flex-col gap-[2vh]">
             <div className="flex flex-col gap-[10px] items-center">
             <Image className="h-[57px] w-[220px]" src={timeShoppyLogo} alt="" />
             <h2>Admin Dashboard</h2>
