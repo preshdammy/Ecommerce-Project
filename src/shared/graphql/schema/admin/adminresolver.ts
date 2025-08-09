@@ -6,7 +6,8 @@ import { productModel } from "../../../database/model/product.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { complaintModel } from "@/shared/database/model/complaint.model";
-
+import { NotificationModel } from "@/shared/database/model/notifications.model";
+import mongoose from "mongoose";
 
 
 export const adminresolver = {
@@ -32,181 +33,217 @@ export const adminresolver = {
         .select("name email storeName avatar phone location createdAt status suspendedUntil")
         .lean();
     },
-
-    
-allProducts: async () => {
-  const products = await productModel.find();
-  return Promise.all(products.map(async product => ({
-    ...product.toObject(),
-    seller: product.seller ? await vendorModel.findById(product.seller).select("name email") : "",
-    
-  })));
-},
-
-product: async (_: any, { id }: { id: string }) => {
-  const product = await productModel.findById(id);
-  if (!product) throw new Error("Product not found");
-  return {
-    ...product.toObject(),
-    seller: product.seller ? await vendorModel.findById(product.seller).select("name email") : "",
-  };
-},
-
-allUsers: async (_: any, __: any, context: any) => {
-  console.log("Admin context:", context.admin);
-  const users = await usermodel
-    .find()
-    .select("name email profilePicture city state gender dateOfBirth")
-    .lean();
-  console.log("Raw users from DB:", users); // Log all users
-  return users.map(user => {
-    
-    return {
-      id: (user as any)._id?.toString() || (user as any).id || null, // Ensure id is set
-      name: user.name,
-      email: user.email,
-    };
-  }).filter(Boolean);
-},
-
-user: async (_: any, { id }: { id: string }) => {
-  const user = await usermodel
-    .findById(id)
-    .select("name email password profilePicture address state city gender dateOfBirth walletBalance isBanned createdAt updatedAt")
-    .lean();
-
-  if (!user) throw new Error("User not found");
   
-  // If user is an array, skip or handle accordingly
-  if (Array.isArray(user)) {
-    throw new Error("User not found");
-  }
+    allProducts: async (_: any, { limit = 20, offset = 0 }: { limit: number, offset: number }) => {
+      const products = await productModel.find()
+        .limit(limit)
+        .skip(offset)
+        .lean();
 
-  // Fetch related complaints and orders
-  const [complaints, orders] = await Promise.all([
-    complaintModel.find({ user: id }),
-   OrderModel.find({ buyer: id })
-    .populate({
-      path: 'items.product',
-      model: 'products', // Must match your product model name
-      select: 'name price images' // Only get needed fields
-    })
-    .populate({
-      path: 'items.vendor',
-      model: 'vendor_collection',
-      select: 'name storeName'
-    })
-  ]);
+      const sellers = await Promise.all(
+        products.map(product =>
+          product.seller ? vendorModel.findById(product.seller) : Promise.resolve(null)
+        )
+      );
 
-  interface UserComplaint {
-    id: string;
-    message: string;
-    status: string;
-    createdAt: Date;
-  }
+      return products.map((product, idx) => ({
+        ...product,
+        seller: sellers[idx],
+        averageRating: product.averageRating || 0 // Ensure default value
+      }));
+    },
 
-  interface OrderProduct {
-    id: string;
-    name: string;
-    price: number;
-    image: string | null;
-  }
+    product: async (_: any, { id }: { id: string }) => {
+      console.log('Fetching product ID:', id); // Debugging
+      
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error('Invalid product ID format');
+      }
 
-  interface OrderItem {
-    product: OrderProduct;
-    quantity: number;
-  }
+      const product = await productModel.findById(id)
+        .populate('seller', 'name storeName')
+        .lean();
 
-  interface UserOrder {
-    id: string;
-    totalAmount: number;
-    status: string;
-    createdAt: Date;
-    items: OrderItem[];
-  }
+      if (!product) {
+        console.error('Product not found for ID:', id);
+        throw new Error('Product not found');
+      }
 
-  interface UserDetails {
-    id: string;
-    name: string;
-    email: string;
-    password: string;
-    profilePicture: string | null;
-    address: string | null;
-    state: string | null;
-    city: string | null;
-    gender: string | null;
-    dateOfBirth: Date | null;
-    walletBalance: number;
-    isBanned: boolean;
-    orders: UserOrder[];
-    complaints: UserComplaint[];
-  }
+      // Ensure all required fields exist
+      if (Array.isArray(product)) {
+        throw new Error("Product not found");
+      }
+      return {
+        ...product,
+        stats: (product as any).stats || { /* default values */ },
+        reviews: (product as any).reviews || []
+      };
+    },
 
-  return {
-    id: (user._id as string | { toString(): string }).toString(),
-    name: user.name,
-    email: user.email,
-    password: user.password,
-    profilePicture: user.profilePicture || "",
-    address: user.address || "",
-    state: user.state || "",
-    city: user.city || "",
-    gender: user.gender || "",
-    dateOfBirth: user.dateOfBirth || "",
-    walletBalance: user.walletBalance || 0,
-    isBanned: user.isBanned || false, // Default to false if not set
-    orders: orders.map((order: any): UserOrder => ({
-      id: order._id.toString(),
-      totalAmount: order.totalAmount,
-      status: order.status,
-      createdAt: order.createdAt,
-      items: order.items.map((item: any): OrderItem => ({
-        product: item.product ? {
-          id: item.product._id?.toString() || 'unknown',
-          name: item.product.name || 'Deleted Product',
-          price: item.product.price || 0,
-          image: item.product.images?.[0] || null
-        } : {
-          id: 'unknown',
-          name: 'Deleted Product',
-          price: 0,
-          image: null
-        },
-        quantity: item.quantity
-      }))
-    })),
-    complaints: complaints.map((c: any): UserComplaint => ({
-      id: c._id.toString(),
-      message: c.message,
-      status: c.status,
-      createdAt: c.createdAt
-    }))
-  } as UserDetails;
-},
-  
+    allUsers: async () => {
+      const users = await usermodel.find()
+        .select('name email status walletBalance createdAt actions')
+        .lean();
 
-   allOrders: async () => {
-  const orders = await OrderModel.find()
-    .populate({
-      path: 'buyer',
-      match: { id: { $ne: null } }, 
-      select: "name email"
-    })
-    .populate('product')
-    .populate('vendor');
-  return orders.map(order => ({
-    ...order.toObject(),
-    buyer: order.buyer ? order.buyer : null, 
-  }));
-},
+      return users.map(user => ({
+        id: (user._id as string | { toString(): string }).toString(),
+        name: user.name,
+        email: user.email,
+        status: user.status || 'ACTIVE', // Default value
+        walletBalance: user.walletBalance || 0, // Direct float value
+        createdAt: user.createdAt,
+        actions: user.actions?.slice(0, 1) || []
+      }));
+    },
 
-  
+    user: async (_: any, { id }: { id: string }) => {
+      const user = await usermodel
+        .findById(id)
+        .select("name email password profilePicture address state city gender dateOfBirth walletBalance createdAt updatedAt actions suspendedUntil status")
+        .lean();
+
+      if (!user) throw new Error("User not found");
+      
+      // If user is an array, skip or handle accordingly
+      if (Array.isArray(user)) {
+        throw new Error("User not found");
+      }
+
+      // Fetch related complaints and orders
+      const [complaints, orders] = await Promise.all([
+        complaintModel.find({ user: id }),
+      OrderModel.find({ buyer: id })
+        .populate({
+          path: 'items.product',
+          model: 'products', // Must match your product model name
+          select: 'name price images' // Only get needed fields
+        })
+        .populate({
+          path: 'items.vendor',
+          model: 'vendor_collection',
+          select: 'name storeName'
+        })
+      ]);
+
+      interface UserComplaint {
+        id: string;
+        message: string;
+        status: string;
+        createdAt: Date;
+      }
+
+      interface OrderProduct {
+        id: string;
+        name: string;
+        price: number;
+        image: string | null;
+      }
+
+      interface OrderItem {
+        product: OrderProduct;
+        quantity: number;
+      }
+
+      interface UserOrder {
+        id: string;
+        totalAmount: number;
+        status: string;
+        createdAt: Date;
+        items: OrderItem[];
+      }
+      
+      interface UserActions {
+        action: string;
+            performedBy: string;
+            performedAt: Date;
+            notes: string
+      }
+
+
+      interface UserDetails {
+        id: string;
+        name: string;
+        email: string;
+        password: string;
+        profilePicture: string | null;
+        createdAt: Date | null;
+        address: string | null;
+        state: string | null;
+        city: string | null;
+        gender: string | null;
+        dateOfBirth: Date | null;
+        actions: UserActions[]
+        walletBalance: number;
+        orders: UserOrder[];
+        status: string;
+        complaints: UserComplaint[];
+      }
+
+      return {
+        id: (user._id as string | { toString(): string }).toString(),
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        profilePicture: user.profilePicture || "",
+        address: user.address || "",
+        state: user.state || "",
+        city: user.city || "",
+        createdAt: user.createdAt.toISOString(), 
+        gender: user.gender || "",
+        actions: user.actions || [],
+        dateOfBirth: user.dateOfBirth || "",
+        walletBalance: user.walletBalance || 0,
+        status: user.status || "ACTIVE",
+        orders: orders.map((order: any): UserOrder => ({
+          id: order._id.toString(),
+          totalAmount: order.totalAmount,
+          status: order.status,
+          createdAt: order.createdAt,
+          items: order.items.map((item: any): OrderItem => ({
+            product: item.product ? {
+              id: item.product._id?.toString() || 'unknown',
+              name: item.product.name || 'Deleted Product',
+              price: item.product.price || 0,
+              image: item.product.images?.[0] || null
+            } : {
+              id: 'unknown',
+              name: 'Deleted Product',
+              price: 0,
+              image: null
+            },
+            quantity: item.quantity
+          }))
+        })),
+        complaints: complaints.map((c: any): UserComplaint => ({
+          id: c._id.toString(),
+          message: c.message,
+          status: c.status,
+          createdAt: c.createdAt
+        }))
+      } as UserDetails;
+    },
+
+    allOrders: async () => {
+    const orders = await OrderModel.find()
+      .populate({
+        path: 'buyer',
+        match: { id: { $ne: null } }, 
+        select: "name email"
+      })
+      .populate('product')
+      .populate('vendor');
+    return orders.map(order => ({
+      ...order.toObject(),
+      buyer: order.buyer ? order.buyer : null, 
+    }));
+    },
+
     complaints: async () => {
       return complaintModel
         .find()
         .populate("user")   
         .populate("vendor"); 
-      },
+    },
 
     getDashboardMetrics: async () => {
       const today = new Date();
@@ -288,7 +325,6 @@ user: async (_: any, { id }: { id: string }) => {
       return fullData.reverse(); // Chronological order
       
     },
-
     
    myComplaints: async (_: any, __: any, context: { user?: any; vendor?: any }) => {
   const { user, vendor } = context;
@@ -301,32 +337,28 @@ user: async (_: any, { id }: { id: string }) => {
 
   return complaints  // 👈 Ensure it's a proper string
   ;
-},
+    },
 
-recentAdminCommissions: async () => {
-  const recentOrders = await OrderModel.find({
-    status: "DELIVERED",
-  })
-    .sort({ createdAt: -1 })
-    .limit(3)
-    .populate("buyer")
-    .populate("items.product");
+    recentAdminCommissions: async () => {
+      const recentOrders = await OrderModel.find({
+        status: "DELIVERED",
+      })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .populate("buyer")
+        .populate("items.product");
 
-  return recentOrders.map((order) => ({
-    buyerName: order.buyer?.name || "Someone",
-    productName: order.items[0]?.product?.name || "a product",
-    amount: order.adminCommission,
-    createdAt: order.createdAt.toISOString(),
-  }));
-}
+      return recentOrders.map((order) => ({
+        buyerName: order.buyer?.name || "Someone",
+        productName: order.items[0]?.product?.name || "a product",
+        amount: order.adminCommission,
+        createdAt: order.createdAt.toISOString(),
+      }));
+    }
 
+    },
 
-
-    
-
-  },
-
-  Mutation: {
+   Mutation: {
     loginAdmin: async (_: any, { email, password }: { email: string; password: string }) => {
       const normalizedEmail = email.toLowerCase().trim();
       const admin = await adminModel.findOne({ email: normalizedEmail });
@@ -387,22 +419,6 @@ recentAdminCommissions: async () => {
       return "User deleted";
     },
 
-   banUser: async (_: any, { id }: { id: string }) => {
-  return await usermodel.findByIdAndUpdate(
-    id, 
-    { isBanned: true }, 
-    { new: true } // Returns the updated document
-  ).select('-password'); // Exclude password
-  },
-
-  unbanUser: async (_: any, { id }: { id: string }) => {
-  return await usermodel.findByIdAndUpdate(
-    id,
-    { isBanned: false },
-    { new: true }
-  ).select('-password');
-},
-
     deleteProduct: async (_: any, args: { id: string }) => {
       await productModel.findByIdAndDelete(args.id);
       return "Product deleted";
@@ -439,48 +455,79 @@ recentAdminCommissions: async () => {
     return complaint;
    },
 
-  updateComplaintStatus: async (_: any, { id, status }: { id: string; status: string }) => {
-    const validStatuses = ["Pending", "In Review", "Resolved", "Closed"];
-    if (!validStatuses.includes(status)) throw new Error("Invalid status");
+    updateComplaintStatus: async (_: any, { id, status }: { id: string; status: string }) => {
+      const validStatuses = ["Pending", "In Review", "Resolved", "Closed"];
+      if (!validStatuses.includes(status)) throw new Error("Invalid status");
 
-    const complaint = await complaintModel.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    ).populate("user").populate("vendor");
+      const complaint = await complaintModel.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true }
+      ).populate("user").populate("vendor");
 
-    if (!complaint) throw new Error("Complaint not found");
-    return complaint;
-  },
-  approveVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
-    const admin = context?.admin;
+      if (!complaint) throw new Error("Complaint not found");
+
+      if (complaint.user) {
+      await NotificationModel.create({
+        recipientId: complaint.user._id.toString(),
+        recipientRole: "USER",
+        type: "COMPLAINT",
+        title: "Complaint Resolved",
+        message: `Your complaint has been ${status.toLowerCase()}.`,
+        isRead: false,
+      });
+    } else if (complaint.vendor) {
+      await NotificationModel.create({
+        recipientId: complaint.vendor._id.toString(),
+        recipientRole: "VENDOR",
+        type: "COMPLAINT",
+        title: "Complaint in Review",
+        message: `Your complaint is in ${status.toLowerCase()}.`,
+        isRead: false,
+      });
+    }
+
+      return complaint;
+    },
+    approveVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
+      const admin = context?.admin;
+      
+
+      if (!admin) throw new Error("Unauthorized");
     
-
-    if (!admin) throw new Error("Unauthorized");
-  
-    const vendor = await vendorModel.findById(vendorId);
-    if (!vendor) throw new Error("Vendor not found");
-  
-    vendor.status = "APPROVED";
-    vendor.suspendedUntil = null;
+      const vendor = await vendorModel.findById(vendorId);
+      if (!vendor) throw new Error("Vendor not found");
     
-  
-    vendor.actions.push({
-      action: "APPROVED",
-      performedBy: admin.email,
-      performedAt: new Date(),
-      notes: "Vendor approved by admin",
+      vendor.status = "APPROVED";
+      vendor.suspendedUntil = null;
+      
+    
+      vendor.actions.push({
+        action: "APPROVED",
+        performedBy: admin.email,
+        performedAt: new Date(),
+        notes: "Vendor approved by admin",
+      });
+    
+      await vendor.save();
+
+      await NotificationModel.create({
+      recipientId: vendorId,
+      recipientRole: "VENDOR",
+      type: "SYSTEM",
+      title: "Vendor Approved",
+      message: `Your vendor account has been approved by admin ${admin.email}.`,
+      isRead: false,
     });
-  
-    await vendor.save();
-    return vendor;
-  },
-  
-  suspendVendor: async (
+
+      return vendor;
+    },
+    
+   suspendVendor: async (
     _: any,
     { vendorId, until }: { vendorId: string; until: string },
     context: any
-  ) => {
+   ) => {
     const admin = context?.admin;
 
     if (!admin) throw new Error("Unauthorized");
@@ -500,48 +547,131 @@ recentAdminCommissions: async () => {
     });
   
     await vendor.save();
+
     return vendor;
+    },
+
+    unsuspendVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
+      const admin = context?.admin;
+      if (!admin) throw new Error("Unauthorized");
+    
+      const vendor = await vendorModel.findById(vendorId);
+      if (!vendor) throw new Error("Vendor not found");
+    
+      vendor.suspendedUntil = null;
+      vendor.status = "APPROVED";
+    
+      vendor.actions.push({
+        action: "UNSUSPENDED",
+        performedBy: admin.email,
+        performedAt: new Date(),
+        notes: "Vendor unsuspended by admin",
+      });
+    
+      await vendor.save();
+
+      return vendor;
+    },
+
+    banVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
+      const admin = context?.admin;
+      if (!admin) throw new Error("Unauthorized");
+    
+      const vendor = await vendorModel.findById(vendorId);
+      if (!vendor) throw new Error("Vendor not found");
+    
+      vendor.status = "BANNED";
+      vendor.suspendedUntil = null;
+    
+      vendor.actions.push({
+        action: "BANNED",
+        performedBy: admin.email,
+        performedAt: new Date(),
+        notes: "Vendor banned by admin",
+      });
+    
+      await vendor.save();
+
+      return vendor;
+    }, 
+
+    suspendUser: async (
+      _: any,
+      { UserId, until }: { UserId: string; until: string },
+      context: any
+    ) => {
+      const admin = context?.admin;
+      if (!admin) throw new Error("Unauthorized");
+    
+      const user = await usermodel.findById(UserId);
+      if (!user) throw new Error("User not found");
+    
+      const date = new Date(until);
+      user.status = "SUSPENDED";
+      user.suspendedUntil = date;
+    
+      user.actions.push({
+        action: "SUSPENDED",
+        performedBy: admin.email,
+        performedAt: new Date(),
+        notes: `User suspended until ${date.toLocaleDateString()}`,
+      });
+    
+      await user.save();
+
+      return user;
+    },
+
+    unsuspendUser: async (
+      _: any,
+      { UserId }: { UserId: string },
+      context: any
+    ) => {
+      const admin = context?.admin;
+      if (!admin) throw new Error("Unauthorized");
+    
+      const user = await usermodel.findById(UserId);
+      if (!user) throw new Error("User not found");
+    
+      user.suspendedUntil = null;
+      user.status = "ACTIVE";
+    
+      user.actions.push({
+        action: "UNSUSPENDED",
+        performedBy: admin.email,
+        performedAt: new Date(),
+        notes: "User unsuspended by admin",
+      });
+    
+      await user.save();
+      return user;
+    },
+
+    banUser: async (
+      _: any,
+      { UserId }: { UserId: string },
+      context: any
+    ) => {
+      const admin = context?.admin;
+      if (!admin) throw new Error("Unauthorized");
+    
+      const user = await usermodel.findById(UserId);
+      if (!user) throw new Error("User not found");
+    
+      user.status = "BANNED";
+      user.suspendedUntil = null;
+    
+      user.actions.push({
+        action: "BANNED",
+        performedBy: admin.email,
+        performedAt: new Date(),
+        notes: "User banned by admin",
+      });
+    
+      await user.save();
+
+      return user;
+    },
+
   },
-  unsuspendVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
-    const admin = context?.admin;
-    if (!admin) throw new Error("Unauthorized");
-  
-    const vendor = await vendorModel.findById(vendorId);
-    if (!vendor) throw new Error("Vendor not found");
-  
-    vendor.suspendedUntil = null;
-    vendor.status = "APPROVED";
-  
-    vendor.actions.push({
-      action: "UNSUSPENDED",
-      performedBy: admin.email,
-      performedAt: new Date(),
-      notes: "Vendor unsuspended by admin",
-    });
-  
-    await vendor.save();
-    return vendor;
-  },
-  
-  
-  banVendor: async (_: any, { vendorId }: { vendorId: string }, context: any) => {
-    const admin = context?.admin;
-    if (!admin) throw new Error("Unauthorized");
-  
-    const vendor = await vendorModel.findById(vendorId);
-    if (!vendor) throw new Error("Vendor not found");
-  
-    vendor.status = "BANNED";
-    vendor.suspendedUntil = null;
-  
-    vendor.actions.push({
-      action: "BANNED",
-      performedBy: admin.email,
-      performedAt: new Date(),
-      notes: "Vendor banned by admin",
-    });
-  
-    await vendor.save();
-    return vendor;
-  }},  
-};
+}

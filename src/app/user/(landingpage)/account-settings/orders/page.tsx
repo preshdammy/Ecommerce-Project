@@ -58,7 +58,7 @@ const Orders = () => {
   if (loading) return <p className="text-center py-4 text-gray-500">Loading...</p>;
 
   return (
-    <div className="overflow-x-auto">
+    <div className=" h-[100vh] overflow-y-scroll">
       <table className="w-full table-auto border border-gray-300 text-sm md:text-base">
         <thead className="bg-gray-100 text-left">
           <tr>

@@ -2,10 +2,12 @@
 import { useQuery } from "@apollo/client";
 import React from "react";
 import { gql } from '@apollo/client';
+import { useState } from "react";
+import { BsArrowLeft, BsArrowRight } from "react-icons/bs"
 
 export const GET_BEST_DEALS = gql`
   query GetBestDeals($dealsLimit: Int!) {
-    bestDeals(limit: $dealsLimit) {
+  bestDeals(limit: $dealsLimit) {
       id
       name
       price
@@ -38,21 +40,49 @@ type DealProduct = {
 
 
 const BestDealsPage = () => {
+  const [page, setPage] = useState(1);
+  const limit = 12;
+
   const { loading, error, data } = useQuery(GET_BEST_DEALS, {
-    variables: { dealsLimit: 10 }, // set limit here
+    variables: { dealsLimit: 100 }, // fetch enough to paginate manually
   });
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error loading deals: {error.message}</p>;
 
+  const offset = (page - 1) * limit;
+  const allDeals = data?.bestDeals || [];
+  const paginatedDeals = allDeals.slice(offset, offset + limit);
+
   return (
     <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[10vh]">
-                        <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto">Best Selling Products</h1>
+      <h1 className="font-[500] text-[32px] font-sans w-[85%] mx-auto">Best Selling Products</h1>
                
-                        <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-                             <ProductFrameOne data={{ bestDeals: data?.bestDeals || [] }} />
-                        </div>
-                        </div>
+            <div className="bg-[#F8F8F8] w-[85%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"> 
+              <ProductFrameOne data={{ bestDeals: paginatedDeals }} />
+      </div>
+
+       {allDeals.length > limit && (
+        <div className="flex justify-center mt-8 gap-4">
+          <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={page === 1}
+             className={`px-6 py-2 rounded-full border-2 border-[#007BFF] text-[#007BFF] font-semibold transition-all duration-200 flex items-center gap-2 mb-2 ${page === 1 ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed" : "bg-white hover:bg-[#007BFF] hover:text-white" }`} >
+                <BsArrowLeft />
+                Previous
+          </button>
+          <button
+            onClick={() => setPage(page + 1)}
+            disabled={offset + limit >= allDeals.length}
+           className={`px-6 py-2 rounded-full border-2 border-[#007BFF] text-[#007BFF] font-semibold transition-all duration-200 flex items-center gap-2 mb-2 ${ data?.allProducts?.length < limit ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed" : "bg-white hover:bg-[#007BFF] hover:text-white" }`} >
+              Next
+              <BsArrowRight />
+              </button>
+        </div>
+      )}
+    </div>
+     
+    
   );
 };
 

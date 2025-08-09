@@ -27,7 +27,7 @@ export const notificationresolver = {
         } else {
           throw new Error("Not authenticated");
         }
-  
+    
         return NotificationModel.find({
           recipientId,
           recipientRole

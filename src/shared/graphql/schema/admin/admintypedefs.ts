@@ -23,6 +23,13 @@ export const adminTypeDefs = `
     suspendedUntil: DateTime
   }
 
+  type Action {
+  action: String!
+  performedBy: String!
+  performedAt: DateTime!
+  notes: String
+}
+
  
 type User {
   id: ID!
@@ -34,11 +41,14 @@ type User {
   state: String
   city: String
   gender: String
+  createdAt: DateTime!
   dateOfBirth: String
   walletBalance: Float
-  isBanned: Boolean!
+  status: String
+  suspendedUntil: DateTime
   complaints: [Complaint!]!
   orders: [Order!]!
+  actions: [Action!]!
 }
 
   type Product {
@@ -59,7 +69,21 @@ type User {
    averageRating: Float
    totalReviews: Int
    stock: Int
- }
+   stats: ProductStats
+}
+
+type ProductStats {
+  totalSales: Int!
+  dailySales: Int!
+  percentageChange: Float!
+  salesPerMonth: [MonthlySales!]!
+}
+
+type MonthlySales {
+  month: String!
+  total: Float!
+}
+
 
  type Order {
   id: ID!
@@ -139,21 +163,18 @@ type DailyCommission {
     addVendor(name: String!, email: String!): Vendor!
     deleteVendor(id: ID!): String!
     deleteUser(id: ID!): String!
-    banUser(id: ID!): User!
-    unbanUser(id: ID!): User!
     markOrderAsDelivered(orderId: ID!): String!
     refundOrder(orderId: ID!): String!
     requestPasswordReset(email: String!): Boolean!
     resetPassword(token: String!, newPassword: String!): Boolean!
     addComplaint(message: String!): Complaint!
     updateComplaintStatus(id: ID!, status: String!): Complaint!
-
-
     approveVendor(vendorId: ID!): Vendor!
     suspendVendor(vendorId: ID!, until: DateTime!): Vendor!
     unsuspendVendor(vendorId: ID!): Vendor!
     banVendor(vendorId: ID!): Vendor! 
-
-  
+    suspendUser(UserId: ID!, until: DateTime!): User!
+    unsuspendUser(UserId: ID!): User!
+    banUser(UserId: ID!): User! 
   }
 `;

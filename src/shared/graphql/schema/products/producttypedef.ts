@@ -23,6 +23,8 @@ export const producttypedef = `
         stock: Int
         isFeatured: Boolean
         originalPrice: Float
+        orderStats: OrderStats
+
     }
         scalar DateTime
 
@@ -31,9 +33,21 @@ export const producttypedef = `
         slug: String!
         }
 
+       type OrderStats {
+        totalOrders: Int!
+        totalQuantity: Int!
+        salesPerMonth: [SalesData]
+        }
+
+        type SalesData {
+        month: String!
+        total: Float!
+        }
+
+
     type Query {
         allProducts(limit: Int!, offset: Int!): [Product!]!
-        myProducts: [Product!]!
+        myProducts(limit: Int, offset: Int): [Product!]!
         product(id: ID!): Product
         productBySlug(slug: String!): Product
         allCategories: [Category!]!

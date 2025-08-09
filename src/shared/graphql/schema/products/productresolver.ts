@@ -3,6 +3,8 @@ import slugify from 'slugify';
 import { productModel } from '@/shared/database/model/product.model'
 import { vendorModel } from '@/shared/database/model/vendor.model';
 import { handleError } from '@/shared/utils/handleError';
+import { OrderModel } from '@/shared/database/model/orders.model';
+import { Model, Document, Types } from "mongoose";
 
 
 type product = {
@@ -21,32 +23,108 @@ type product = {
 
 }
 
+type OrderItem = {
+  product: Types.ObjectId | string;
+  quantity: number;
+};
+
+type Order = {
+  items: OrderItem[];
+  createdAt: Date | string;
+};
+
+type MonthlySalesData = {
+  month: string;
+  total: number;
+};
+
+type OrderStats = {
+  totalOrders: number;
+  totalQuantity: number;
+  salesPerMonth: MonthlySalesData[];
+};
+
+const calculateOrderStats = async (productId: string, year: number = new Date().getFullYear()): Promise<OrderStats> => {
+  const orders = await OrderModel.find({ 'items.product': new Types.ObjectId(productId) }) as Order[];
+
+  let totalOrders = 0;
+  let totalQuantity = 0;
+  const salesPerMonthMap: Record<string, number> = {};
+
+  // Populate sales data dynamically from orders
+  orders.forEach((order) => {
+    const orderDate = new Date(order.createdAt);
+    const orderMonth = orderDate.getMonth(); // 0-based (6 = July, 7 = August)
+    const orderYear = orderDate.getFullYear();
+
+
+    // Only process orders from the specified year
+    if (orderYear === year) {
+      const monthKey = `${orderYear}-${String(orderMonth + 1).padStart(2, '0')}`; // YYYY-MM (1-based)
+      order.items.forEach((item: OrderItem) => {
+        if (item.product instanceof Types.ObjectId ? item.product.equals(new Types.ObjectId(productId)) : item.product === productId) {
+          totalOrders += 1; // Increment per order containing the product
+          totalQuantity += item.quantity;
+          salesPerMonthMap[monthKey] = (salesPerMonthMap[monthKey] || 0) + item.quantity;
+        }
+      });
+    }
+  });
+
+  // Format sales per month
+  const salesPerMonth = Object.entries(salesPerMonthMap)
+    .map(([month, total]) => ({
+      month: new Date(`${month}-01`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      total,
+    }))
+    .sort((a, b) => new Date(`${a.month} 1, 2025`).getTime() - new Date(`${b.month} 1, 2025`).getTime()); // Sort by month
+
+  return {
+    totalOrders,
+    totalQuantity,
+    salesPerMonth,
+  };
+};
+
+
 
 export const productresolver = {
     Query: {
-        allProducts: async (_: any, { limit, offset }: { limit: number; offset: number }) => {
-            try {
-              const products = await productModel
-                .find()
-                .populate("seller")
-                .sort({ createdAt: -1 })
-                .limit(limit || 0)
-                .skip(offset);
-          
-              return products.map((p) => {
-                const obj = p.toObject();
-                return {
-                  ...obj,
-                  id: obj._id ? obj._id.toString() : "", 
-                };
-              });
-            } catch (error: any) {
-              handleError(error);
-              throw new Error(error);
-            }
-          },
+    allProducts: async (_: any, { limit, offset }: { limit: number; offset: number }) => {
+      try {
+        if (typeof limit !== "number" || typeof offset !== "number") {
+          throw new Error("Invalid limit or offset provided");
+        }
 
-          allCategories: async () => {
+        const products = await productModel
+          .find()
+          .populate("seller")
+          .sort({ createdAt: -1 })
+          .limit(limit > 0 ? limit : 12) 
+          .skip(offset);
+
+        const enhancedProducts = await Promise.all(
+          products.map(async (p) => {
+            const obj = p.toObject();
+            const orderStats = await calculateOrderStats(p._id.toString());
+            return {
+              ...obj,
+              id: obj._id.toString(),
+              orderStats,
+            };
+          })
+        );
+
+        return enhancedProducts;
+      } catch (error: any) {
+        console.error("Error in allProducts resolver:", error);
+        handleError(error);
+        throw new Error(`Failed to fetch products: ${error.message}`);
+      }
+    },
+
+
+     allCategories: async () => {
             try {
               const categories = await productModel.distinct("category");
               return categories.map((cat: string) => ({
@@ -56,79 +134,77 @@ export const productresolver = {
             } catch (error) {
               handleError(error);
             }
-          },
-          
-          
-        myProducts: async (_parent: any, _args: any, context: any) => {
-            try {
-              console.log("Context received in resolver:", context);
-              const { vendor } = context;
-              if (!vendor) {
-                throw new Error("Unauthorized: Only vendors can view their products.");
-              }
-          
-              const myproducts = await productModel
-                .find({ seller: vendor.id })
-                .populate("seller");
-          
-              if (!myproducts || myproducts.length === 0) {
-                throw new Error("No products found for this vendor.");
-              }
-          
-              return myproducts.map((p) => {
-                const obj = p.toObject();
-                obj.id = p._id.toString();
-          
-                if (obj.seller && obj.seller._id) {
-                  obj.seller.id = obj.seller._id.toString();
-                } else {
-                  obj.seller = null;
-                }
-          
-     
-          
-                return obj;
-              });
-            } catch (error) {
-              handleError(error);
-              throw error
-            }
-          },
-       
-          
-          
-        product: async (_: any, arg: { id: string }) => {
-            try {
-                const oneProduct = await productModel.findById(arg.id)
-                if (!oneProduct) {
-                    throw new Error("Product not found");
-                }
-                return oneProduct;
-            } catch (error) {
-                handleError(error);   
-            }
-    },
-    productBySlug: async (_: any, { slug }: { slug: string }) => {
-        try {
-          const product = await productModel.findOne({ slug }).populate("seller");
-          if (!product) {
-            throw new Error("Product not found");
-          }
-      
-          const obj = product.toObject();
-          obj.id = product._id.toString();
-      
-          if (obj.seller && obj.seller._id) {
-            obj.seller.id = obj.seller._id.toString();
-          }
-      
-          return obj;          
-        } catch (error) {
-          handleError(error);
-          throw error;
-        }
       },
-      
+          
+    myProducts: async (_parent: any, args: { limit?: number; offset?: number }, context: any) => {
+     try {
+        const { vendor } = context;
+        if (!vendor) {
+          throw new Error("Unauthorized: Only vendors can view their products.");
+        }
+
+    const { limit = 10, offset = 0 } = args;
+
+    const myproducts = await productModel
+      .find({ seller: vendor.id })
+      .skip(offset)
+      .limit(limit)
+      .populate("seller");
+
+    return myproducts.map((p) => {
+      const obj = p.toObject();
+      obj.id = p._id.toString();
+
+      if (obj.seller && obj.seller._id) {
+        obj.seller.id = obj.seller._id.toString();
+      } else {
+        obj.seller = null;
+      }
+
+      return obj;
+    });
+  } catch (error) {
+    handleError(error);
+    throw error;
+  }
+},
+    
+      product: async (_: any, { id }: { id: string }) => {
+                try {
+                    const product = await productModel.findById(id).populate("seller");
+                    if (!product) throw new Error("Product not found");
+
+                    const orderStats = await calculateOrderStats(id);
+                    
+                    return {
+                        ...product.toObject(),
+                        id: product._id.toString(),
+                        orderStats
+                    };
+                } catch (error) {
+                    handleError(error);
+                    throw error;
+                }
+            },
+
+      productBySlug: async (_: any, { slug }: { slug: string }) => {
+                try {
+                    const product = await productModel.findOne({ slug }).populate("seller");
+                    if (!product) throw new Error("Product not found");
+
+                    const orderStats = await calculateOrderStats(product._id.toString());
+                    
+                    return {
+                        ...product.toObject(),
+                        id: product._id.toString(),
+                        orderStats
+                    };
+                } catch (error) {
+                    handleError(error);
+                    throw error;
+                }
+            },
+
       productsByCategory: async (_: any, { category }: { category: string }) => {
         const products = await productModel.find({
           categorySlug: category, 
@@ -230,12 +306,13 @@ export const productresolver = {
           return related;
         },
 
-    },
+      },
+
+     
     Mutation: {
         createProduct: async (_: any, args: any, context: any) => {
             try {
               const { vendor } = context;
-              console.log("Vendor in context:", vendor);
           
               if (!vendor) {
                 throw new Error("Unauthorized: Only vendors can create products.");
@@ -280,7 +357,6 @@ export const productresolver = {
                 strict: false,
                 trim: true,
               });
-              console.log("Generated slug:", slug);
 
               const categorySlug = category
                     .replace(/&/g, "and")
@@ -392,26 +468,31 @@ export const productresolver = {
                 
             }
         }
-},
-      Product: {
-          seller: async (parent: any) => {
+      },
+          Product: {
+        seller: async (parent: any) => {
             if (!parent.seller) return null;
-        
-            // If already populated (object), return it with string id
+
             if (typeof parent.seller === "object" && parent.seller._id) {
-              return {
-                ...parent.seller,
-                id: parent.seller._id.toString(),
-              };
+                return {
+                    ...parent.seller,
+                    id: parent.seller._id.toString(),
+                };
             }
-        
-            // If it's just an ID, fetch from DB
+
             const seller = await vendorModel.findById(parent.seller);
             if (!seller) return null;
+            
             return {
-              ...seller.toObject(),
-              id: seller._id.toString(),
+                ...seller.toObject(),
+                id: seller._id.toString(),
             };
+        },
+        orderStats: async (parent: any) => {
+            if (!parent._id) return null;
+
+            const orderStats = await calculateOrderStats(parent._id.toString());
+            return orderStats;
           },
         },
   

@@ -19,7 +19,11 @@ const productSchema = new mongoose.Schema({
     totalReviews: { type: Number, default: 0 },
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'review' }],
     isFeatured: { type: Boolean, default: false },
-    originalPrice: { type: Number }
+    originalPrice: { type: Number },
+    orderStats: {
+      type: Object,
+      default: {}
+    }
 
 }, {timestamps: true})
 

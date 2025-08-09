@@ -6,10 +6,6 @@ import searchLogo from "../../../../public/figma images/search.png";
 import chevronDown from "../../../../public/figma images/chevron-down.png";
 import chevronRight from "../../../../public/figma images/chevron-right.png";
 import variant3 from "../../../../public/figma images/Variant3.png";
-import bell from "../../../../public/figma images/bell.png";
-import heart from "../../../../public/figma images/heart.png";
-import shopping_cart from "../../../../public/figma images/shopping-cart.png";
-import frame from "../../../../public/figma images/Frame 164.png";
 import { GoBell } from "react-icons/go";
 import { FaCaretDown } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -18,8 +14,6 @@ import { FiShoppingCart } from "react-icons/fi";
 import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState } from "react";
-import { div } from "framer-motion/client";
-
 import cancel from '../../../../public/figma images/x-01.png'
 import cart from '../../../../public/figma images/shopping-cart (2).png'
 import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsplash-removebg-preview 1.png'
@@ -33,13 +27,10 @@ import cancel2 from '../../../../public/figma images/Icon (2).png'
 import { useReactiveVar } from "@apollo/client";
 import { cartItemsVar } from "@/shared/lib/apolloClient";
 import { likedItemsVar } from "@/shared/lib/apolloClient";
-
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-
-
 import laptopLogo from "../../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
 import tamanna from "../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
 import cosmetics from "../../../../public/figma images/Frame 493 2.png"
@@ -47,6 +38,7 @@ import clothing from "../../../../public/figma images/Frame 493 (1).png"
 import furniture from "../../../../public/figma images/Frame 493 (2).png"
 import automobile from "../../../../public/figma images/Frame 493 (3).png"
 import food from "../../../../public/figma images/Frame 493 (4).png"
+import { useNotifications } from "../../../shared/provider/notificationsProvider";
 
 
 
@@ -124,7 +116,6 @@ const Header = () => {
     if (pathname.startsWith("/user")) {
       setIsAuthentication(true);
       setShowUsername(true);
-  
       const cookieUser = Cookies.get("userinfo");
       if (cookieUser) {
         try {
@@ -136,11 +127,9 @@ const Header = () => {
       } else {
         setUserName(null);
       }
-  
     } else if (pathname.startsWith("/vendor")) {
       setIsAuthentication(true);
       setShowUsername(true);
-  
       const cookieVendor = Cookies.get("vendorinfo");
       if (cookieVendor) {
         try {
@@ -152,30 +141,36 @@ const Header = () => {
       } else {
         setUserName(null);
       }
-  
     } else {
       setIsAuthentication(false);
       setShowUsername(false);
     }
   }, [pathname]);
-  
 
 
 
   return (
     <>
-      <div className="max-w-[1536px] mx-auto font-sans">
+    <div className="max-w-[1536px] mx-auto font-sans">
         <div className="w-full bg-blue-500 lg:hidden">
           <div className="md:h-[75px] w-[85%] h-[25px] text-[8px] gap-[16px] flex mx-auto sm:text-[16px] sm:h-[60px] md:text-[20px] items-center sm:gap-[6%] text-white ">
-            <Link  
-            href={isAuthentication ? "/user/landingpage" : "/"}
-            className={`${
-              pathname.startsWith("/user/landingpage") || (!isAuthentication && pathname.startsWith("/"))
-                ? "text-black"
-                : "text-white"
-            }`}
-          >
-            Home
+            <Link
+              href={
+                isAuthentication
+                  ? pathname.startsWith("/vendor")
+                    ? "/vendor/landingpage"
+                    : "/user/landingpage"
+                  : "/"
+              }
+              className={`${
+                pathname.startsWith("/user/landingpage") ||
+                (!isAuthentication && pathname.startsWith("/")) ||
+                (pathname.startsWith("/vendor/landingpage") && isAuthentication)
+                  ? "text-black"
+                  : "text-white"
+              }`}
+            >
+              Home
             </Link>
             <Link 
             href={isAuthentication ? "/user/about" : "/about"}
@@ -553,7 +548,9 @@ const Header = () => {
               </div>
 
               
-                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike}/>
+                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike} 
+                isVendorPath={pathname.startsWith("/vendor")}/>
+                
               
             </div>
           </div>
@@ -583,9 +580,28 @@ const Header = () => {
 
 export default Header;
 
-export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthentication: boolean,  setShowCart: Dispatch<SetStateAction<boolean>>, setShowLike: Dispatch<SetStateAction<boolean>>;}) => {
+export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike, isVendorPath,
+}: {
+  isAuthentication: boolean;
+  setShowCart: Dispatch<SetStateAction<boolean>>;
+  setShowLike: Dispatch<SetStateAction<boolean>>;
+  isVendorPath: boolean;
+}) => {
   const cartItems = useReactiveVar(cartItemsVar);
   const likedItems = useReactiveVar(likedItemsVar);
+  const { userNotifications, vendorNotifications, userUnreadCount, vendorUnreadCount, loading, markAsRead } = useNotifications()
+
+
+ 
+  const handleBellClick = async () => {
+    const unreadNotifications = isVendorPath ? vendorNotifications.filter((n) => !n.isRead) : userNotifications.filter((n) => !n.isRead);
+    if (unreadNotifications.length > 0) {
+      await Promise.all(unreadNotifications.map((notif) => markAsRead(notif.id)));
+    }
+  };
+
+  const unreadCount = isVendorPath ? vendorUnreadCount : userUnreadCount;
+
   return (
     <>
       <div
@@ -593,10 +609,15 @@ export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthe
           isAuthentication ? "text-white" : "text-white"
         } `}
       >
-        <Link href="" className="text-[32px]">
-          {" "}
-          <GoBell />{" "}
+       <Link href={isVendorPath ? "/vendor/notifications" : "/user/notifications"} onClick={handleBellClick} className="relative text-[32px]">
+          <GoBell />
+          {!loading && unreadCount > 0 && (
+            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-[16px] h-[16px] flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
         </Link>
+
           <div className="relative text-[32px]">
             <Link href="" onClick={() => setShowLike(true)}>
               <FaRegHeart />
