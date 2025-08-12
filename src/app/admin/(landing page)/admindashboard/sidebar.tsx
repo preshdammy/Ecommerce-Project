@@ -55,10 +55,6 @@ const  Sidebar  = () => {
                     <AiOutlineProduct  className="text-[26px]" />
                     <Link href="/admin/admindashboard/products" className="text-[24px] font-[300]">Products</Link>
                 </div>
-                <div className="flex gap-[16px] items-center">
-                    <FaShop  className="text-[26px]" />
-                    <Link href="/admin/admindashboard/vendors" className="text-[24px] font-[300]">Vendors</Link>
-                </div>
             </div>
 
         </div>

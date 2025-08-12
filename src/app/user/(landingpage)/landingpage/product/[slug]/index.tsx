@@ -23,6 +23,11 @@ import { likedItemsVar } from "@/shared/lib/apolloClient";
 import { useReactiveVar } from "@apollo/client";
 import { useLazyQuery } from "@apollo/client";
 import Cookies from "js-cookie";
+import { FaStore } from "react-icons/fa";
+import { MdEmail } from "react-icons/md";
+import { useKeenSlider } from "keen-slider/react"
+import "keen-slider/keen-slider.min.css"
+
 
 
 
@@ -37,6 +42,8 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
       price
       images
       stock
+      averageRating
+      totalReviews
       seller {
         id
         name
@@ -46,6 +53,7 @@ const get_products_by_slug = gql`query GetProductBySlug($slug: String!) {
         businessName
         profilePicture
         joinedDate
+        location
       }
     }
   }`
@@ -138,6 +146,8 @@ type RelatedProduct = {
     extendedDescription: string;
     price: number;
     images: string[];
+    averageRating: number;
+    totalReviews: number;
     seller: {
       id: string;
       name: string;
@@ -154,6 +164,7 @@ type RelatedProduct = {
   
 const ProductDescription = ({slug}:{slug: string}) => {
   const [activeTab, setActiveTab] = useState("details");
+  const [activeButton, setActiveButton] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [sendMessage] = useMutation(SEND_MESSAGE);
@@ -205,13 +216,15 @@ const ProductDescription = ({slug}:{slug: string}) => {
 
 
   const product = data?.productBySlug;
+  console.log(product);
+  
 
   const { data: relatedData, loading: relatedLoading, error: relatedError } = useQuery(GET_RELATED_PRODUCTS, {
   variables: {
-      productId: product?.id,
+      productId: product?.id || product?._id,
       limit: 8
   },
-  skip: !product?.id 
+  skip: !(product?.id || product?._id)
   });
   const { data: myProductData } = useQuery(get_my_products)
 
@@ -294,19 +307,66 @@ const ProductDescription = ({slug}:{slug: string}) => {
           likedItemsVar([...likedItems, product]);
           toast.success("Added to Likes");
         }
-      };
-      
-      
-      
+      }; 
+      const [currentSlide, setCurrentSlide] = useState(0)
+      const [loaded, setLoaded] = useState(false)
+      const [sliderRef, instanceRef] = useKeenSlider({
+        loop: true,
+        mode: "snap",
+        slides: {
+          perView: 1,
+          spacing: 5,
+        },
+        slideChanged(slider) {
+          setCurrentSlide(slider.track.details.rel)
+        },
+        created() {
+          setLoaded(true)
+        },
+      })
 
   return (
     <>
-      <div className="max-w-[1536px]">
-        <div className="full bg-[#F8F8F8] py-[10vh]">
-          <div className="w-[85%] mx-auto">
-            <div className="w-full flex gap-[8%] pb-[10vh]">
+      <div className="max-w-[1536px] ">
+        <div className=" bg-[#F8F8F8] py-[5vh] px-[3vh] md:py-[10vh] overflow-x-hidden">
+        <div className="w-full flex flex-col items-center pb-4 bg-white rounded-[10px] md:hidden">
+      {product?.images?.length > 0 && (
+        <>
+          <div ref={sliderRef} className="keen-slider w-full">
+            {product.images.map((img: any, i: any) => (
+              <div key={i} className="keen-slider__slide flex h-[37%] justify-center overflow-x-hidden">
+                <Image
+                  className="object-contain w-full h-full"
+                  src={img}
+                  alt={`Product image ${i + 1}`}
+                  width={265}
+                  height={37}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Dots */}
+          {loaded && instanceRef.current && (
+            <div className="flex space-x-2">
+              {product.images.map((_: any, idx: any) => (
+                <button
+                  key={idx}
+                  onClick={() => instanceRef.current?.moveToIdx(idx)}
+                  className={`w-2.5 h-2.5  rounded-full transition-colors ${
+                    currentSlide === idx ? "bg-black" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+          <div className="w-full md:w-[85%] mx-auto">
+            <div className="w-full block md:flex gap-[8%] pb-[10vh]">
              {/* Left Image Block */}
-              <div className="w-[45%]">
+              <div className="md:w-[45%] hidden md:block">
                 {/* Large Main Image */}
                 <div className="w-full flex justify-center bg-white rounded-[10px] ">
                   {product?.images?.[0] && (
@@ -341,26 +401,48 @@ const ProductDescription = ({slug}:{slug: string}) => {
               
               {product && (
                 
-                          <div className="flex flex-col gap-[25px] relative">
+                          <div className="flex flex-col gap-[25px] relative mt-[5vh] md:mt-[0vh]">
                             {product.stock === 0 && (
-                              <div className="absolute top-0 right-0 bg-red-500 text-white text-[12px] font-semibold px-3 py-1 rounded-bl z-10">
+                              <div className="absolute top-1 md:top-3 right-0 bg-red-500 text-white text-[12px] font-semibold px-3 py-1 rounded-bl z-10">
                                 Out of Stock
                               </div>
                             )}
 
-                            <h2 className="w-[504px] font-sans text-[32px] font-[600]">
+                            <h2 className="w-full font-sans text-[24px] font-400 md:text-[32px] md:font-[600]">
                               {product.name}
                             </h2>
 
-                            <p className="w-[504px] text-[16px] font-[500] font-sans text-[#939090]">
+                            <p className="hidden md:flex w-full text-[16px] font-[500] font-sans text-[#939090]">
                               {product.description}
                             </p>
 
-                            <p className="font-[700] font-sans text-[20px]">
+
+                            {(() => {
+                              const { averageRating = 0, totalReviews = 0 } = product;
+                              const fullStars = Math.floor(averageRating);
+                              const hasHalfStar = averageRating % 1 >= 0.5;
+                              const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+                              return (
+                                <p className="w-full -mt-[20px] flex items-center md:hidden text-[16px] text-[#ff4c3b]">
+                                  {Array(fullStars).fill(0).map((_, i) => (
+                                    <AiFillStar key={`full-${i}`} />
+                                  ))}
+                                  {hasHalfStar && <AiFillStar className="opacity-50" />}
+                                  {Array(emptyStars).fill(0).map((_, i) => (
+                                    <AiOutlineStar key={`empty-${i}`} />
+                                  ))}
+                                  <span className="text-sm text-gray-600 ml-1">({totalReviews})</span>
+                                </p>
+                              );
+                            })()}
+
+
+                            <p className="font-[700] -mt-[20px] md:-mt-[0px] font-sans text-[20px]">
                               ₦ {(product.price * quantity).toLocaleString()}
                             </p>
 
-                            <div className="font-[600] text-[12px] flex justify-between items-center">
+                            <div className="font-[600] hidden text-[12px] md:flex justify-between items-center">
                               <div>
                                 <span
                                   onClick={product.stock > 0 ? decreaseQty : undefined}
@@ -405,7 +487,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                                   ? handleAddToCart()
                                   : toast.error("Product is out of stock")
                               }
-                              className={`flex gap-[8px] py-[10px] w-[150px] rounded-[5px] px-[16px] font-[600] items-center text-[16px] text-white ${
+                              className={`hidden md:flex gap-[8px] py-[10px] w-[150px] rounded-[5px] px-[16px] font-[600] items-center text-[16px] text-white ${
                                 product.stock === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-[#FF4C3B]"
                               }`}
                               disabled={product.stock === 0}
@@ -414,7 +496,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                               <RiShoppingCart2Line className="text-[18px] font-[700]" />
                             </button>
 
-                            <div className="bg-[#F5FAFF] font-sans w-[340px] h-[75px]">
+                            <div className="hidden md:flex bg-[#F5FAFF] font-sans w-[340px] h-[75px]">
                               <div className="flex h-[100%] w-[100%] justify-around items-center">
                                 <div className="w-[180px] h-[42px] flex">
                                   <Image
@@ -454,7 +536,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                         </div>
 
                        {/* Tabs */}
-                       <div className="bg-white pt-[20px] w-full">
+                       <div className="hidden md:block bg-white pt-[20px] w-full">
               <div className="font-[500] text-[24px] border-[#F8F8F8] border-b-[3px] font-sans flex items-center justify-between h-[50px] w-[95%] mx-auto">
                 {["details", "reviews", "seller"].map((tab) => (
                   <div
@@ -520,7 +602,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                         <div className="flex flex-col gap-0.5">
                           <span className="text-lg font-semibold">{seller.businessName}</span>
                           <div className="flex items-center gap-1 text-gray-500 text-[12px]">
-                            <span>(4.2) Ratings</span>
+                            <span>({product.averageRating.toFixed(2)}) Ratings</span>
                           </div>
                         </div>
                         <p className="text-sm text-gray-800 leading-[1.4]">
@@ -533,7 +615,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                       {/* Right side: Stats and Button */}
                       <div className="flex flex-col items-start justify-between text-sm text-gray-700 min-w-[170px]">
                         <p>
-                          <span className="font-medium">Joined On:</span>{" "}
+                           <span className="font-medium">Joined On:</span>{" "}
                           {seller.joinedDate}
                         </p>
                         <p>
@@ -557,11 +639,97 @@ const ProductDescription = ({slug}:{slug: string}) => {
               </div>
               </div>
 
+              <div className="w-full -mt-[6vh] px-4 md:hidden">
+                {/* Buttons */}
+                <div className="flex gap-2 mt-4">
+                  <button
+                    className={`border rounded-lg text-[16px] px-4 py-3 w-1/2 ${
+                      activeButton === "description"
+                        ? "bg-[#007bff] text-white border-[#007bff]"
+                        : "bg-transparent text-[#007bff] border-[#cce5ff]"
+                    }`}
+                    onClick={() => setActiveButton("description")}
+                  >
+                    Description
+                  </button>
+
+                  <button
+                    className={`border rounded-lg text-[16px] px-4 py-3 w-1/2 ${
+                      activeButton === "seller"
+                        ? "bg-[#007bff] text-white border-[#007bff]"
+                        : "bg-transparent text-[#007bff] border-[#cce5ff]"
+                    }`}
+                    onClick={() => setActiveButton("seller")}
+                  >
+                    Seller's Details
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                  {activeButton === "description" && (
+                <div className="mt-4 border border-[#cce5ff] rounded-lg p-4 text-[15px] leading-relaxed">
+
+                    <div>
+                      <h2 className="font-semibold mb-2">Product Description</h2>
+                      {product && (
+                      <p>
+                        {product.description}
+                      </p>
+                       )}
+                    </div>
+                    </div>
+                  )}
+
+                {activeButton === "seller" && (
+                <div className="mt-4 border border-[#cce5ff] rounded-lg p-4 text-[15px] leading-relaxed">
+
+                  <div className=" p-4 flex flex-col shadow-sm w-full">
+                    {product.seller &&
+                      [product.seller].map((seller: any, index: number) => (
+                        <React.Fragment key={index}>
+                          <div className="flex gap-[2vh]">
+                          <Image
+                            src={seller.profilePicture}
+                            width={18}
+                            height={18}
+                            alt={seller.name}
+                            className="w-18 h-18 rounded-full object-cover"
+                          />
+                          <div className="flex-col">
+                          <h3 className="mt-2 font-semibold text-[16px]">{seller.name}</h3>
+                          <p className="text-gray-500 text-sm">{seller.location}</p>
+                          </div>
+                          </div>
+
+                         
+
+                          <div className="flex gap-2 mt-4 justify-center">
+                            <button onClick={()=>setIsModalOpen(true)} className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white text-[12px] px-4 py-2 rounded">
+                              <MdEmail size={16} />
+                              Message
+                            </button>
+                            <button className="flex items-center gap-1 border border-blue-500 text-blue-500 text-[12px] px-4 py-2 rounded hover:bg-blue-50">
+                              <FaStore size={16} />
+                              View Shop
+                            </button>
+                          </div>
+
+                          <button className="mt-3 flex justify-end gap-1 text-red-500 text-xs hover:underline">
+                            ⚠ Report this account
+                          </button>
+                        </React.Fragment>
+                      ))}
+                  </div>
+              </div>
+
+                )}
+
+              </div>
 
             {/* Review Form */}
-            <div className="w-[95%] mt-[30px] ">
+            <div className="w-[95%] mt-[15px] md:mt-[30px] ">
                             <button
-                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                className="bg-none text-[#007bff] underline md:no-underline  hover:text-black md:hover:bg-blue-700 md:bg-[#007bff] md:text-white px-4 py-2 rounded"
                                 onClick={() => setShowReviewForm(!showReviewForm)}
                             >
                                 {showReviewForm ? "Cancel Review" : "Leave a Review"}
@@ -593,8 +761,8 @@ const ProductDescription = ({slug}:{slug: string}) => {
                             )}
                             </div>
             {/* Related Products */}
-            <div className="w-full bg-[#F8F8F8] pt-[12vh] pb-[10vh]">
-                    <h1 className="font-[500] text-[32px] font-sans w-[85%] ">Related Products</h1>
+            <div className="w-full -mt-[7vh] md:-mt-[0vh] bg-[#F8F8F8] pt-[12vh] pb-[10vh]">
+                    <h1 className="text-[20px] font-[700] md:font-[500] md:text-[32px] font-sans w-[85%] ">Related Products</h1>
            
                     <div className="bg-[#F8F8F8] w-[100%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
                          <ProductFrame data={{ relatedProducts: relatedData?.relatedProducts?.slice(0, 8) || [] }} />
@@ -617,7 +785,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-white rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative"
+                    className="bg-white rounded-lg p-6 w-[80%] max-w-[400px] shadow-xl relative"
                   >
                     <button
                       onClick={() => setIsModalOpen(false)}
@@ -677,11 +845,13 @@ export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct
                 toast.success("Added to Likes");
               }
             };
+            console.log("relatedProducts", data?.relatedProducts);
+
   
     return (
       <>
         {data?.relatedProducts?.map((product: RelatedProduct) => {
-          const { averageRating = 0, price, stock } = product;
+          const { averageRating = 0, price, stock } = product;          
           const fullStars = Math.floor(averageRating);
           const hasHalfStar = averageRating % 1 >= 0.5;
           const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);

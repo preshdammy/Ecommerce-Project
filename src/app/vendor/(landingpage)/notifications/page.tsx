@@ -52,45 +52,50 @@ const VendorNotifications = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="w-3/4 mx-auto ml-20">
-        <div className="pt-30 h-auto">
-          <h2 className="text-xl font-semibold font-Merriweather text-[#55A7FF] text-[40px] mb-6">
-            My Notifications (Vendor)
-          </h2>
+    <div className="min-h-screen bg-gray-100 overflow-x-hidden ">
+  <div className="w-11/12 sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 mx-auto min-h-screen">
+    <div className="pt-10">
+      <h2 className="font-semibold font-Merriweather text-[#55A7FF] text-2xl sm:text-3xl md:text-4xl lg:text-[40px] mb-6">
+        My Notifications (Vendor)
+      </h2>
 
-          <div className="space-y-4 pb-10">
-            {vendorNotifications.length > 0 ? (
-              vendorNotifications.map((notif: any) => (
-                <div
-                  key={notif.id}
-                  className="w-full min-h-[100px] flex items-start justify-between px-4 py-3 rounded-[16px] border bg-[#F5FAFF] border-[#CCE5FF] hover:bg-[#e0f0ff] cursor-pointer"
-                  onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
-                >
-                  <div className="flex items-center space-x-4">
-                    <img
-                      className="bg-gray-300 w-[60px] h-[60px] rounded-full"
-                      src="/figma images/Frame 188.png"
-                      alt="Notification"
-                    />
-                    <div>
-                      <p className="text-[#007BFF] text-[16px] font-medium">
-                        {notif.message}
-                      </p>
-                      <p className="text-[#939090] text-[16px] mt-2">
-                        {new Date(notif.isRead ? notif.createdAt : notif.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
+      <div className="space-y-4 pb-10 h-screen overflow-y-scroll">
+        {vendorNotifications.length > 0 ? (
+          vendorNotifications.map((notif: any) => (
+            <div
+              key={notif.id}
+              className="w-full min-h-[100px] flex items-start justify-between px-4 py-3 rounded-[16px] border bg-[#F5FAFF] border-[#CCE5FF] hover:bg-[#e0f0ff] cursor-pointer"
+              onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
+            >
+              <div className="flex items-center space-x-4">
+                <img
+                  className="bg-gray-300 w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full"
+                  src="/figma images/Frame 188.png"
+                  alt="Notification"
+                />
+                <div>
+                  <p className="text-[#007BFF] text-sm sm:text-base md:text-lg lg:text-[16px] font-medium">
+                    {notif.message}
+                  </p>
+                  <p className="text-[#939090] text-xs sm:text-sm md:text-base lg:text-[16px] mt-2">
+                    {new Date(
+                      notif.isRead ? notif.createdAt : notif.createdAt
+                    ).toLocaleString()}
+                  </p>
                 </div>
-              ))
-            ) : (
-              <p className="p-4 text-[#939090]">No notifications yet.</p>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="p-4 text-[#939090] text-sm sm:text-base md:text-lg">
+            No notifications yet.
+          </p>
+        )}
       </div>
     </div>
+  </div>
+</div>
+
   );
 };
 

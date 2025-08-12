@@ -72,6 +72,8 @@ const MyPayment = () => {
   const [showFundModal, setShowFundModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [amount, setAmount] = useState("");
+  const [activeTab, setActiveTab] = useState("");
+  
 
   const [initWallet] = useMutation(INIT_WALLET_FUNDING);
   const [verifyWallet] = useMutation(VERIFY_WALLET_FUNDING);
@@ -122,65 +124,163 @@ const MyPayment = () => {
 
   return (
     <>
-      <div className="max-w-[1536px] bg-[#F8F8F8] pb-[20vh]">
-        <div className="w-[85%] font-sans mx-auto pt-[20vh]">
-          <div className="w-full">
-            <h2 className="font-[400] text-[40px] text-[#55A7FF]">My Payments</h2>
+      <div className="max-w-[1536px] bg-[#F8F8F8] pb-[20vh] overflow-x-hidden">
+  <div className="w-[85%] font-sans mx-auto pt-[5vh]">
+    <div className="w-full">
+      <h2 className="font-[400] text-[28px] sm:text-[32px] md:text-[36px] lg:text-[40px] xl:text-[44px] text-[#55A7FF]">
+        My Payments
+      </h2>
 
-            <div className="w-full mt-[8vh]">
-              <div className="border-[#CCE5FF] w-[85%] mx-auto border-[1px] rounded-[10px] bg-white py-[30px]">
-                <h2 className="font-[400] text-[24px] text-[#939090] ml-[35px]">
-                  Total Wallet Balance
-                </h2>
-                <p className="text-center text-[#007BFF] text-[64px] mt-[20px]">
-                  ₦
-                  {data?.getWalletBalance?.balance?.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                  }) ?? "0.00"}
-                </p>
+      <div className="w-full mt-[4vh]">
+        <div className="border-[#CCE5FF] w-[85%] mx-auto border-[1px] rounded-[10px] bg-white py-[30px]">
+          <h2 className="font-[400] text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[26px] text-[#939090] ml-[35px]">
+            Total Wallet Balance
+          </h2>
+          <p className="text-center text-[#007BFF] text-[36px] sm:text-[44px] md:text-[52px] lg:text-[60px] xl:text-[64px] mt-[20px]">
+            ₦
+            {data?.getWalletBalance?.balance?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            }) ?? "0.00"}
+          </p>
 
-                <div className="flex gap-[25px] items-center justify-center mt-[30px]">
-                  <button
-                    className="bg-[#FF4C3B] border-[4px] border-[#F8F8F8] font-[600] text-[24px] py-[20px] px-[56px] rounded-[60px]"
-                    onClick={() => setShowFundModal(true)}
-                  >
-                    Fund Wallet
-                  </button>
+          <div className="flex px-3 gap-1 md:gap-[25px] items-center justify-center mt-[30px]">
+            <button
+              className="bg-[#FF4C3B] border-[4px] border-[#F8F8F8] font-[600] text-[12px] sm:text-[16px] md:text-[18px] lg:text-[20px] xl:text-[24px] py-[12px] sm:py-[14px] md:py-[18px] lg:py-[20px] px-[30px] sm:px-[36px] md:px-[48px] lg:px-[56px] rounded-[60px]"
+              onClick={() => setShowFundModal(true)}
+            >
+              Fund Wallet
+            </button>
 
-                  <button
-                    className="border-[#FF4C3B] border-[4px] font-[600] text-[24px] py-[20px] px-[56px] rounded-[60px]"
-                    onClick={() => setShowWithdrawModal(true)}
-                  >
-                    Withdraw Funds
-                  </button>
-                </div>
-              </div>
-            </div>
+            <button
+              className="border-[#FF4C3B] border-[1px] font-[600] text-[12px] sm:text-[16px] md:text-[18px] lg:text-[20px] xl:text-[24px] py-[12px] sm:py-[14px] md:py-[18px] lg:py-[20px] px-[30px] sm:px-[36px] md:px-[48px] lg:px-[56px] rounded-[60px]"
+              onClick={() => setShowWithdrawModal(true)}
+            >
+              Withdraw Funds
+            </button>
           </div>
+        </div>
+      </div>
+    </div>
 
-        <div className="w-full mt-[20vh]">
-          <h2 className="text-[#939090] font-[600] text-[24px]">Payment History</h2>
+    <div className="w-full mt-[8vh]">
+      <h2 className="text-[#939090] font-[600] text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[26px]">
+        Payment History
+      </h2>
 
-          <div className="flex gap-[6%]">
-            <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
-              <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
-                <span className="font-[600] text-[24px] text-white ml-[20px]">
+      {/* Desktop */}
+      <div className="hidden md:flex gap-[6%] mt-[3vh]">
+        <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
+          <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
+            <span className="font-[600] text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[26px] text-white ml-[20px]">
+              My spending history
+            </span>
+          </div>
+          <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
+            {ordersLoading ? (
+              <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">Loading orders...</p>
+            ) : ordersData?.myOrders?.length ? (
+              ordersData.myOrders.map((order: any) => {
+                const firstItem = order.items[0];
+                const productName = firstItem?.product?.name || "Unknown Product";
+                const productImage = Array.isArray(firstItem?.product?.images) && firstItem?.product?.images.length > 0
+                  ? firstItem.product.images[0]
+                  : "/fallback.jpg";
+                const parsedDate = /^\d+$/.test(order.createdAt) ? new Date(Number(order.createdAt)) : new Date(order.createdAt);
+                const displayDate = isNaN(parsedDate.getTime()) ? "Invalid Date" : parsedDate.toLocaleDateString();
+                return (
+                  <GroceryShoppingDiv
+                    key={order.id}
+                    title={productName}
+                    date={displayDate}
+                    amount={order.totalAmount}
+                    image={productImage}
+                  />
+                );
+              })
+            ) : (
+              <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">No orders yet</p>
+            )}
+          </div>
+        </div>
+        <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
+          <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
+            <span className="font-[600] text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[26px] text-white ml-[20px]">
+              Incoming transactions
+            </span>
+          </div>
+          <div className=" w-full mt-[8vh] h-[480px] overflow-y-auto">
+            {transactionLoading ? (
+              <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">Loading transactions...</p>
+            ) : transactionData?.myWalletTransactions?.length ? (
+              transactionData.myWalletTransactions.map((txn: any) => (
+                <GroceryShoppingDiv
+                  key={txn.id}
+                  title={txn.description || txn.type}
+                  date={new Date(txn.createdAt).toLocaleDateString()}
+                  amount={txn.amount}
+                  type={txn.type}
+                />
+              ))
+            ) : (
+              <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">No wallet transactions yet</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Small screens */}
+      <div className="w-full px-0 md:hidden">
+        {/* Buttons */}
+        <div className="flex flex-col gap-2 mt-4">
+          <button
+            className={`border rounded-lg text-[14px] sm:text-[16px] px-4 py-4 w-2/3 ${
+              activeTab === "spending"
+                ? "bg-[#007bff] text-white border-[#007bff]"
+                : "bg-transparent text-[#007bff] border-[#cce5ff]"
+            }`}
+            onClick={() => setActiveTab("spending")}
+          >
+            Review spending history
+          </button>
+
+          <button
+            className={`border rounded-lg text-[14px] sm:text-[16px] px-4 py-4 w-2/3 ${
+              activeTab === "transaction"
+                ? "bg-[#007bff] text-white border-[#007bff]"
+                : "bg-transparent text-[#007bff] border-[#cce5ff]"
+            }`}
+            onClick={() => setActiveTab("transaction")}
+          >
+            Review transaction history
+          </button>
+        </div>
+
+        {/* Conditionally show GroceryShoppingDiv content */}
+        <div className="mt-4">
+          {activeTab === "spending" && (
+            <div className="w-full border-[1px] border-[#007BFF] pb-[5vh] rounded-[15px]">
+              <div className="h-[60px] bg-[#007BFF] flex items-center rounded-t-[15px]">
+                <span className="font-[600] text-[16px] sm:text-[18px] text-white ml-[20px]">
                   My spending history
                 </span>
               </div>
-              <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
+              <div className="w-full mt-4 max-h-[400px] overflow-y-auto">
                 {ordersLoading ? (
-                  <p className="text-center text-gray-500">Loading orders...</p>
+                  <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">Loading orders...</p>
                 ) : ordersData?.myOrders?.length ? (
                   ordersData.myOrders.map((order: any) => {
                     const firstItem = order.items[0];
                     const productName = firstItem?.product?.name || "Unknown Product";
-                    const productImage = Array.isArray(firstItem?.product?.images) && firstItem?.product?.images.length > 0
-                      ? firstItem.product.images[0]
-                      : "/fallback.jpg";
-                    console.log("Order createdAt raw:", order.createdAt);
-                    const parsedDate = /^\d+$/.test(order.createdAt) ? new Date(Number(order.createdAt)) : new Date(order.createdAt);
-                    const displayDate = isNaN(parsedDate.getTime()) ? "Invalid Date" : parsedDate.toLocaleDateString();
+                    const productImage =
+                      Array.isArray(firstItem?.product?.images) && firstItem?.product?.images.length > 0
+                        ? firstItem.product.images[0]
+                        : "/fallback.jpg";
+                    const parsedDate = /^\d+$/.test(order.createdAt)
+                      ? new Date(Number(order.createdAt))
+                      : new Date(order.createdAt);
+                    const displayDate = isNaN(parsedDate.getTime())
+                      ? "Invalid Date"
+                      : parsedDate.toLocaleDateString();
                     return (
                       <GroceryShoppingDiv
                         key={order.id}
@@ -192,19 +292,22 @@ const MyPayment = () => {
                     );
                   })
                 ) : (
-                  <p className="text-center text-gray-500">No orders yet</p>
+                  <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">No orders yet</p>
                 )}
               </div>
             </div>
-            <div className="w-[47%] border-[1px] border-[#007BFF] pb-[10vh] rounded-[15px]">
-              <div className="h-[95px] bg-[#007BFF] flex items-center rounded-t-[15px]">
-                <span className="font-[600] text-[24px] text-white ml-[20px]">
+          )}
+
+          {activeTab === "transaction" && (
+            <div className="w-full border-[1px] border-[#007BFF] pb-[5vh] rounded-[15px]">
+              <div className="h-[60px] bg-[#007BFF] flex items-center rounded-t-[15px]">
+                <span className="font-[600] text-[16px] sm:text-[18px] text-white ml-[20px]">
                   Incoming transactions
                 </span>
               </div>
-              <div className="w-full mt-[8vh] h-[480px] overflow-y-auto">
+              <div className="w-full mt-4 max-h-[400px] overflow-y-auto">
                 {transactionLoading ? (
-                  <p className="text-center text-gray-500">Loading transactions...</p>
+                  <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">Loading transactions...</p>
                 ) : transactionData?.myWalletTransactions?.length ? (
                   transactionData.myWalletTransactions.map((txn: any) => (
                     <GroceryShoppingDiv
@@ -216,19 +319,22 @@ const MyPayment = () => {
                     />
                   ))
                 ) : (
-                  <p className="text-center text-gray-500">No wallet transactions yet</p>
+                  <p className="text-center text-gray-500 text-[14px] sm:text-[16px]">No wallet transactions yet</p>
                 )}
               </div>
             </div>
-          </div>
-        </div>
+          )}
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
 
       {/* Fund Modal */}
       {showFundModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-md w-[400px] text-center">
+          <div className="bg-white p-8 rounded-md w-[80%] sm:w-[400px] text-center">
             <h2 className="text-[24px] font-semibold mb-4">Fund Wallet</h2>
             <input
               type="number"
@@ -262,7 +368,7 @@ const MyPayment = () => {
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-md w-[400px] text-center">
+          <div className="bg-white p-8 rounded-md w-[80%] sm:w-[400px] text-center">
             <h2 className="text-[24px] font-semibold mb-4">Withdraw Funds</h2>
             <input
               type="number"
@@ -321,11 +427,11 @@ export const GroceryShoppingDiv = ({
               <img
                 src={image}
                 alt={title}
-                className="w-[82px] h-[82px] object-cover rounded-full"
+                className="hidden sm:block w-[82px] h-[82px] object-cover rounded-full"
               />
             )}
         {!image && !type && (
-          <div className="w-[82px] h-[82px] bg-[#D9D9D9] rounded-full"></div>
+          <div className="hidden sm:block w-[82px] h-[82px] bg-[#D9D9D9] rounded-full"></div>
         )}
         <div>
           <p className="text-[#55A7FF] font-[600] text-[16px]">{title}</p>

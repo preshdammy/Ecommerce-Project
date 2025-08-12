@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import { formatDistanceToNow } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import Cookies from "js-cookie";
 import msgprofile from "../../../../../../public/figma images/Group 86.png";
 
@@ -113,9 +114,6 @@ const UserInbox = () => {
     fetchPolicy: "network-only",
   });
   
-  // if (loading) return <p>Loading messages...</p>;
-  // if (error) return <p>Error loading messages: {error.message}</p>;
-  
   
 
   const [sendMessageMutation] = useMutation<{ sendMessage: Message }>(SEND_MESSAGE);
@@ -162,16 +160,16 @@ const UserInbox = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 md:p-8 min-h-screen">
+    <div className="max-w-full w-[100%] mx-auto p-0 sm:p-6 md:p-8 min-h-[80vh] sm:min-h-screen overflow-x-hidden">
       {!selectedChat ? (
-        <div className="w-full rounded-lg border border-blue-400 h-[500px] overflow-y-auto">
-          <div className="bg-blue-600 p-3 text-white font-semibold text-sm sticky top-0">
+        <div className="w-full rounded-lg border border-blue-400 h-[60vh] md:h-[500px] overflow-y-auto mt-6 overflow-x-hidden">
+          <div className="bg-blue-600 p-5 text-white font-semibold text-sm sticky top-0">
             My Messages
           </div>
           {chatList.map((chat) => (
             <button
               key={chat.chatId}
-              className="w-full text-left p-3 border-b border-blue-200 hover:bg-blue-50"
+              className="w-full text-left p-5 border-b border-blue-200 hover:bg-blue-50"
               onClick={() => {
                 setSelectedChat(chat);
                 loadMessages({ variables: { chatId: chat.chatId } });
@@ -184,8 +182,8 @@ const UserInbox = () => {
                   width={30}
                   height={30}
                 />
-                <div>
-                  <p className="text-xs font-medium">{chat.vendor.name}</p>
+                <div className="max-w-[150px] sm:max-w-none">
+                  <p className="text-xs font-medium truncate">{chat.vendor.name}</p>
                   <p className="text-[10px] text-gray-500 truncate">
                     {chat.latestMessage?.content || "No message yet"}
                   </p>
@@ -195,8 +193,8 @@ const UserInbox = () => {
           ))}
         </div>
       ) : (
-        <div className="w-full h-[500px] bg-[#f5faff] flex flex-col justify-between rounded-lg shadow p-4 overflow-hidden">
-          <div className="flex justify-between items-center mb-4">
+        <div className="w-full h-[60vh] md:h-[500px] bg-[#f5faff] flex flex-col justify-between mt-6 rounded-lg shadow p-0 sm:p-4 overflow-hidden">
+          <div className="flex justify-between items-center mb-4 px-2 py-1">
             <h3 className="text-blue-600 font-semibold text-sm">
               Chat with {selectedChat.vendor.name}
             </h3>
@@ -210,27 +208,44 @@ const UserInbox = () => {
               Back
             </button>
           </div>
-
-          <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
-            
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`max-w-[70%] px-4 py-2 text-sm rounded-xl ${
-                  msg.senderId === userId
-                    ? "bg-blue-600 text-white self-end"
-                    : "bg-white text-black self-start"
-                }`}
-              >
-                <p>{msg.content}</p>
-                <p className="text-[10px] text-right opacity-60">
-                {formatDistanceToNow(new Date(Number(msg.createdAt)), { addSuffix: true })}
-                </p>
-              </div>
-            ))}
+      
+          <div className="flex-1 overflow-y-auto px-2 flex flex-col gap-2">
+            {messages.map((msg, index) => {
+              const msgDate = new Date(Number(msg.createdAt));
+      
+              // Check if this is the first message of the day
+              const showDate =
+                index === 0 ||
+                !isSameDay(
+                  new Date(Number(messages[index - 1].createdAt)),
+                  msgDate
+                );
+      
+              return (
+                <React.Fragment key={msg.id}>
+                  {showDate && (
+                    <div className="text-center text-xs text-gray-500 my-2">
+                      {format(msgDate, "EEEE, MMM d yyyy")}
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[70%] px-4 py-2 text-sm rounded-xl ${
+                      msg.senderId === userId
+                        ? "bg-blue-600 text-white self-end"
+                        : "bg-white text-black self-start"
+                    }`}
+                  >
+                    <p>{msg.content}</p>
+                    <p className="text-[10px] text-right opacity-60">
+                      {format(msgDate, "HH:mm")}
+                    </p>
+                  </div>
+                </React.Fragment>
+              );
+            })}
           </div>
-
-          <div className="flex gap-2 mt-2">
+      
+          <div className="flex gap-2 mt-2 px-2 py-1">
             <input
               type="text"
               value={newMessage}

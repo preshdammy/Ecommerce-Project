@@ -86,12 +86,12 @@ export const adminresolver = {
         .lean();
 
       return users.map(user => ({
-        id: (user._id as string | { toString(): string }).toString(),
-        name: user.name,
-        email: user.email,
+         id: user._id?.toString() || '', 
+        name: user.name || "",
+        email: user.email || "",
         status: user.status || 'ACTIVE', // Default value
         walletBalance: user.walletBalance || 0, // Direct float value
-        createdAt: user.createdAt,
+        createdAt: user.createdAt || new Date(),
         actions: user.actions?.slice(0, 1) || []
       }));
     },

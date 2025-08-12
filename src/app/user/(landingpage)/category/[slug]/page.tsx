@@ -1,4 +1,3 @@
-// app/category/[category]/page.tsx
 import { gql } from "@apollo/client";
 import { client } from "@/shared/lib/apolloClient"; 
 import CategoryClientComponent from "./index"
