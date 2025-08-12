@@ -1,9 +1,9 @@
 import { usermodel } from "../../../database/model/user.model";
-import { messageModel } from "@/shared/database/model/message.model";
-import { vendorModel } from "@/shared/database/model/vendor.model";
 import bcrypt from "bcryptjs";
 import Jwt from "jsonwebtoken";
-
+import { v2 as cloudinary } from "cloudinary";
+import { AuthenticationError } from "apollo-server-express";
+import { ContextType } from "../../../context";
 
 interface LeanUser {
   _id: string;
@@ -57,7 +57,21 @@ export const userresolver = {
       return chatItems;
     },
     
-    
+     getUserProfile: async (
+      _: unknown,
+      __: unknown,
+      context: ContextType
+    ) => {
+      if (!context.user?.email)
+        throw new AuthenticationError("Not authenticated");
+
+      const profile = await usermodel
+        .findOne({ email: context.user.email })
+        .select("-password");
+
+      if (!profile) throw new Error("User not found");
+      return profile;
+    },
   },
 
   Mutation: {
@@ -120,55 +134,40 @@ export const userresolver = {
       }
     },
 
- updateuser: async (_: any, { input }: { input: any }) => {
-  try {
-    const {
-      id,
-      name,
-      email,
-      password,
-      address,
-      state,
-      city,
-      gender,
-      dateOfBirth,
-      profilePicture,
-    } = input;
+ upsertProfile: async (_: unknown, { input }: { input: any }) => {
+      if (!input?.id) throw new Error("User ID is required");
 
-    const updates: any = {};
-    if (name) updates.name = name;
-    if (email) updates.email = email;
-    if (password) updates.password = await bcrypt.hash(password, 10);
-    if (address) updates.address = address;
-    if (state) updates.state = state;
-    if (city) updates.city = city;
-    if (gender) updates.gender = gender;
-    if (dateOfBirth) updates.dateOfBirth = dateOfBirth;
-    if (profilePicture) updates.profilePicture = profilePicture;
+      let profilePicUrl = input.profilePicture;
 
-    const updatedUser = await usermodel
-      .findByIdAndUpdate(id, updates, { new: true })
-      .select("-password");
+      // ✅ Upload base64 images to Cloudinary
+      if (profilePicUrl && profilePicUrl.startsWith("data:image")) {
+        try {
+          const uploadRes = await cloudinary.uploader.upload(profilePicUrl, {
+            folder: "user_profile_pictures",
+          });
+          profilePicUrl = uploadRes.secure_url;
+        } catch (err) {
+          console.error("Cloudinary Upload Error:", err);
+          throw new Error("Failed to upload profile picture");
+        }
+      }  
 
-    if (!updatedUser) throw new Error("User not found");
+      // ✅ Update only if user exists
+      const updatedUser = await usermodel
+        .findByIdAndUpdate(
+          input.id,
+          { $set: { ...input, profilePicture: profilePicUrl } },
+          { new: true, upsert: false }
+        )
+        .select("-password");
+if (profilePicUrl) {
+        updatedUser.personalProfilePic = profilePicUrl;
+      }
+      if (!updatedUser)
+        throw new Error("User not found or failed to update profile");
 
- return {
-  id: updatedUser._id,
-  name: updatedUser.name,
-  email: updatedUser.email,
-  address: updatedUser.address,
-  state: updatedUser.state,
-  city: updatedUser.city , 
-  gender: updatedUser.gender,
-  dateOfBirth: updatedUser.dateOfBirth, 
-  profilePicture: updatedUser.profilePicture ,
-};
-
-
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
-},
+      return updatedUser;
+    },
 
 
     deleteuser: async (_: any, { id }: { id: string }) => {

@@ -23,14 +23,14 @@ type Token {
   token: String!
 }
 
-input UpdateUserInput {
-  id: ID!
-  name: String!
-  email: String!
-  address: String!
-  state: String!
+input UserProfileInput {
+  id: ID
+  name: String
+  email: String
+  address: String
+  state: String
   city: String
-  gender: String!
+  gender: String
   dateOfBirth: String
   profilePicture: String
 }
@@ -51,12 +51,13 @@ type Query {
   users: [User!]!
   user(id: ID!): User
   userChatList(userId: ID!): [ChatItem!]!
+   getUserProfile: User
 }
 
 type Mutation {
   createuser(name: String!, email: String!, password: String!): User!
   loginuser(email: String!, password: String!): Token!
-  updateuser(input: UpdateUserInput!): User!  
+ upsertProfile(input: UserProfileInput!): Use
   deleteuser(id: ID!): Boolean!
 }
 
