@@ -26,9 +26,45 @@ const UPSERT_PROFILE = gql`
 `;
 
 const stateCityMap: Record<string, string[]> = {
-  Lagos: ["Ikeja", "Ikorodu", "Lekki", "Epe", "Badagry", "Mushin"],
-  Abuja: ["Asokoro", "Maitama", "Wuse", "Garki"],
+  "Abia": ["Umuahia", "Aba", "Ohafia", "Arochukwu"],
+  "Adamawa": ["Yola", "Jimeta", "Mubi", "Numan"],
+  "Akwa Ibom": ["Uyo", "Ikot Ekpene", "Ikot Abasi", "Oron"],
+  "Anambra": ["Awka", "Onitsha"],
+  "Bauchi": ["Bauchi", "Azare", "Misau"],
+  "Bayelsa": ["Yenagoa", "Brass"],
+  "Benue": ["Makurdi", "Otukpo"],
+  "Borno": ["Maiduguri", "Biu", "Dikwa"],
+  "Cross River": ["Calabar", "Ogoja"],
+  "Delta": ["Asaba", "Warri", "Sapele", "Ughelli", "Burutu"],
+  "Ebonyi": ["Abakaliki"],
+  "Edo": ["Benin City"],
+  "Ekiti": ["Ado‑Ekiti", "Effon‑Alaiye", "Ikere‑Ekiti"],
+  "Enugu": ["Enugu", "Nsukka"],
+  "FCT - Abuja": ["Abuja", "Garki", "Maitama", "Asokoro"],
+  "Gombe": ["Gombe", "Kumo", "Deba Habe"],
+  "Imo": ["Owerri"],
+  "Jigawa": ["Dutse", "Birnin Kudu", "Hadejia", "Gumel", "Kazaure"],
+  "Kaduna": ["Kaduna", "Zaria", "Kafanchan"],
+  "Kano": ["Kano", "Wudil", "Gaya"],
+  "Katsina": ["Katsina", "Daura", "Funtua"],
+  "Kebbi": ["Birnin Kebbi", "Argungu", "Gwandu"],
+  "Kogi": ["Lokoja", "Idah", "Kabba", "Okene"],
+  "Kwara": ["Ilorin", "Offa", "Jebba", "Lafiagi"],
+  "Lagos": ["Lagos", "Ikeja", "Ikorodu", "Lekki", "Epe", "Badagry", "Mushin", "Shomolu"],
+  "Nasarawa": ["Lafia", "Keffi", "Nasarawa"],
+  "Niger": ["Minna", "Suleja", "Bida", "Kontagora", "Lapai"],
+  "Ogun": ["Abeokuta", "Ijebu‑Ode", "Shagamu", "Ilaro"],
+  "Ondo": ["Akure", "Ondo", "Okitipupa"],
+  "Osun": ["Oshogbo", "Ile‑Ife", "Ilesa", "Iwo"],
+  "Oyo": ["Ibadan", "Oyo", "Ogbomosho", "Iseyin", "Igboho"],
+  "Plateau": ["Jos"],
+  "Rivers": ["Port Harcourt", "Bonny", "Omoku", "Buguma", "Okrika"],
+  "Sokoto": ["Sokoto"],
+  "Taraba": ["Jalingo"],
+  "Yobe": ["Damaturu", "Gashua"],
+  "Zamfara": ["Gusau"]
 };
+
 
 export default function PersonalDetailsForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
