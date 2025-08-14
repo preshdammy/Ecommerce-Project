@@ -764,7 +764,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
             <div className="w-full -mt-[7vh] md:-mt-[0vh] bg-[#F8F8F8] pt-[12vh] pb-[10vh]">
                     <h1 className="text-[20px] font-[700] md:font-[500] md:text-[32px] font-sans w-[85%] ">Related Products</h1>
            
-                    <div className="bg-[#F8F8F8] w-[100%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                    <div className="bg-[#F8F8F8] px-[15%] sm:px-[0%] w-[100%] mx-auto mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-4">
                          <ProductFrame data={{ relatedProducts: relatedData?.relatedProducts?.slice(0, 8) || [] }} />
                     </div>
                     </div>
