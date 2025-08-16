@@ -1,77 +1,111 @@
 'use client';
 
 import { useState } from 'react';
+import { gql, useMutation } from '@apollo/client';
+import { toast } from 'react-toastify';
+import { IoEyeOutline } from "react-icons/io5";
+import eyeclosed from '../../../../public/figma images/eye-closed.png';
+import Image from 'next/image';
+
+// Updated GraphQL mutation (no email)
+const CHANGE_VENDOR_PASSWORD = gql`
+  mutation ChangeVendorPassword($currentPassword: String!, $newPassword: String!) {
+    changeVendorPassword(currentPassword: $currentPassword, newPassword: $newPassword)
+  }
+`;
 
 export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [changePassword, { loading }] = useMutation(CHANGE_VENDOR_PASSWORD);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      alert("New passwords don't match");
+      toast.error("New passwords do not match");
       return;
     }
 
-    // TODO: Implement password change logic here
+    try {
+      await changePassword({
+        variables: {
+          currentPassword,
+          newPassword,
+        },
+      });
 
-    alert('Password changed successfully!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+      toast.success("Password changed successfully!");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Something went wrong");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
-      <div>
-        <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
-          Current Password
-        </label>
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-lg bg-none mx-auto mt-3">
+
+      {/* Current Password */}
+      <div tabIndex={0} className='w-full px-7 py-2 flex justify-between border-2 border-[#D4D3D3] rounded-[100px] bg-[#f8f8f8] focus-within:border-blue-600'>
         <input
-          type="password"
-          id="currentPassword"
+          placeholder='Enter current password'
+          type={showPassword ? "text" : "password"}
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
+          className='w-full placeholder:text-[16px] focus:outline-none placeholder:text-[#272222] placeholder:tracking-[1px]'
         />
+        <button type="button" onClick={() => setShowPassword(prev => !prev)}>
+          {showPassword
+            ? <IoEyeOutline size={24} className='text-black opacity-20 w-6 h-6' />
+            : <Image src={eyeclosed} alt='' className='w-6 h-6' />}
+        </button>
       </div>
 
-      <div>
-        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-          New Password
-        </label>
+      {/* New Password */}
+      <div tabIndex={0} className='w-full px-7 py-2 flex justify-between border-2 border-[#D4D3D3] rounded-[100px] bg-[#f8f8f8] focus-within:border-blue-600'>
         <input
-          type="password"
-          id="newPassword"
+          placeholder='New password'
+          type={showPassword ? "text" : "password"}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
+          className='w-full placeholder:text-[16px] focus:outline-none placeholder:text-[#272222] placeholder:tracking-[1px]'
         />
+        <button type="button" onClick={() => setShowPassword(prev => !prev)}>
+          {showPassword
+            ? <IoEyeOutline size={24} className='text-black opacity-20 w-6 h-6' />
+            : <Image src={eyeclosed} alt='' className='w-6 h-6' />}
+        </button>
       </div>
 
-      <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-          Confirm New Password
-        </label>
+      {/* Confirm New Password */}
+      <div tabIndex={0} className='w-full px-7 py-2 flex justify-between border-2 border-[#D4D3D3] rounded-[100px] bg-[#f8f8f8] focus-within:border-blue-600'>
         <input
-          type="password"
-          id="confirmPassword"
+          placeholder='Confirm new password'
+          type={showPassword ? "text" : "password"}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
+          className='w-full placeholder:text-[16px] focus:outline-none placeholder:text-[#272222] placeholder:tracking-[1px]'
         />
+        <button type="button" onClick={() => setShowPassword(prev => !prev)}>
+          {showPassword
+            ? <IoEyeOutline size={24} className='text-black opacity-20 w-6 h-6' />
+            : <Image src={eyeclosed} alt='' className='w-6 h-6' />}
+        </button>
       </div>
 
+      {/* Submit */}
       <button
         type="submit"
-        className="w-full rounded-md bg-blue-600 py-2 text-white font-semibold hover:bg-blue-700 transition"
+        disabled={loading}
+        className="bg-[#FF4C3B] text-white px-6 py-3 rounded-full text-sm font-semibold tracking-wide w-1/2 sm:w-[150px] mx-auto block hover:bg-red-600"
       >
-        Change Password
+        {loading ? 'Updating...' : 'UPDATE'}
       </button>
     </form>
   );

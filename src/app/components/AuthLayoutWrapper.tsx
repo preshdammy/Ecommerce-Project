@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import AccountLayout from "./accounts/Accountlayout";
+import AccountLayout from "../user/(landingpage)/account-settings/layout";
 
 export default function AuthLayoutWrapper({
   children,

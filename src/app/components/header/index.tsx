@@ -6,10 +6,6 @@ import searchLogo from "../../../../public/figma images/search.png";
 import chevronDown from "../../../../public/figma images/chevron-down.png";
 import chevronRight from "../../../../public/figma images/chevron-right.png";
 import variant3 from "../../../../public/figma images/Variant3.png";
-import bell from "../../../../public/figma images/bell.png";
-import heart from "../../../../public/figma images/heart.png";
-import shopping_cart from "../../../../public/figma images/shopping-cart.png";
-import frame from "../../../../public/figma images/Frame 164.png";
 import { GoBell } from "react-icons/go";
 import { FaCaretDown } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -18,26 +14,31 @@ import { FiShoppingCart } from "react-icons/fi";
 import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState } from "react";
-import { div } from "framer-motion/client";
-
-
-
-
-
-
 import cancel from '../../../../public/figma images/x-01.png'
 import cart from '../../../../public/figma images/shopping-cart (2).png'
 import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsplash-removebg-preview 1.png'
 import trash from '../../../../public/figma images/Icon.png'
 import substract from '../../../../public/figma images/Icon (1).png'
 import add from '../../../../public/figma images/add-square-02.png'
-
-
-
-
-
+import { IoIosAddCircle } from "react-icons/io";
+import { GrSubtractCircle } from "react-icons/gr";
 import like from '../../../../public/figma images/heart (1).png'
 import cancel2 from '../../../../public/figma images/Icon (2).png'
+import { useReactiveVar } from "@apollo/client";
+import { cartItemsVar } from "@/shared/lib/apolloClient";
+import { likedItemsVar } from "@/shared/lib/apolloClient";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import laptopLogo from "../../../../public/figma images/bram-naus-N1gUD_dCvJE-unsplash-removebg-preview 1.png"
+import tamanna from "../../../../public/figma images/tamanna-rumee-eD1RNYzzUxc-unsplash 1.png"
+import cosmetics from "../../../../public/figma images/Frame 493 2.png"
+import clothing from "../../../../public/figma images/Frame 493 (1).png"
+import furniture from "../../../../public/figma images/Frame 493 (2).png"
+import automobile from "../../../../public/figma images/Frame 493 (3).png"
+import food from "../../../../public/figma images/Frame 493 (4).png"
+import { useNotifications } from "../../../shared/provider/notificationsProvider";
 
 
 
@@ -45,18 +46,162 @@ const Header = () => {
   const [isAuthentication, setIsAuthentication] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
   const [showLike, setShowLike] = useState<boolean>(false);
+  const [counts, setCounts] = useState<{ [productId: string]: number }>({});
+  const cartItems = useReactiveVar(cartItemsVar);
+  const likedItems = useReactiveVar(likedItemsVar);
+  const pathname = usePathname();
+  const [showUsername, setShowUsername] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const Router = useRouter()
+  const [showDropdown, setShowDropdown] = useState(false)
+  const categories = [
+    {
+      name: "Computers and Laptops",
+      slug: "computers-and-laptops",
+      icon: laptopLogo, 
+    },
+    {
+      name: "Cosmetics and Body Care",
+      slug: "cosmetics-and-body-care",
+      icon: cosmetics,
+    },
+    {
+      name: "Clothing and Shoes",
+      slug: "clothing-and-shoes",
+      icon: clothing,
+    },
+    {
+      name: "Furniture and Outdoors",
+      slug: "furniture-and-outdoors",
+      icon: furniture,
+    },
+    {
+      name: "Automobiles and Spare Parts",
+      slug: "automobiles-and-spare-parts",
+      icon: automobile,
+    },
+    {
+      name: "Food, Groceries and Bev...",
+      slug: "food-groceries-and-beverages",
+      icon: food,
+    },
+    {
+      name: "Others",
+      slug: "others",
+      icon: tamanna,
+    },
+  ];
+  
+  
+  
+  interface Product {
+    id: string;
+    name: string;
+    price: number;
+  }
+
+
+
+  const handleDelete = (product: Product): void => {
+    cartItemsVar(cartItemsVar().filter((item: Product) => item.id !== product.id));
+  }
+
+  const handleCheckout = () => {
+    Router.push("/user/checkout-page")
+    setShowCart(false)
+    setShowLike(false)
+  }
+
+  useEffect(() => {
+    if (pathname.startsWith("/user")) {
+      setIsAuthentication(true);
+      setShowUsername(true);
+      const cookieUser = Cookies.get("userinfo");
+      if (cookieUser) {
+        try {
+          const parsedUser = JSON.parse(cookieUser);
+          setUserName(parsedUser.name || "User");
+        } catch (err) {
+          console.error("Failed to parse user info from cookies", err);
+        }
+      } else {
+        setUserName(null);
+      }
+    } else if (pathname.startsWith("/vendor")) {
+      setIsAuthentication(true);
+      setShowUsername(true);
+      const cookieVendor = Cookies.get("vendorinfo");
+      if (cookieVendor) {
+        try {
+          const parsedVendor = JSON.parse(cookieVendor);
+          setUserName(parsedVendor.name || "Vendor");
+        } catch (err) {
+          console.error("Failed to parse vendor info from cookies", err);
+        }
+      } else {
+        setUserName(null);
+      }
+    } else {
+      setIsAuthentication(false);
+      setShowUsername(false);
+    }
+  }, [pathname]);
 
 
 
   return (
     <>
-      <div className="max-w-[1536px] mx-auto font-sans">
+    <div className="max-w-[1536px] mx-auto font-sans">
         <div className="w-full bg-blue-500 lg:hidden">
           <div className="md:h-[75px] w-[85%] h-[25px] text-[8px] gap-[16px] flex mx-auto sm:text-[16px] sm:h-[60px] md:text-[20px] items-center sm:gap-[6%] text-white ">
-            <Link href="">Home</Link>
-            <Link href="">About Us</Link>
-            <Link href="">Contact Us</Link>
-            <Link href="">Help</Link>
+            <Link
+              href={
+                isAuthentication
+                  ? pathname.startsWith("/vendor")
+                    ? "/vendor/landingpage"
+                    : "/user/landingpage"
+                  : "/"
+              }
+              className={`${
+                pathname.startsWith("/user/landingpage") ||
+                (!isAuthentication && pathname.startsWith("/")) ||
+                (pathname.startsWith("/vendor/landingpage") && isAuthentication)
+                  ? "text-black"
+                  : "text-white"
+              }`}
+            >
+              Home
+            </Link>
+            <Link 
+            href={isAuthentication ? "/user/about" : "/about"}
+            className={`${
+              pathname.startsWith("/user/about") || (!isAuthentication && pathname.startsWith("/about"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+              About Us
+            </Link>
+            <Link 
+            href={isAuthentication ? "/user/billing-policy" : "/billing-policy"}
+            className={`${
+              pathname.startsWith("/user/billing-policy") || (!isAuthentication && pathname.startsWith("/billing-policy"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+              Contact Us
+            </Link>
+            <Link 
+            href={isAuthentication ? "/user/privacy-policy" : "/privacy-policy"}
+            className={`${
+              pathname.startsWith("/user/privacy-policy") || (!isAuthentication && pathname.startsWith("/privacy-policy"))
+                ? "text-black"
+                : "text-white"
+            }`}
+          >
+              Help
+            </Link>
           </div>
         </div>
 
@@ -86,9 +231,7 @@ const Header = () => {
               </div>
             </div>
 
-            {isAuthentication ? (
-              <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike} />
-            ) : (
+            
               <button className="w-[20%] lg:flex h-[64px] rounded-[16px] hidden bg-[#FF4C3B] justify-center gap-[16px] text-white items-center">
                 <span>Become a Seller </span>
                 <Image
@@ -97,22 +240,26 @@ const Header = () => {
                   alt=""
                 />
               </button>
-            )}
+            
 
             <div className=" flex items-center sm:gap-[40px] gap-[30px] lg:gap-[50px] lg:hidden text-blue-500">
-              <Link
-                href="/cart"
-                className="md:text-[28px] sm:text-[24px] text-[16px]"
+            <Link
+                href="/user/cart"
+                className="relative md:text-[28px] sm:text-[24px] text-[16px]"
               >
-                {" "}
-                <FiShoppingCart />{" "}
+                <FiShoppingCart />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] sm:text-[10px] md:text-[12px] font-bold rounded-full px-1.5 sm:px-2">
+                    {cartItems.length}
+                  </span>
+                )}
               </Link>
+
               <Link
                 href=""
                 className="md:text-[28px] sm:text-[24px] text-[16px]"
               >
-                {" "}
-                <RxHamburgerMenu />{" "}
+                <RxHamburgerMenu />
               </Link>
             </div>
           </div>
@@ -147,96 +294,163 @@ const Header = () => {
 
 
         {showLike && (
-           <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white  flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
-           <div className='ml-auto'>
-            <button onClick={()=> setShowLike(false)}>
-               <Image src={cancel} alt=''/>
-            </button>
-           </div>
-           <div className='flex items-center my-[10px] gap-[15px]'>
-               <Image src={like} className='w-[27px] h-[27px]' alt=''/><p className='text-[24px] font-[600]'>3 items</p>
-           </div>
-           <div className='overflow-y-scroll'>
-           <div className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
-               <div className='flex items-center'>
-                   <Image src={cancel2} alt=''/>
-               </div>
-               <Image src={shirt} alt=''/>
-               <div className='flex flex-col'>
-                   <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>Black Tee with a simple
-                       white circular logo at
-                       top left</p>
-                   <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ 22,000</p>
-               </div>
-               <Image src={cart} alt=''/>
-           </div>
-           </div>
-           <div className='mx-auto mt-auto'>
-               <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>Checkout Now (₦ 66,000) </button>
-           </div>
-   
-         </div>
-        )}
+  <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+    <div className='ml-auto'>
+      <button onClick={() => setShowLike(false)}>
+        <Image src={cancel} alt='' />
+      </button>
+    </div>
 
-        
-        {showCart && (
-           <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
-           <div className='ml-auto'>
-            <button onClick={()=> setShowCart(false)}>
-               <Image src={cancel} alt=''/>
-            </button>
-               
-           </div>
-           <div className='flex items-center my-[10px] gap-[15px]'>
-               <Image src={cart} className='w-[30px] h-[27px]' alt=''/><p className='text-[24px] font-[600]'>3 items</p>
-           </div>
-           <div className='overflow-y-scroll'>
-           <div className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
-               <div className='flex flex-col items-center'>
-                   <Image src={add} alt=''/>
-                   <p className='text-[24px] font-[600]'>2</p>
-                   <Image src={substract} alt=''/>
-               </div>
-               <Image src={shirt} alt=''/>
-               <div className='flex flex-col'>
-                   <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>Black Tee with a simple
-                       white circular logo at
-                       top left</p>
-                   <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>₦ 22,000 * 1</p>
-                   <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ 22,000</p>
-               </div>
-               <Image src={trash} alt=''/>
-           </div>
-           </div>
-   
-   
-   
+    <div className='flex items-center my-[10px] gap-[15px]'>
+      <Image src={like} className='w-[27px] h-[27px]' alt='' />
+      <p className='text-[24px] font-[600]'>{likedItems.length} items</p>
+    </div>
 
-           <div className='mx-auto mt-auto'>
-               <button className='text-[16px] px-4 py-2 text-white bg-[#ff4c3b] font-[700]'>Checkout Now (₦ 66,000) </button>
-           </div>
-   
-         </div>
-        )}
-
-
-
-        {isAuthentication ? (
-          <div className="w-full flex h-[71px] bg-white">
-            <div className=" w-[85%] flex mx-auto items-center justify-between text-[20px] font-sans text-[#272222]">
-              <Link href="">Electronics</Link>
-              <Link href=""> Fashion</Link>
-              <Link href=""> Health & Beauty</Link>
-              <Link href="">Furniture</Link>
-              <Link href="">Automobiles</Link>
-              <Link href="">Outdoors</Link>
-              <Link href="">Foods</Link>
+    <div className='overflow-y-scroll flex-1'>
+      {likedItems.length === 0 ? (
+        <p className='text-center text-[18px] text-gray-500 mt-[100px]'>You haven't liked any items yet.</p>
+      ) : (
+        likedItems.map((item, index) => (
+          <div
+            key={index}
+            className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'
+          >
+            <div className='flex items-center'>
+              <Image
+                onClick={() =>
+                  likedItemsVar(likedItems.filter((liked) => liked.id !== item.id))
+                }
+                src={cancel2}
+                className='cursor-pointer'
+                alt=''
+              />
             </div>
+
+            <Image src={item.image || shirt} alt='' width={60} height={60} />
+
+            <div className='flex flex-col'>
+              <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
+              <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>₦ {item.price.toLocaleString()}</p>
+            </div>
+
+            <Image
+              onClick={() => {
+                const alreadyInCart = cartItems.find((c) => c.id === item.id);
+                if (!alreadyInCart) cartItemsVar([...cartItems, {...item, quantity: 1}]);
+              }}
+              src={cart}
+              alt=''
+              className='cursor-pointer'
+            />
           </div>
-        ) : (
+        ))
+      )}
+    </div>
+
+    {likedItems.length > 0 && (
+      <div className='mx-auto mt-auto'>
+        <button onClick={handleCheckout} className='text-[16px] px-4 py-2 cursor-pointer hover:bg-amber-700 text-white bg-[#ff4c3b] font-[700]'>
+          Checkout Now (₦{" "}
+          {likedItems.reduce((sum, item) => sum + item.price, 0).toLocaleString()})
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+{showCart && (
+  <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+    <div className='ml-auto'>
+      <button onClick={() => setShowCart(false)}>
+        <Image src={cancel} alt='' />
+      </button>
+    </div>
+
+    <div className='flex items-center my-[10px] gap-[15px]'>
+      <Image src={cart} className='w-[30px] h-[27px]' alt='' />
+      <p className='text-[24px] font-[600]'>{cartItems.length} items</p>
+    </div>
+
+    <div className='overflow-y-scroll flex-1'>
+      {cartItems.length === 0 ? (
+        <p className='text-center text-[18px] text-gray-500 mt-[100px]'>Your cart is empty.</p>
+      ) : (
+        cartItems.map((item, index) => {
+          const quantity = item.quantity || 1;
+          const totalPrice = item.price * quantity;
+
+          return (
+            <div key={index} className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
+              <div className='flex flex-col items-center'>
+              <IoIosAddCircle
+               className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                    onClick={() => {
+                      const updatedCart = cartItems.map((cartItem) =>
+                        cartItem.id === item.id
+                          ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+                          : cartItem
+                      );
+                      cartItemsVar(updatedCart);
+                    }}
+                  />
+                  <p className='text-[24px] font-[600]'>{quantity}</p>
+                  <GrSubtractCircle
+                    className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                    onClick={() => {
+                      const updatedCart = cartItems.map((cartItem) =>
+                        cartItem.id === item.id
+                          ? { ...cartItem, quantity: Math.max(1, (cartItem.quantity || 1) - 1) }
+                          : cartItem
+                      );
+                      cartItemsVar(updatedCart);
+                    }}
+                  />
+
+              </div>
+
+              <Image src={item.image || shirt} alt='' />
+
+              <div className='flex flex-col'>
+                <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
+                <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>
+                  ₦ {item.price.toLocaleString()} * {quantity}
+                </p>
+                <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>
+                  ₦ {totalPrice.toLocaleString()}
+                </p>
+              </div>
+
+              <Image onClick={() => handleDelete(item)} src={trash} alt='' className='cursor-pointer' />
+            </div>
+          );
+        })
+      )}
+    </div>
+
+    {cartItems.length > 0 && (
+      <div className='mx-auto mt-auto'>
+        <button onClick={handleCheckout} className='text-[16px] px-4 py-2 cursor-pointer hover:bg-amber-700 text-white bg-[#ff4c3b] font-[700]'>
+          Checkout Now (₦{" "}
+          {cartItems
+            .reduce((sum, item) => {
+              const quantity = item.quantity || 1;
+              return sum + item.price * quantity;
+            }, 0)
+            .toLocaleString()}
+          )
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+
+
+
           <div className=" w-full h-[87px] bg-[#007BFF] lg:block hidden">
             <div className="w-[85%] h-[100%] mx-auto flex items-center justify-between">
               <div className=" h-[100%] flex items-end">
+              <div className="relative">
                 <div className="w-[255px] h-[72px] bg-white rounded-t-[16px] flex gap-[16px] justify-center items-center">
                   <div className="flex items-center gap-[8px]">
                     <Image
@@ -249,46 +463,114 @@ const Header = () => {
                     </span>
                   </div>
 
-                  <button>
+                  <button onClick={() => setShowDropdown((prev) => !prev)}>
                     <Image
                       className="w-[24px] h-[24px]"
                       src={chevronDown}
                       alt=""
                     />
                   </button>
+                  {showDropdown && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-b-[16px] shadow z-50">
+                      {categories.map((category, index) => (
+                        <li key={index} onClick={() => setShowDropdown(false)}>
+                          <Link
+                            href={`/user/category/${category.slug}`} 
+                            className="flex items-center gap-3 px-4 py-2 text-[16px] font-[400] hover:bg-gray-100 cursor-pointer"
+                          >
+                            <Image
+                              src={category.icon} 
+                              alt={category.name}
+                              width={20}
+                              height={20}
+                              className="w-[20px] h-[20px] object-contain"
+                            />
+                            <span>{category.name}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 </div>
               </div>
-              <div className="flex w-[642px] font-sans font-[600] text-white text-[20px]  justify-around items-center">
-                <Link href=""> Home</Link>
-                <Link href="">Best Selling</Link>
-                <Link href=""> Products</Link>
-                <Link href=""> Events</Link>
-                <Link href=""> FAQ</Link>
+              <div className="flex w-[642px] font-sans font-[600] text-[20px] justify-around items-center">
+                <Link
+                 href={isAuthentication ? "/user/landingpage" : "/"}
+                 className={`${
+                   pathname.startsWith("/user/landingpage") || (!isAuthentication && pathname.startsWith("/"))
+                     ? "text-black"
+                     : "text-white"
+                 }`}
+               >
+                 Home
+                </Link>
+                <Link  
+                href={isAuthentication ? "/user/best-selling" : "/best-selling"}
+                className={`${
+                  pathname.startsWith("/user/best-selling") || (!isAuthentication && pathname.startsWith("/best-selling"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                Best Selling
+                </Link>
+                <Link 
+                href={isAuthentication ? "/user/products" : "/products"}
+                className={`${
+                  pathname.startsWith("/user/products") || (!isAuthentication && pathname.startsWith("/products"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                  Products
+                  </Link>
+                <Link 
+                href={isAuthentication ? "/user/events" : "/events"}
+                className={`${
+                  pathname.startsWith("/user/events") || (!isAuthentication && pathname.startsWith("/events"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                  Events
+                  </Link>
+                <Link 
+                href={isAuthentication ? "/user/faq" : "/faq"}
+                className={`${
+                  pathname.startsWith("/user/faq") || (!isAuthentication && pathname.startsWith("/faq"))
+                    ? "text-black"
+                    : "text-white"
+                }`}
+              >
+                  FAQ
+                  </Link>
               </div>
-              {isAuthentication ? (
-                ""
-              ) : (
-                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike}/>
-              )}
+
+              
+                <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike} 
+                isVendorPath={pathname.startsWith("/vendor")}/>
+                
+              
             </div>
           </div>
-        )}
+       
 
         <div
           className={`w-full lg:flex hidden h-[46px] ${
-            isAuthentication ? "bg-blue-500" : "bg-white"
+            isAuthentication ? "bg-[#ffffff]" : "bg-white"
           }`}
         >
           <div className="flex w-[85%] justify-center h-[100%] items-center mx-auto">
-            <button
-              className={`font-[700] text-[12px] font-sans ${
-                isAuthentication ? "text-white" : "text-[#272222]"
-              }`}
-            >
-              {isAuthentication
-                ? "Welcome back Usman"
-                : "Create an account to continue shopping!"}
-            </button>
+          {isAuthentication && showUsername ? (
+              <button className="font-[700] text-[12px] font-sans text-black">
+                {`Welcome back ${userName || "User"}!`}
+              </button>
+            ) : !isAuthentication ? (
+              <button className="font-[700] text-[12px] font-sans text-[#272222]">
+                Create an account to continue shopping!
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -298,34 +580,70 @@ const Header = () => {
 
 export default Header;
 
-export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike}: {isAuthentication: boolean,  setShowCart: Dispatch<SetStateAction<boolean>>, setShowLike: Dispatch<SetStateAction<boolean>>;}) => {
+export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike, isVendorPath,
+}: {
+  isAuthentication: boolean;
+  setShowCart: Dispatch<SetStateAction<boolean>>;
+  setShowLike: Dispatch<SetStateAction<boolean>>;
+  isVendorPath: boolean;
+}) => {
+  const cartItems = useReactiveVar(cartItemsVar);
+  const likedItems = useReactiveVar(likedItemsVar);
+  const { userNotifications, vendorNotifications, userUnreadCount, vendorUnreadCount, loading, markAsRead } = useNotifications()
+
+
+ 
+  const handleBellClick = async () => {
+    const unreadNotifications = isVendorPath ? vendorNotifications.filter((n) => !n.isRead) : userNotifications.filter((n) => !n.isRead);
+    if (unreadNotifications.length > 0) {
+      await Promise.all(unreadNotifications.map((notif) => markAsRead(notif.id)));
+    }
+  };
+
+  const unreadCount = isVendorPath ? vendorUnreadCount : userUnreadCount;
+
   return (
     <>
       <div
         className={`flex w-[220px]  justify-between ${
-          isAuthentication ? "text-blue-500" : "text-white"
+          isAuthentication ? "text-white" : "text-white"
         } `}
       >
-        <Link href="" className="text-[32px]">
-          {" "}
-          <GoBell />{" "}
+       <Link href={isVendorPath ? "/vendor/notifications" : "/user/notifications"} onClick={handleBellClick} className="relative text-[32px]">
+          <GoBell />
+          {!loading && unreadCount > 0 && (
+            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-[16px] h-[16px] flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
         </Link>
-        {isAuthentication ? (
-          ""
-        ) : (
-          <Link href="" onClick={()=> setShowLike(true)} className="text-[32px]">
-            {" "}
-            <FaRegHeart />{" "}
-          </Link>
-        )}
-        <Link href="" onClick={()=> setShowCart(true)} className="text-[32px]">
-          {" "}
-          <FiShoppingCart />{" "}
+
+          <div className="relative text-[32px]">
+            <Link href="" onClick={() => setShowLike(true)}>
+              <FaRegHeart />
+              {likedItems.length > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-[16px] h-[16px] flex items-center justify-center">
+                  {likedItems.length}
+                </span>
+              )}
+            </Link>
+          </div>
+
+      <div className="relative text-[32px]">
+        <Link href="" onClick={() => setShowCart(true)}>
+          <FiShoppingCart />
+          {cartItems.length > 0 && (
+            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-[16px] h-[16px] flex items-center justify-center">
+              {cartItems.length}
+            </span>
+          )}
         </Link>
-        <Link href="" className="text-[32px] flex gap-[2px] items-end">
+      </div>
+
+        <Link href="" className="text-[32px] flex gap-[1px] items-end">
           {" "}
           <MdOutlineAccountCircle />{" "}
-          <span className="text-[18px]">
+          <span className="text-[18px] -ml-[5px]">
             <FaCaretDown />
           </span>
         </Link>

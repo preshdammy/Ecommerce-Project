@@ -1,25 +1,45 @@
+
+import {mergeResolvers } from "@graphql-tools/merge";
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { mergeResolvers } from '@graphql-tools/merge';
-import { userresolver } from './users/userresolver';
 import { usertypedef } from './users/usertypedef';
+import { userresolver } from './users/userresolver';
 import { adminresolver } from './admin/adminresolver';
-import { admintypedef } from './admin/admintypedef';
-import { vendortypedef } from './vendor/vendortypedef';
-import { vendorresolver } from './vendor/vendorresolver';
+import { adminTypeDefs } from './admin/admintypedefs';
+import vendorTypeDefs from './vendor/vendortypedef';
+import { VendorResolver } from './vendor/vendorresolver';
 import { producttypedef } from './products/producttypedef';
 import { productresolver } from './products/productresolver';
-
-
+import { reviewresolver } from './reviews/reviewresolver';
+import { reviewtypedef } from './reviews/reviewtypedef';
+import { notificationresolver } from './notifcations/notifresolvers'
+import { notificationTypeDef } from './notifcations/notiftypedefs'
+import { orderResolvers } from './orders/orderresolver';
+import { orderTypeDef } from './orders/ordertypedef';
+import { walletTypeDefs } from "./wallets/wallettypdef";
+import { walletResolvers } from "./wallets/walletresolver"
 
 export const resolvers = mergeResolvers([
+
     userresolver,
     adminresolver,
-    vendorresolver,
-    productresolver
+    VendorResolver,
+    productresolver,
+    reviewresolver,
+    notificationresolver,
+    orderResolvers,
+    walletResolvers
 ])
 export const typeDefs = mergeTypeDefs([
     usertypedef,
-    admintypedef,
-    vendortypedef,
-    producttypedef
-])
+    adminTypeDefs,
+    vendorTypeDefs,
+    producttypedef,
+    reviewtypedef,
+    notificationTypeDef,
+    orderTypeDef,
+    walletTypeDefs
+  ])
+  
+
+
+
