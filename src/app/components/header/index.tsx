@@ -38,6 +38,7 @@ import clothing from "../../../../public/figma images/Frame 493 (1).png"
 import furniture from "../../../../public/figma images/Frame 493 (2).png"
 import automobile from "../../../../public/figma images/Frame 493 (3).png"
 import food from "../../../../public/figma images/Frame 493 (4).png"
+import emptycart from "../../../../public/figma images/images.png"
 import { useNotifications } from "../../../shared/provider/notificationsProvider";
 
 
@@ -93,11 +94,14 @@ const Header = () => {
   ];
   
   
+  console.log("Cart Items:", cartItems);
+  console.log("Liked Items:", likedItems);
   
   interface Product {
     id: string;
     name: string;
     price: number;
+    images: string[];
   }
 
 
@@ -163,9 +167,9 @@ const Header = () => {
                   : "/"
               }
               className={`${
-                pathname.startsWith("/user/landingpage") ||
-                (!isAuthentication && pathname.startsWith("/")) ||
-                (pathname.startsWith("/vendor/landingpage") && isAuthentication)
+                pathname === "/user/landingpage" ||
+                (!isAuthentication && pathname === "/") ||
+                (pathname === "/vendor/landingpage" && isAuthentication)
                   ? "text-black"
                   : "text-white"
               }`}
@@ -175,7 +179,7 @@ const Header = () => {
             <Link 
             href={isAuthentication ? "/user/about" : "/about"}
             className={`${
-              pathname.startsWith("/user/about") || (!isAuthentication && pathname.startsWith("/about"))
+              pathname === "/user/about" || (!isAuthentication && pathname === "/about") 
                 ? "text-black"
                 : "text-white"
             }`}
@@ -185,7 +189,7 @@ const Header = () => {
             <Link 
             href={isAuthentication ? "/user/billing-policy" : "/billing-policy"}
             className={`${
-              pathname.startsWith("/user/billing-policy") || (!isAuthentication && pathname.startsWith("/billing-policy"))
+              pathname === "/user/billing-policy" || (!isAuthentication && pathname === "/billing-policy")
                 ? "text-black"
                 : "text-white"
             }`}
@@ -195,7 +199,7 @@ const Header = () => {
             <Link 
             href={isAuthentication ? "/user/privacy-policy" : "/privacy-policy"}
             className={`${
-              pathname.startsWith("/user/privacy-policy") || (!isAuthentication && pathname.startsWith("/privacy-policy"))
+              pathname === "/user/privacy-policy" || (!isAuthentication && pathname === "/privacy-policy")
                 ? "text-black"
                 : "text-white"
             }`}
@@ -326,7 +330,7 @@ const Header = () => {
               />
             </div>
 
-            <Image src={item.image || shirt} alt='' width={60} height={60} />
+            <Image src={(item.images?.[0] ?? shirt)} alt='' width={60} height={60} />
 
             <div className='flex flex-col'>
               <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
@@ -373,7 +377,12 @@ const Header = () => {
 
     <div className='overflow-y-scroll flex-1'>
       {cartItems.length === 0 ? (
-        <p className='text-center text-[18px] text-gray-500 mt-[100px]'>Your cart is empty.</p>
+        <>
+        <div className="my-[30%]">
+        <Image src={emptycart} alt="empty cart" className="mx-auto w-[150px] h-[150px]" />
+        <p className='text-center text-[18px] text-gray-500 '>Your cart is empty.</p>
+        </div>
+        </>
       ) : (
         cartItems.map((item, index) => {
           const quantity = item.quantity || 1;
@@ -408,7 +417,7 @@ const Header = () => {
 
               </div>
 
-              <Image src={item.image || shirt} alt='' />
+              <Image src={(item.images?.[0] ?? shirt)} alt='' width={60} height={60} />
 
               <div className='flex flex-col'>
                 <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
@@ -494,11 +503,11 @@ const Header = () => {
                 </div>
                 </div>
               </div>
-              <div className="flex w-[642px] font-sans font-[600] text-[20px] justify-around items-center">
+             <div className="flex w-[642px] font-sans font-[600] text-[20px] justify-around items-center">
                 <Link
                  href={isAuthentication ? "/user/landingpage" : "/"}
                  className={`${
-                   pathname.startsWith("/user/landingpage") || (!isAuthentication && pathname.startsWith("/"))
+                   pathname === "/user/landingpage" || (!isAuthentication && pathname === "/")
                      ? "text-black"
                      : "text-white"
                  }`}
@@ -508,7 +517,7 @@ const Header = () => {
                 <Link  
                 href={isAuthentication ? "/user/best-selling" : "/best-selling"}
                 className={`${
-                  pathname.startsWith("/user/best-selling") || (!isAuthentication && pathname.startsWith("/best-selling"))
+                  pathname === "/user/best-selling" || (!isAuthentication && pathname === "/best-selling")
                     ? "text-black"
                     : "text-white"
                 }`}
@@ -518,7 +527,7 @@ const Header = () => {
                 <Link 
                 href={isAuthentication ? "/user/products" : "/products"}
                 className={`${
-                  pathname.startsWith("/user/products") || (!isAuthentication && pathname.startsWith("/products"))
+                  pathname === "/user/products" || (!isAuthentication && pathname === "/products")
                     ? "text-black"
                     : "text-white"
                 }`}
@@ -528,7 +537,7 @@ const Header = () => {
                 <Link 
                 href={isAuthentication ? "/user/events" : "/events"}
                 className={`${
-                  pathname.startsWith("/user/events") || (!isAuthentication && pathname.startsWith("/events"))
+                  pathname === "/user/events" || (!isAuthentication && pathname === "/events")
                     ? "text-black"
                     : "text-white"
                 }`}
@@ -538,14 +547,14 @@ const Header = () => {
                 <Link 
                 href={isAuthentication ? "/user/faq" : "/faq"}
                 className={`${
-                  pathname.startsWith("/user/faq") || (!isAuthentication && pathname.startsWith("/faq"))
+                  pathname === "/user/faq" || (!isAuthentication && pathname === "/faq")
                     ? "text-black"
                     : "text-white"
                 }`}
               >
                   FAQ
                   </Link>
-              </div>
+              </div> 
 
               
                 <MenuIcon isAuthentication={isAuthentication} setShowCart={setShowCart} setShowLike={setShowLike} 
@@ -557,17 +566,17 @@ const Header = () => {
        
 
         <div
-          className={`w-full lg:flex hidden h-[46px] ${
-            isAuthentication ? "bg-[#ffffff]" : "bg-white"
+          className={`w-full flex h-[30px] mt-4 lg:mt-[0px] md:h-[46px] ${
+            isAuthentication ? "bg-[#55a7ff] lg:bg-[#ffffff]" : "bg-[#55a7ff] lg:bg-white"
           }`}
         >
           <div className="flex w-[85%] justify-center h-[100%] items-center mx-auto">
           {isAuthentication && showUsername ? (
-              <button className="font-[700] text-[12px] font-sans text-black">
+              <button className="font-[700] text-[12px] font-sans text-white lg:text-black">
                 {`Welcome back ${userName || "User"}!`}
               </button>
             ) : !isAuthentication ? (
-              <button className="font-[700] text-[12px] font-sans text-[#272222]">
+              <button className="font-[700] text-[12px] font-sans text-white lg:text-[#272222]">
                 Create an account to continue shopping!
               </button>
             ) : null}

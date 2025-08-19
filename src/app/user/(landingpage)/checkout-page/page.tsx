@@ -6,6 +6,9 @@ import { useReactiveVar } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { cartItemsVar } from "@/shared/lib/apolloClient"; 
 import { toast } from "react-toastify";
+import { BsWallet2 } from "react-icons/bs";
+import { CiDeliveryTruck } from "react-icons/ci";
+import { CreditCard, Banknote, Smartphone, QrCode, Phone } from "lucide-react";
 
 
 const brandBlue = "#1E63FF";
@@ -98,11 +101,11 @@ function calcShippingFee(state: string): number {
 
 
 const PAYSTACK_METHODS = [
-  { value: "PAYSTACK_CARD", label: "Card" },
-  { value: "PAYSTACK_TRANSFER", label: "Bank Transfer" },
-  { value: "PAYSTACK_USSD", label: "USSD" },
-  { value: "PAYSTACK_MOBILE_MONEY", label: "Mobile Money" },
-  { value: "PAYSTACK_QR", label: "QR" }
+  { value: "PAYSTACK_CARD", label: "Card", icon: CreditCard },
+  { value: "PAYSTACK_TRANSFER", label: "Bank Transfer", icon: Banknote  },
+  { value: "PAYSTACK_USSD", label: "USSD", icon: Smartphone },
+  { value: "PAYSTACK_MOBILE_MONEY", label: "Mobile Money", icon: Phone  },
+  { value: "PAYSTACK_QR", label: "QR", icon: QrCode }
 ] as const;
 
 type PayMethod =
@@ -376,6 +379,7 @@ export default function CheckoutPage() {
               checked={paymentMethod === "POD"}
               onChange={() => setPaymentMethod("POD")}
             />
+            <CiDeliveryTruck className="w-[20px] h-[20px]"/>
             <span>Pay on Delivery</span>
           </label>
 
@@ -392,6 +396,8 @@ export default function CheckoutPage() {
                 checked={paymentMethod === "WALLET_BALANCE"}
                 onChange={() => setPaymentMethod("WALLET_BALANCE")}
               />
+              <BsWallet2 />
+
               <div className="flex flex-col">
                 <span>Pay with Wallet Balance</span>
                 <span className="text-[11px] text-gray-500">
@@ -420,7 +426,9 @@ export default function CheckoutPage() {
 
           {showMorePaystack && (
             <div className="ml-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {PAYSTACK_METHODS.map((m) => (
+              {PAYSTACK_METHODS.map((m) => {
+                const Icon = m.icon;
+                return (
                   <label
                     key={m.value}
                     className={`flex flex-col cursor-pointer gap-2 rounded border p-2 text-sm transition ${
@@ -436,11 +444,13 @@ export default function CheckoutPage() {
                         checked={paymentMethod === m.value}
                         onChange={() => setPaymentMethod(m.value as PayMethod)}
                       />
+                      <Icon className="h-4 w-4 text-black" />
                       <span>{m.label}</span>
                     </div>
-
                   </label>
-                ))}
+                );
+              })}
+
 
             </div>
           )}
@@ -572,11 +582,11 @@ export default function CheckoutPage() {
                     key={item.id}
                     className="flex gap-3 border-b pb-3 last:border-b-0"
                   >
-                  {item.product?.images?.length > 0 ? (
+                  {item.images?.length > 0 ? (
                         <img
-                          src={item.product.images[0]}
-                          alt={item.product.name}
-                          className="h-16 w-16 rounded object-cover"
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="h-14 w-14 rounded object-cover"
                         />
                     ) : (
                       <div className="h-16 w-16 rounded bg-gray-200" />

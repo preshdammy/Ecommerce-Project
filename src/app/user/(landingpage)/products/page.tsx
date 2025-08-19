@@ -87,8 +87,9 @@ const AllProductsPage = () => {
 
     return (
       <>
+      <div className="bg-[#f8f8f8]">
         <h1 className="text-start text-3xl mt-2 font-bold ml-20">All Products</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center mt-6 ">
         
           {data?.allProducts?.map((product: FeaturedProduct) => {
             const { averageRating = 0, price, stock } = product;
@@ -211,6 +212,7 @@ const AllProductsPage = () => {
           Next
           <BsArrowRight />
         </button>
+      </div>
       </div>
     
 </>
