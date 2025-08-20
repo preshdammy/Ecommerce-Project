@@ -86,12 +86,12 @@ export const adminresolver = {
         .lean();
 
       return users.map(user => ({
-        id: (user._id as string | { toString(): string }).toString(),
-        name: user.name,
-        email: user.email,
+         id: user._id?.toString() || '', 
+        name: user.name || "",
+        email: user.email || "",
         status: user.status || 'ACTIVE', // Default value
         walletBalance: user.walletBalance || 0, // Direct float value
-        createdAt: user.createdAt,
+        createdAt: user.createdAt || new Date(),
         actions: user.actions?.slice(0, 1) || []
       }));
     },
@@ -614,7 +614,7 @@ export const adminresolver = {
         action: "SUSPENDED",
         performedBy: admin.email,
         performedAt: new Date(),
-        notes: `User suspended until ${date.toLocaleDateString()}`,
+        notes: `until ${date.toLocaleDateString()}`,
       });
     
       await user.save();
@@ -640,7 +640,7 @@ export const adminresolver = {
         action: "UNSUSPENDED",
         performedBy: admin.email,
         performedAt: new Date(),
-        notes: "User unsuspended by admin",
+        notes: " by admin",
       });
     
       await user.save();

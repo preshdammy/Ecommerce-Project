@@ -82,8 +82,22 @@ const AllProductsPage = () => {
           }
         };
         
-       if (loading) return <p className="text-center">Loading...</p>
-        if (error) { return <p>Error: {error.message}</p>;}
+        if (loading) {
+    return (
+      <div className="flex justify-center h-[50vh] items-center py-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="ml-3 text-gray-600">Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-red-500 bg-red-50 p-4 rounded-lg text-center font-medium">
+        Error: {error.message}
+      </p>
+    );
+  }
 
     return (
       <>

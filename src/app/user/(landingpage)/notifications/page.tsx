@@ -42,7 +42,7 @@ const UserNotifications = () => {
 
  if (loading) {
     return (
-      <div className="flex justify-center items-center py-6">
+      <div className="flex justify-center h-[50vh] items-center py-6">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
         <p className="ml-3 text-gray-600">Loading notifications...</p>
       </div>
@@ -52,7 +52,7 @@ const UserNotifications = () => {
   if (error) {
     return (
       <p className="text-red-500 bg-red-50 p-4 rounded-lg text-center font-medium">
-        Error loading notifications
+        Error loading notifications: {error.message}
       </p>
     );
   }

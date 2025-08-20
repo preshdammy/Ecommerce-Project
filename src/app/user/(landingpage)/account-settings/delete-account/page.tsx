@@ -10,15 +10,19 @@ import { ChevronLeft } from 'lucide-react';
 export default function DeleteAccountPage() {
   return (
     <AccountLayout>
-      <div className=" flex items-center gap-2 mb-4 text-blue-600">
-        <Link href="/user/account-settings" className="flex items-center gap-2">
+     
+
+      <DeleteAccountForm />
+
+       <div className="md:hidden flex justify-center mt-6 pb-4">
+        <Link 
+          href="/user/account-settings" 
+          className="flex gap-2 px-4 py-2 items-center bg-gray-100 text-gray-700 rounded-lg font-medium"
+        >
           <ChevronLeft className="w-5 h-5" />
-          <span className="text-base font-medium">Back</span>
+          <span>Back to Settings</span>
         </Link>
       </div>
-
-      <AccountSettingsHeader title="Delete Account" />
-      <DeleteAccountForm />
     </AccountLayout>
   );
 }

@@ -144,7 +144,7 @@ export default function BusinessInformationForm() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-6 mt-[-70px] sm:px-6 lg:px-0 h-[150vh] justify-center">
+    <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-6 sm:px-6 lg:px-0 h-auto justify-start">
       <form onSubmit={handleSubmit} className="space-y-6 w-full">
         {/* Avatar Section */}
         <div className="relative w-32 h-32 mx-auto">

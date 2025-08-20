@@ -9,21 +9,20 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const isRootSettingsPage = pathname === "/user/account-settings";
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center">
-      {/* Constrain layout to 80% width on large screens */}
-      <div className="w-[80%] md:w-[80%]">
-        {/* Mobile View */}
-        <div className="block md:hidden w-full">
-          {isRootSettingsPage ? (
-            <MobileAccountSettings />
-          ) : (
-            <main className="p-4">{children}</main>
-          )}
-        </div>
+    <div className="bg-gray-100">
+      {/* Mobile View - 80vh height */}
+      <div className="block md:hidden w-full min-h-[65vh]">
+        {isRootSettingsPage ? (
+          <MobileAccountSettings />
+        ) : (
+          <main className="p-4">{children}</main>
+        )}
+      </div>
 
-        {/* Desktop View */}
-        <div className="hidden md:flex mt-6 gap-6">
-          <aside className="w-64 ">
+      {/* Desktop View - Full viewport height */}
+      <div className="hidden md:flex justify-center min-h-screen">
+        <div className="w-full max-w-[80%] mt-6 gap-6 flex">
+          <aside className="w-64">
             <AccountSidebar />
           </aside>
           <main className="flex-1 p-6 space-y-6 rounded-xl ">

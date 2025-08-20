@@ -6,15 +6,6 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 
 
-// pages/_app.tsx or layout.tsx
-
-
-
-
-
-
-
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { LogOut, AlertTriangle } from 'lucide-react';
 import AccountLayout from '../layout';
-import AccountSettingsHeader from '../../../../components/accounts/AccountSettingHeader';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
@@ -11,25 +10,15 @@ export default function LogoutPage() {
   const router = useRouter();
 
   function handleLogout() {
-    alert('Logged out successfully!');
-    router.push('/');
+    router.push('/user/login');
   }
 
   function handleCancel() {
-    router.back(); // or navigate to another account page
+    router.back();
   }
 
   return (
     <>
-
-      <div className=" flex items-center gap-2 mb-4 text-blue-600">
-        <Link href="/user/account-settings" className="flex items-center gap-2">
-          <ChevronLeft className="w-5 h-5" />
-          <span className="text-base font-medium">Back</span>
-        </Link>
-      </div>
-
-      <AccountSettingsHeader title="Log Out" />
 
       <div className="max-w-lg mx-auto mt-12 bg-white border border-red-100 rounded-2xl shadow-md p-8 text-center space-y-6">
         <div className="flex justify-center">
@@ -58,6 +47,17 @@ export default function LogoutPage() {
             Log Out
           </button>
         </div>
+      </div>
+
+
+       <div className="md:hidden flex justify-center mt-6 pb-4">
+        <Link 
+          href="/user/account-settings" 
+          className="flex gap-2 px-4 py-2 items-center bg-gray-100 text-gray-700 rounded-lg font-medium"
+        >
+          <ChevronLeft className="w-5 h-5" />
+          <span>Back to Settings</span>
+        </Link>
       </div>
     </>
   );

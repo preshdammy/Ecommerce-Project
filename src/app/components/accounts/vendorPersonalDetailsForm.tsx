@@ -117,7 +117,7 @@ export default function vendorPersonalDetailsForm() {
       };
       
   return (
-    <div className=" flex flex-col items-center justify-start w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 min-h-screen">
+    <div className=" flex flex-col items-center justify-start w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 h-[55vh]">
         <form onSubmit={handleSubmit} className="space-y-6 w-full">
       {/* Avatar Section */}
       <div className="relative w-32 h-32 mx-auto">

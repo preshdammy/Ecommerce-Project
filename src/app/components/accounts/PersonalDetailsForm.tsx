@@ -3,7 +3,7 @@ import camera from "../../../../public/figma images/camera.png";
 
 export default function PersonalDetailsForm() {
   return (
-    <div className=" flex flex-col items-center justify-start w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 min-h-screen">
+    <div className=" flex flex-col items-center justify-start w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 h-auto">
       {/* Avatar Section */}
       <div className="relative">
         {/* outer ring */}
