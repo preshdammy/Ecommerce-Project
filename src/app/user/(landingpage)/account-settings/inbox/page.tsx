@@ -1,29 +1,35 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft } from "lucide-react";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import { formatDistanceToNow } from "date-fns";
-import Link from 'next/link';
+import Cookies from "js-cookie";
 import msgprofile from "../../../../../../public/figma images/Group 86.png";
-import noChatImage from "../../../../../../public/figma images/Group 88 (1).png";
-import hamburger from "../../../../../../public/figma images/menu-01.png";
-import hamburger2 from "../../../../../../public/figma images/Icon (3).png";
 
-const GET_VENDORS = gql`
-  query {
-    vendors {
-      id
-      name
-      profilePicture
+// --- GraphQL queries/mutations ---
+
+const GET_USER_CHATS = gql`
+  query GetUserChats($userId: ID!) {
+    userChatList(userId: $userId) {
+      chatId
+      vendor {
+        id
+        name
+        profilePicture
+      }
+      latestMessage {
+        content
+        createdAt
+      }
     }
   }
 `;
 
-const MESSAGES_BETWEEN = gql`
-  query MessagesBetween($senderId: ID!, $receiverId: ID!) {
-    messagesBetween(senderId: $senderId, receiverId: $receiverId) {
+
+const GET_MESSAGES = gql`
+  query Messages($chatId: ID!) {
+    messages(chatId: $chatId) {
       id
       content
       senderId
@@ -34,142 +40,155 @@ const MESSAGES_BETWEEN = gql`
 `;
 
 const SEND_MESSAGE = gql`
-  mutation SendMessage($senderId: ID!, $receiverId: ID!, $content: String!) {
-    sendMessage(senderId: $senderId, receiverId: $receiverId, content: $content) {
+  mutation SendMessage(
+    $chatId: ID!
+    $senderId: ID!
+    $receiverId: ID!
+    $content: String!
+  ) {
+    sendMessage(
+      chatId: $chatId
+      senderId: $senderId
+      receiverId: $receiverId
+      content: $content
+    ) {
       id
+      content
       senderId
       receiverId
-      content
       createdAt
     }
   }
 `;
 
-interface Message {
+// --- Types ---
+
+type Vendor = {
+  id: string;
+  name: string;
+  profilePicture?: string;
+};
+
+type ChatItem = {
+  chatId: string;
+  vendor: Vendor;
+  latestMessage: {
+    content: string;
+    createdAt: string;
+  };
+};
+
+type Message = {
   id: string;
   content: string;
   senderId: string;
   receiverId: string;
   createdAt: string;
-}
+};
 
-interface Chat {
-  id: string;
-  name: string;
-  profilePicture?: string;
-}
+// --- Component ---
 
-const Messages = () => {
-  const currentVendorId = "vendor-123"; // Replace with real vendor ID from context
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+const UserInbox = () => {
+  const userInfo = Cookies.get("userinfo");
+  const userId = userInfo ? JSON.parse(userInfo).id : null;
+
+  const [chatList, setChatList] = useState<ChatItem[]>([]);
+  const [selectedChat, setSelectedChat] = useState<ChatItem | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [newMessage, setNewMessage] = useState("");
 
-  const { data: vendorsData, loading: vendorsLoading } = useQuery(GET_VENDORS);
-
-  const {
-    data: messagesData,
-    loading: messagesLoading,
-    refetch,
-  } = useQuery(MESSAGES_BETWEEN, {
-    variables: selectedChat
-      ? { senderId: currentVendorId, receiverId: selectedChat.id }
-      : undefined,
-    skip: !selectedChat,
-    pollInterval: 3000, 
+  const [loadChats] = useLazyQuery<{ userChatList: ChatItem[] }>(GET_USER_CHATS, {
+    onCompleted: (data) => {
+      console.log("Vendor chats loaded:", data.userChatList);
+      setChatList(data.userChatList)
+    },
+    fetchPolicy: "network-only",
   });
 
-  const [sendMessage, { loading: sendingMessage }] = useMutation(SEND_MESSAGE);
+  const [loadMessages, { loading, error, data }] = useLazyQuery<{ messages: Message[] }>(GET_MESSAGES, {
+    onCompleted: (data) => {
+      console.log("Messages fetched:", data.messages);
+      setMessages(data.messages);
+    },
+    fetchPolicy: "network-only",
+  });
+  
+  // if (loading) return <p>Loading messages...</p>;
+  // if (error) return <p>Error loading messages: {error.message}</p>;
+  
+  
+
+  const [sendMessageMutation] = useMutation<{ sendMessage: Message }>(SEND_MESSAGE);
 
   useEffect(() => {
-    if (messagesData?.messagesBetween) {
-      setMessages(messagesData.messagesBetween);
-    }
-  }, [messagesData]);
+    if (userId) loadChats({ variables: { userId } });
+  }, [userId]);
 
-  const handleSelectChat = (vendor: { id: string; name: string; profilePicture?: string }) => {
-    setSelectedChat({
-      id: vendor.id,
-      name: vendor.name,
-      profilePicture: vendor.profilePicture,
-    });
-    setShowSidebar(false);
-  };
+  useEffect(() => {
+    if (!selectedChat) return;
+    const interval = setInterval(() => {
+      console.log("Polling messages for chat:", selectedChat.chatId);
+      loadMessages({ variables: { chatId: selectedChat.chatId } });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [selectedChat]);
 
-  const handleBackToSidebar = () => {
-    setSelectedChat(null);
-    setShowSidebar(true);
-  };
+  useEffect(() => {
+    console.log("Vendor ID from cookie/session:", userId);
+  }, [userId]);
+  
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedChat || sendingMessage) return;
+    if (!newMessage.trim() || !selectedChat || !userId) return;
+    const receiverId = selectedChat.vendor.id;
 
     try {
-      const { data } = await sendMessage({
+      const { data } = await sendMessageMutation({
         variables: {
-          senderId: currentVendorId,
-          receiverId: selectedChat.id,
+          chatId: selectedChat.chatId,
+          senderId: userId,
+          receiverId,
           content: newMessage,
         },
       });
 
-      setMessages((prev) => [...prev, data.sendMessage]);
-      setNewMessage("");
-    } catch (error) {
-      console.error("Error sending message:", error);
+      if (data?.sendMessage) {
+        setMessages((prev) => [...prev, data.sendMessage]);
+        setNewMessage("");
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 h-auto min-h-screen">
-      {showSidebar ? (
+    <div className="max-w-4xl mx-auto p-6 md:p-8 min-h-screen">
+      {!selectedChat ? (
         <div className="w-full rounded-lg border border-blue-400 h-[500px] overflow-y-auto">
-          <div className="bg-[#007bff] p-3 text-white font-semibold text-sm flex justify-between items-center sticky top-0 z-10">
-            <span>My Messages</span>
-            <div className="flex items-center gap-2">
-              <Image 
-                className="hidden sm:block" 
-                src={hamburger} 
-                alt="menu" 
-                width={20} 
-                height={20} 
-              />
-              <Image 
-                className="block sm:hidden" 
-                src={hamburger2} 
-                alt="menu" 
-                width={20} 
-                height={20} 
-              />
-            </div>
+          <div className="bg-blue-600 p-3 text-white font-semibold text-sm sticky top-0">
+            My Messages
           </div>
-
-          {vendorsLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : vendorsData?.vendors?.length > 0 ? (
-            vendorsData.vendors.map((vendor: any) => (
-              <button
-                key={vendor.id}
-                className={`w-full text-left p-3 border-b border-blue-400 hover:bg-blue-50 ${
-                  selectedChat?.id === vendor.id ? "bg-blue-100" : ""
-                }`}
-                onClick={() => handleSelectChat(vendor)}
-              >
-                <div className="flex gap-3 items-center">
-                  <Image
-                    src={vendor.profilePicture || msgprofile}
-                    alt="profile"
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                  <div className="flex flex-col">
-                    <p className="text-sm font-medium">{vendor.name}</p>
-                    <p className="text-xs text-gray-500">Tap to view conversation</p>
-                  </div>
+          {chatList.map((chat) => (
+            <button
+              key={chat.chatId}
+              className="w-full text-left p-3 border-b border-blue-200 hover:bg-blue-50"
+              onClick={() => {
+                setSelectedChat(chat);
+                loadMessages({ variables: { chatId: chat.chatId } });
+              }}
+            >
+              <div className="flex gap-3 items-center">
+                <Image
+                  src={chat.vendor.profilePicture || msgprofile}
+                  alt="profile"
+                  width={30}
+                  height={30}
+                />
+                <div>
+                  <p className="text-xs font-medium">{chat.vendor.name}</p>
+                  <p className="text-[10px] text-gray-500 truncate">
+                    {chat.latestMessage?.content || "No message yet"}
+                  </p>
                 </div>
               </button>
             ))
@@ -187,64 +206,49 @@ const Messages = () => {
           )}
         </div>
       ) : (
-        <div className="w-full shadow rounded-lg h-[500px] bg-[#f5faff] flex flex-col justify-between p-4 overflow-hidden">
+        <div className="w-full h-[500px] bg-[#f5faff] flex flex-col justify-between rounded-lg shadow p-4 overflow-hidden">
           <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleBackToSidebar}
-                className="md:hidden text-blue-600"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h3 className="text-blue-600 font-semibold text-sm">{selectedChat?.name}</h3>
-            </div>
+            <h3 className="text-blue-600 font-semibold text-sm">
+              Chat with {selectedChat.vendor.name}
+            </h3>
             <button
-              onClick={handleBackToSidebar}
-              className="hidden md:block text-blue-600 font-medium text-sm hover:underline"
+              className="text-blue-600 text-sm"
+              onClick={() => {
+                setSelectedChat(null);
+                setMessages([]);
+              }}
             >
               Back to messages
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
-            {messagesLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`max-w-[70%] px-4 py-2 text-sm rounded-xl ${
+                  msg.senderId === userId
+                    ? "bg-blue-600 text-white self-end"
+                    : "bg-white text-black self-start"
+                }`}
+              >
+                <p>{msg.content}</p>
+                <p className="text-[10px] text-right opacity-60">
+                {formatDistanceToNow(new Date(Number(msg.createdAt)), { addSuffix: true })}
+                </p>
               </div>
-            ) : messages.length > 0 ? (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`max-w-[70%] px-4 py-2 text-sm rounded-xl ${
-                    msg.senderId === currentVendorId
-                      ? "bg-blue-600 text-white self-end"
-                      : "bg-white text-black self-start"
-                  }`}
-                >
-                  <p>{msg.content}</p>
-                  <p className="text-[10px] text-right opacity-60">
-                    {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">No messages in this conversation yet</p>
-              </div>
-            )}
+            ))}
           </div>
 
           <div className="flex gap-2 mt-2">
             <input
               type="text"
-              className="flex-1 px-4 py-2 rounded-full border text-sm"
-              placeholder="Type a message..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSendMessage();
-              }}
-              disabled={sendingMessage}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              placeholder="Type a message..."
+              className="flex-1 px-4 py-2 rounded-full border text-sm"
             />
             <button
               onClick={handleSendMessage}
@@ -270,4 +274,4 @@ const Messages = () => {
   );
 };
 
-export default Messages;
+export default UserInbox;

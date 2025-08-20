@@ -15,6 +15,7 @@ const LOGIN_VENDOR = gql`
   mutation LoginVendor($email: String!, $password: String!) {
     loginVendor(email: $email, password: $password) {
       token
+      id
       name
       email
     }

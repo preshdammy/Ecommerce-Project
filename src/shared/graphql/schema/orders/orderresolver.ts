@@ -409,7 +409,6 @@ export const orderResolvers = {
 
       return populateOrderById(order._id.toString());
     },
-   
     async payWithWallet(
       _: unknown,
       { orderId }: { orderId: string },

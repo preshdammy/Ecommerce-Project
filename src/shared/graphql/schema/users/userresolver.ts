@@ -1,6 +1,15 @@
 import { usermodel } from "../../../database/model/user.model";
+import { messageModel } from "@/shared/database/model/message.model";
+import { vendorModel } from "@/shared/database/model/vendor.model";
 import bcrypt from "bcryptjs";
 import Jwt from "jsonwebtoken";
+
+
+interface LeanUser {
+  _id: string;
+  name: string;
+  profilePicture?: string;
+}
 
 export const userresolver = {
   Query: {
@@ -10,6 +19,44 @@ export const userresolver = {
     user: async (_: any, { id }: { id: string }) => {
       return await usermodel.findById(id).select("-password");
     },
+    userChatList: async (_: any, { userId }: { userId: string }) => {
+      const messages = await messageModel
+        .find({ senderId: userId }) 
+        .sort({ createdAt: -1 })
+        .lean();
+    
+      const chatMap = new Map<string, typeof messages[0]>();
+    
+      for (const msg of messages) {
+        if (!chatMap.has(msg.chatId)) {
+          chatMap.set(msg.chatId, msg);
+        }
+      }
+    
+      const chatItems = [];
+    
+      for (const [chatId, latestMessage] of chatMap.entries()) {
+        const vendorDoc = await vendorModel
+          .findById(latestMessage.receiverId)
+          .select("_id name profilePicture")
+          .lean<LeanUser>();
+    
+        if (!vendorDoc) continue;
+    
+        chatItems.push({
+          chatId,
+          vendor: {
+            id: vendorDoc._id.toString(),
+            name: vendorDoc.name,
+            profilePicture: vendorDoc.profilePicture ?? "", // handles null
+          },
+          latestMessage,
+        });
+      }
+    
+      return chatItems;
+    },
+    
     
   },
 
