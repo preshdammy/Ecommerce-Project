@@ -371,7 +371,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                 <div className="w-full flex justify-center bg-white rounded-[10px] ">
                   {product?.images?.[0] && (
                     <Image
-                      className="w-[265px] h-[350px] object-contain"
+                      className="w-full h-full object-contain rounded-[10px]"
                       src={product.images[0]}
                       alt="Main product image"
                       width={265}
@@ -385,7 +385,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
                   {product?.images?.slice(1, 3).map((img: string, i: number) => (
                     <div key={i} className="bg-white w-[48%] flex justify-center rounded-[10px]">
                       <Image
-                        className="h-[175px] w-[133px] object-contain"
+                        className="h-full w-full object-contain rounded-[10px]"
                         src={img}
                         alt={`Thumbnail ${i + 1}`}
                         width={133}
@@ -401,7 +401,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
               
               {product && (
                 
-                          <div className="flex flex-col gap-[25px] relative mt-[5vh] md:mt-[0vh]">
+                          <div className="flex flex-col gap-[25px] relative mt-[5vh] md:mt-[0vh] md:w-[55%]">
                             {product.stock === 0 && (
                               <div className="absolute top-1 md:top-3 right-0 bg-red-500 text-white text-[12px] font-semibold px-3 py-1 rounded-bl z-10">
                                 Out of Stock

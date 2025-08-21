@@ -553,7 +553,7 @@ export default function CheckoutPage() {
   
   return (
     <div
-      className="min-h-screen w-full"
+      className="min-h-screen w-full overflow-x-hidden"
       style={{ background: neutralBg }}
     >
       <div className="mx-auto w-full max-w-6xl p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10">
