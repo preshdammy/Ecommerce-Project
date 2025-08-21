@@ -52,6 +52,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sweetalert2": "^11.22.2",
+    "swiper": "^11.2.10",
     "ws": "^8.18.3",
     "zod": "^3.25.64"
   },

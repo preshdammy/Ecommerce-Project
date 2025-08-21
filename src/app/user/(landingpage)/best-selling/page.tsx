@@ -47,7 +47,15 @@ const BestDealsPage = () => {
     variables: { dealsLimit: 100 }, // fetch enough to paginate manually
   });
 
-  if (loading) return <p>Loading...</p>;
+   if (loading) {
+    return (
+      <div className="flex justify-center h-[50vh] items-center py-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="ml-3 text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
   if (error) return <p>Error loading deals: {error.message}</p>;
 
   const offset = (page - 1) * limit;

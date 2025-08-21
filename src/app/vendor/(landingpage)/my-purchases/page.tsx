@@ -6,6 +6,11 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 export const GET_VENDOR_ORDERS = gql`
   query GetVendorOrders {
@@ -108,9 +113,6 @@ type DeliveryCardProps = {
     updatedAt: string;
   };
 };
-
-
-
 
 const getStatusProgress = (status: string): number => {
   switch (status) {
@@ -229,7 +231,7 @@ const DeliveryCard = ({ order }: DeliveryCardProps) => {
       : "/fallback.jpg";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#CCE5FF] h-[45vh] w-[280px] flex-shrink-0 hover:border hover:border-blue-600 transition-all duration-500 ease-in-out">
+    <div className="bg-white rounded-2xl border border-[#CCE5FF]  h-auto w-[280px] flex-shrink-0 hover:border hover:border-blue-500 transition-all duration-500 ease-in-out">
       <div className="relative w-full h-[180px] rounded-t-2xl overflow-hidden">
         <Image
           src={imgSrc}
@@ -274,6 +276,7 @@ export default function PurchasesWrapper() {
   }, [refetch]);
 
   const [orders, setOrders] = useState<DeliveryCardProps["order"][]>([]);
+    const [showAllHistory, setShowAllHistory] = useState(false);
   useEffect(() => {
     if (!data?.vendorOrders) return;
     const normalized = data.vendorOrders.map(normalizeOrder);
@@ -298,8 +301,22 @@ export default function PurchasesWrapper() {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) return <div className="text-center py-10">Loading...</div>;
-  if (error) return <div className="text-center py-10 text-red-500">Error: {error.message}</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center h-[50vh] items-center py-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="ml-3 text-gray-600">Loading purchases...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-red-500 bg-red-50 p-4 rounded-lg text-center font-medium">
+        Error: {error.message}
+      </p>
+    );
+  }
 
   const totalIncome = orders.reduce((sum, order) => sum + order.totalAmount, 0);
   const totalCount = orders.length;
@@ -342,34 +359,102 @@ export default function PurchasesWrapper() {
 
       <div className="w-full mt-10">
         <h2 className="text-[24px] font-semibold mb-4 mt-4 text-[#939090]">Pending deliveries</h2>
-        <div ref={pendingRef} className="w-full flex gap-4 overflow-x-hidden whitespace-nowrap mb-5 scrollbar-hide">
-          {pendingOrders.length > 0 ? (
-            pendingOrders.map((order) => (
-              <DeliveryCard key={order.id} order={order} />
-            ))
-          ) : (
-            <div className="rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex items-center justify-center text-gray-400 font-medium">
-              No pending deliveries yet.
-            </div>
-          )}
-        </div>
+      <div className="w-full mb-8 relative">
+        {pendingOrders.length > 0 ? (
+          <div className="relative">
+            <Swiper
+              modules={[Navigation,]}
+              spaceBetween={20}
+              slidesPerView={1.2}
+              navigation={{
+                nextEl: '.pending-next',
+                prevEl: '.pending-prev',
+              }}
+              breakpoints={{
+                640: { slidesPerView: 2.2, }, 
+                768: { slidesPerView: 2.5,  },
+                1024: { slidesPerView: 3.2,  },
+                1280: { slidesPerView: 4.2,  }
+              }}
+              className="px-1 py-2" 
+            >
+              {pendingOrders.map((order) => (
+                <SwiperSlide key={order.id}>
+                  <DeliveryCard order={order} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
 
-        <h2 className="text-[24px] font-semibold mb-4 text-[#939090]">Completed deliveries</h2>
-        <div ref={completedRef} className="w-full flex gap-4 overflow-x-hidden whitespace-nowrap mb-5 scrollbar-hide">
-          {completedOrders.length > 0 ? (
-            completedOrders.map((order) => (
-              <DeliveryCard key={order.id} order={order} />
-            ))
-          ) : (
-            <div className="rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex items-center justify-center text-gray-400 font-medium">
-              No completed deliveries yet.
-            </div>
-          )}
-        </div>
+            
+            {/* Custom navigation buttons */}
+            <button className="pending-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 bg-white p-2 rounded-full shadow-md cursor-pointer flex items-center justify-center w-8 h-8 hover:bg-blue-50 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-gray-700">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button className="pending-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 bg-white p-2 rounded-full shadow-md cursor-pointer flex items-center justify-center w-8 h-8 hover:bg-blue-50 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-gray-700">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex items-center justify-center text-gray-400 font-medium">
+            No pending deliveries yet.
+          </div>
+        )}
+      </div>
+
+      <h2 className="text-[24px] font-semibold mb-4 text-[#939090]">Completed deliveries</h2>
+      <div className="w-full mb-8 relative"> 
+        {completedOrders.length > 0 ? (
+          <div className="relative">
+            <Swiper
+              modules={[Navigation,]}
+              spaceBetween={20}
+              slidesPerView={1.2}
+              navigation={{
+                nextEl: '.completed-next',
+                prevEl: '.completed-prev',
+              }}
+              breakpoints={{
+                640: { slidesPerView: 2.2 }, 
+                768: { slidesPerView: 2.5, },
+                1024: { slidesPerView: 3.2, },
+                1280: { slidesPerView: 4.2, },
+              }}
+              className="px-1 py-2"
+            >
+              {completedOrders.map((order) => (
+                <SwiperSlide key={order.id}>
+                  <DeliveryCard order={order} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            {/* Custom navigation buttons */}
+            <button className="completed-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 bg-white p-2 rounded-full shadow-md cursor-pointer flex items-center justify-center w-8 h-8 hover:bg-blue-50 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-gray-700">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button className="completed-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 bg-white p-2 rounded-full shadow-md cursor-pointer flex items-center justify-center w-8 h-8 hover:bg-blue-50 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-gray-700">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-[#CCE5FF] h-[40vh] w-[280px] flex items-center justify-center text-gray-400 font-medium">
+            No completed deliveries yet.
+          </div>
+        )}
+      </div>
 
         <h2 className="text-[24px] font-semibold mb-4 text-[#939090]">Delivery History</h2>
         {deliveryHistoryOrders.length > 0 ? (
-          deliveryHistoryOrders.map((order) => (
+          <>
+          {(showAllHistory ? deliveryHistoryOrders : deliveryHistoryOrders.slice(0, 3)).map((order) => (
+            
             <div key={order.id} className="bg-white rounded-lg shadow-sm mb-6 p-4">
               <div className="flex flex-wrap gap-2">
                 {[order.product.name].map((item, i) => (
@@ -378,24 +463,42 @@ export default function PurchasesWrapper() {
                   </span>
                 ))}
               </div>
-              <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-                {(() => {
-                  const created = toSafeDate(order.createdAt);
-                  return (
-                    <span>
-                      {created
-                        ? created.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-                        : "Unknown Date"}
-                    </span>
-                  );
-                })()}
+          <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
+            {(() => {
+              const created = toSafeDate(order.createdAt);
+              return (
+                <span>
+                  {created
+                    ? created.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                    : "Unknown Date"}
+                </span>
+              );
+            })()}
+
                 <div className="flex gap-2">
                   <button className="rounded-full w-6 h-6 bg-gray-100 text-gray-500">❮</button>
                   <button className="rounded-full w-6 h-6 bg-gray-100 text-gray-500">❯</button>
                 </div>
               </div>
             </div>
-          ))
+
+
+         ))}
+    
+    {/* Show "View More" or "Show Less" button */}
+    {deliveryHistoryOrders.length > 3 && (
+      <div className="text-center mt-4">
+        <button 
+          className="text-blue-600 hover:text-blue-800 font-medium"
+          onClick={() => setShowAllHistory(!showAllHistory)}
+        >
+          {showAllHistory 
+            ? "Show Less" 
+            : `View More (${deliveryHistoryOrders.length - 3} more)`}
+        </button>
+      </div>
+    )}
+  </>
         ) : (
           <div className="rounded-lg border border-[#CCE5FF] h-[100px] flex items-center justify-center text-gray-400 font-medium">
             No delivery history yet.

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { gql, useQuery, useMutation } from "@apollo/client";
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 
 const ADD_COMPLAINT = gql`
   mutation AddComplaint($message: String!) {
@@ -51,25 +53,29 @@ export default function ComplaintsPage() {
 
   const complaints = data?.myComplaints ?? [];
 
+   
+
   return (
-    <div className="max-w-4xl mx-auto p-6 md:p-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 md:mb-8 tracking-tight">
+  <>
+
+     <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 md:mb-8 tracking-tight">
         Vendor Complaints
       </h1>
 
       <form
         onSubmit={handleSubmit}
-        className="mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
+        className="mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
       >
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Describe your complaint here..."
-          className="w-full p-4 border border-gray-200 rounded-lg resize-none h-36 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
+          className="w-full p-3 sm:p-4 border border-gray-200 rounded-lg resize-none h-32 sm:h-36 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
         />
         <button
           type="submit"
-          className="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
+          className="mt-3 sm:mt-4 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 sm:py-3 rounded-full font-semibold shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
         >
           Submit Complaint
         </button>
@@ -151,5 +157,16 @@ export default function ComplaintsPage() {
         </>
       )}
     </div>
+
+     <div className="md:hidden flex justify-center mt-6 pb-4">
+        <Link 
+          href="/vendor/account-settings" 
+          className="flex gap-2 px-4 py-2 items-center bg-gray-100 text-gray-700 rounded-lg font-medium"
+        >
+          <ChevronLeft className="w-5 h-5" />
+          <span>Back to Settings</span>
+        </Link>
+      </div>
+  </>
   );
 }

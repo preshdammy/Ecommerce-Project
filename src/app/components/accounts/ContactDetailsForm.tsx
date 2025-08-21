@@ -1,6 +1,6 @@
 export default function ChangeContactDetailsForm() {
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-8">
+    <div className="w-full h-auto max-w-md mx-auto px-4 py-8">
       <form className="space-y-6 bg-none">
         {/* Phone number input */}
         <input

@@ -49,7 +49,7 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-lg bg-none mx-auto mt-3">
+    <form onSubmit={handleSubmit} className="space-y-6 h-auto max-w-lg bg-none mx-auto mt-3">
 
       {/* Current Password */}
       <div tabIndex={0} className='w-full px-7 py-2 flex justify-between border-2 border-[#D4D3D3] rounded-[100px] bg-[#f8f8f8] focus-within:border-blue-600'>

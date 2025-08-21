@@ -3,16 +3,20 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const menuItems = [
   { label: "Personal Details", path: "/user/account-settings/personal-details" },
-  { label: "Business Information", path: "/user/account-settings/business-information", doubleBorder: true },
-  { label: "Change contact details", path: "/user/account-settings/change-contact-details" },
-  { label: "Change password", path: "/user/account-settings/change-password", doubleBorder: true },
+  { label: "Change contact details", path: "/user/account-settings/change-contact-details", doubleBorder: true },
+  { label: "Change password", path: "/user/account-settings/change-password" },
+  { label: "Orders", path: "/user/account-settings/orders", doubleBorder: true },
+  { label: "Refunds", path: "/user/account-settings/refunds" },
+  { label: "Inbox", path: "/user/account-settings/inbox", doubleBorder: true },
+  { label: "Payment Methods", path: "/user/account-settings/payment-methods" },
+  { label: "Complaints", path: "/user/account-settings/complaints", doubleBorder: true },
   { label: "Delete my account", path: "/user/account-settings/delete-account" },
   { label: "Log out", path: "/user/account-settings/log-out" },
 ];
 
 export default function MobileAccountSettings() {
   return (
-    <div className="min-h-screen w-full p-4  mx-auto overflow-x-hidden overflow-hidden">
+    <div className="h-auto w-full p-4 overflow-x-hidden overflow-hidden bg-gray-50">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 p-4 rounded w-full bg-blue-600">
         <ChevronLeft className="text-white" />

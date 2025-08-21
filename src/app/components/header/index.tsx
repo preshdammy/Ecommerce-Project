@@ -8,7 +8,7 @@ import chevronRight from "../../../../public/figma images/chevron-right.png";
 import variant3 from "../../../../public/figma images/Variant3.png";
 import { GoBell } from "react-icons/go";
 import { FaCaretDown } from "react-icons/fa";
-import { RxHamburgerMenu } from "react-icons/rx";
+import { RxHamburgerMenu, RxCross2 } from "react-icons/rx";
 import { FaRegHeart } from "react-icons/fa";
 import { FiShoppingCart } from "react-icons/fi";
 import Link from "next/link";
@@ -20,7 +20,7 @@ import shirt from '../../../../public/figma images/ryan-hoffman-6Nub980bI3I-unsp
 import trash from '../../../../public/figma images/Icon.png'
 import substract from '../../../../public/figma images/Icon (1).png'
 import add from '../../../../public/figma images/add-square-02.png'
-import { IoIosAddCircle } from "react-icons/io";
+import { IoIosAddCircle, IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
 import { GrSubtractCircle } from "react-icons/gr";
 import like from '../../../../public/figma images/heart (1).png'
 import cancel2 from '../../../../public/figma images/Icon (2).png'
@@ -55,6 +55,8 @@ const Header = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const Router = useRouter()
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
   const categories = [
     {
       name: "Computers and Laptops",
@@ -103,8 +105,6 @@ const Header = () => {
     price: number;
     images: string[];
   }
-
-
 
   const handleDelete = (product: Product): void => {
     cartItemsVar(cartItemsVar().filter((item: Product) => item.id !== product.id));
@@ -155,7 +155,7 @@ const Header = () => {
 
   return (
     <>
-    <div className="max-w-[1536px] mx-auto font-sans">
+    <div className=" mx-auto font-sans">
         <div className="w-full bg-blue-500 lg:hidden">
           <div className="md:h-[75px] w-[85%] h-[25px] text-[8px] gap-[16px] flex mx-auto sm:text-[16px] sm:h-[60px] md:text-[20px] items-center sm:gap-[6%] text-white ">
             <Link
@@ -259,12 +259,12 @@ const Header = () => {
                 )}
               </Link>
 
-              <Link
-                href=""
+               <button
+                onClick={() => setShowMobileMenu(true)}
                 className="md:text-[28px] sm:text-[24px] text-[16px]"
               >
                 <RxHamburgerMenu />
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -296,14 +296,122 @@ const Header = () => {
           </div>
         </div>
 
+         {showMobileMenu && (
+        <div className="fixed inset-0 bg-[#cdddee] bg-opacity-50 z-50 lg:hidden px-5">
+          <div className="absolute top-0 left-0 h-full w-full bg-[#e5effa] shadow-lg pt-15 px-5 overflow-hidden">
+      {/* Close Button */}
+      <div className="flex justify-end p-4">
+        <button 
+          onClick={() => setShowMobileMenu(false)}
+          className="text-[#007BFF] text-4xl"
+        >
+          <RxCross2 />
+        </button>
+      </div>
+
+      
+      <div className="p-4 overflow-y-auto h-full">
+        {/* Categories Dropdown */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowCategories(!showCategories)}
+            className="flex items-center justify-between w-full text-left text-lg font-medium text-[#272222] font-sans py-2 hover:text-blue-400 focus-within:text-blue-400"
+          >
+            <span>Categories</span>
+            <span>{showCategories ? <IoIosArrowDown /> : <IoIosArrowForward />}</span>
+          </button>
+          
+          {showCategories && (
+            <div className="ml-4 mt-2 space-y-2">
+              {categories.map((category, index) => (
+                <Link 
+                  key={index} 
+                  href={`/category/${category.slug}`}
+                  className="block px-5 py-2 w-auto rounded-full text-[#868484] hover:bg-[#CCE5FF] hover:text-[#272222] transition-colors duration-200 text-[14px] font-sans font-300"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        
+        <div className="space-y-5">
+          <Link 
+            href="/user/profile" 
+            className="block text-lg font-semibold text-[#272222] hover:text-blue-400"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            My Profile
+          </Link>
+          <Link 
+            href="/user/account-settings" 
+            className="block text-lg font-semibold text-[#272222] hover:text-blue-400"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            Account Settings
+          </Link>
+          <Link 
+            href="/user/my-purchases" 
+            className="block text-lg font-semibold text-[#272222] hover:text-blue-400"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            My Purchases
+          </Link>
+          <Link 
+            href="/vendor/dashboard" 
+            className="block text-lg font-semibold text-[#272222] hover:text-blue-400"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            My Shop
+          </Link>
+          <Link 
+            href="/user/my-payments" 
+            className="block text-lg font-semibold text-[#272222] hover:text-blue-400"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            Payments
+          </Link>
+        </div>
+
+        
+        {!isAuthentication && (
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <div className="space-y-3">
+              <Link 
+                href="/user/login" 
+                className="block w-full text-center bg-blue-500 text-white hover:bg-transparent border hover:text-blue-500 hover:border-blue-500 py-2 rounded-lg font-medium"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Log in
+              </Link>
+              <div className="text-center text-gray-500">OR</div>
+              <Link 
+                href="/user/signup" 
+                className="block w-full text-center bg-blue-500 text-white hover:bg-transparent border hover:text-blue-500 hover:border-blue-500 py-2 rounded-lg font-medium"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Register
+              </Link>
+            </div>
+          </div>
+        )}
+        
+      </div>
+    </div>
+  </div>
+)}
+
 
         {showLike && (
-  <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
-    <div className='ml-auto'>
-      <button onClick={() => setShowLike(false)}>
-        <Image src={cancel} alt='' />
-      </button>
-    </div>
+       <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+        <div className='ml-auto'>
+         <button onClick={() => setShowLike(false)}>
+           <Image src={cancel} alt='' />
+         </button>
+       </div>
 
     <div className='flex items-center my-[10px] gap-[15px]'>
       <Image src={like} className='w-[27px] h-[27px]' alt='' />
@@ -358,22 +466,22 @@ const Header = () => {
           {likedItems.reduce((sum, item) => sum + item.price, 0).toLocaleString()})
         </button>
       </div>
+      )}
+      </div>
     )}
-  </div>
-)}
 
-{showCart && (
-  <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
-    <div className='ml-auto'>
-      <button onClick={() => setShowCart(false)}>
-        <Image src={cancel} alt='' />
-      </button>
-    </div>
+        {showCart && (
+          <div className='w-[552px] absolute right-[5px] top-[0px] h-screen bg-white flex-col z-12 p-[20px] hidden sm:hidden lg:flex'>
+            <div className='ml-auto'>
+              <button onClick={() => setShowCart(false)}>
+                <Image src={cancel} alt='' />
+              </button>
+            </div>
 
-    <div className='flex items-center my-[10px] gap-[15px]'>
-      <Image src={cart} className='w-[30px] h-[27px]' alt='' />
-      <p className='text-[24px] font-[600]'>{cartItems.length} items</p>
-    </div>
+            <div className='flex items-center my-[10px] gap-[15px]'>
+              <Image src={cart} className='w-[30px] h-[27px]' alt='' />
+              <p className='text-[24px] font-[600]'>{cartItems.length} items</p>
+            </div>
 
     <div className='overflow-y-scroll flex-1'>
       {cartItems.length === 0 ? (
@@ -388,73 +496,70 @@ const Header = () => {
           const quantity = item.quantity || 1;
           const totalPrice = item.price * quantity;
 
-          return (
-            <div key={index} className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
-              <div className='flex flex-col items-center'>
-              <IoIosAddCircle
-               className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
-                    onClick={() => {
-                      const updatedCart = cartItems.map((cartItem) =>
-                        cartItem.id === item.id
-                          ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
-                          : cartItem
-                      );
-                      cartItemsVar(updatedCart);
-                    }}
-                  />
-                  <p className='text-[24px] font-[600]'>{quantity}</p>
-                  <GrSubtractCircle
-                    className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
-                    onClick={() => {
-                      const updatedCart = cartItems.map((cartItem) =>
-                        cartItem.id === item.id
-                          ? { ...cartItem, quantity: Math.max(1, (cartItem.quantity || 1) - 1) }
-                          : cartItem
-                      );
-                      cartItemsVar(updatedCart);
-                    }}
-                  />
+                  return (
+                    <div key={index} className='flex justify-between py-[20px] items-center gap-[20px] border-t-[1px] border-t-[#f8f8f8] border-b-[1px] border-b-[#f8f8f8]'>
+                      <div className='flex flex-col items-center'>
+                      <IoIosAddCircle
+                      className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                            onClick={() => {
+                              const updatedCart = cartItems.map((cartItem) =>
+                                cartItem.id === item.id
+                                  ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+                                  : cartItem
+                              );
+                              cartItemsVar(updatedCart);
+                            }}
+                          />
+                          <p className='text-[24px] font-[600]'>{quantity}</p>
+                          <GrSubtractCircle
+                            className='w-[25px] h-[25px] hover:text-[#00bfff] cursor-pointer'
+                            onClick={() => {
+                              const updatedCart = cartItems.map((cartItem) =>
+                                cartItem.id === item.id
+                                  ? { ...cartItem, quantity: Math.max(1, (cartItem.quantity || 1) - 1) }
+                                  : cartItem
+                              );
+                              cartItemsVar(updatedCart);
+                            }}
+                          />
 
-              </div>
+                      </div>
 
               <Image src={(item.images?.[0] ?? shirt)} alt='' width={60} height={60} />
 
-              <div className='flex flex-col'>
-                <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
-                <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>
-                  ₦ {item.price.toLocaleString()} * {quantity}
-                </p>
-                <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>
-                  ₦ {totalPrice.toLocaleString()}
-                </p>
-              </div>
+                      <div className='flex flex-col'>
+                        <p className='text-[16px] font-[600] pr-[190px] leading-[20px]'>{item.name}</p>
+                        <p className='text-[16px] text-[#939090] font-[600] mt-[6px]'>
+                          ₦ {item.price.toLocaleString()} * {quantity}
+                        </p>
+                        <p className='text-[16px] text-[#007bff] font-[600] mt-[4px]'>
+                          ₦ {totalPrice.toLocaleString()}
+                        </p>
+                      </div>
 
-              <Image onClick={() => handleDelete(item)} src={trash} alt='' className='cursor-pointer' />
+                      <Image onClick={() => handleDelete(item)} src={trash} alt='' className='cursor-pointer' />
+                    </div>
+                  );
+                })
+              )}
             </div>
-          );
-        })
-      )}
-    </div>
 
-    {cartItems.length > 0 && (
-      <div className='mx-auto mt-auto'>
-        <button onClick={handleCheckout} className='text-[16px] px-4 py-2 cursor-pointer hover:bg-amber-700 text-white bg-[#ff4c3b] font-[700]'>
-          Checkout Now (₦{" "}
-          {cartItems
-            .reduce((sum, item) => {
-              const quantity = item.quantity || 1;
-              return sum + item.price * quantity;
-            }, 0)
-            .toLocaleString()}
-          )
-        </button>
-      </div>
-    )}
-  </div>
-)}
-
-
-
+            {cartItems.length > 0 && (
+              <div className='mx-auto mt-auto'>
+                <button onClick={handleCheckout} className='text-[16px] px-4 py-2 cursor-pointer hover:bg-amber-700 text-white bg-[#ff4c3b] font-[700]'>
+                  Checkout Now (₦{" "}
+                  {cartItems
+                    .reduce((sum, item) => {
+                      const quantity = item.quantity || 1;
+                      return sum + item.price * quantity;
+                    }, 0)
+                    .toLocaleString()}
+                  )
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
           <div className=" w-full h-[87px] bg-[#007BFF] lg:block hidden">
             <div className="w-[85%] h-[100%] mx-auto flex items-center justify-between">
@@ -659,4 +764,4 @@ export const MenuIcon = ({ isAuthentication, setShowCart, setShowLike, isVendorP
       </div>
     </>
   );
-};
+}; 

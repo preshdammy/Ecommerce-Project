@@ -22,7 +22,7 @@ export default function VendorAccountSettingsPage() {
               <span className="text-base font-medium">Back</span>
             </Link>
           </div>
-            <AccountSettingsHeader title="User Settings" />
+            <AccountSettingsHeader title="Vendor Settings" />
            <VendorPersonalDetailsForm />
        </div>
     </>

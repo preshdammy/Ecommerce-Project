@@ -614,7 +614,7 @@ export const adminresolver = {
         action: "SUSPENDED",
         performedBy: admin.email,
         performedAt: new Date(),
-        notes: `User suspended until ${date.toLocaleDateString()}`,
+        notes: `until ${date.toLocaleDateString()}`,
       });
     
       await user.save();
@@ -640,7 +640,7 @@ export const adminresolver = {
         action: "UNSUSPENDED",
         performedBy: admin.email,
         performedAt: new Date(),
-        notes: "User unsuspended by admin",
+        notes: " by admin",
       });
     
       await user.save();

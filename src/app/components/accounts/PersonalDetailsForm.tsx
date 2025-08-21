@@ -213,7 +213,12 @@ export default function PersonalDetailsForm() {
     : [];
 
   return (
+<<<<<<< HEAD
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 py-10 min-h-screen">
+=======
+    <div className=" flex flex-col items-center justify-start w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 h-auto">
+      {/* Avatar Section */}
+>>>>>>> ead4fdcfbb6995e8b0afbd9c62767b11b6986646
       <div className="relative">
         <div className="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden">
        {imagePreview ? (

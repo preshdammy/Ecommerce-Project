@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useQuery, gql, useMutation } from "@apollo/client";
-import { useNotifications } from "../../../../shared/provider/notificationsProvider"; // Adjust path
+import { useNotifications } from "../../../../shared/provider/notificationsProvider"; 
 
 const GET_NOTIFICATIONS = gql`
   query GetNotifications {
@@ -45,7 +45,7 @@ const VendorNotifications = () => {
   if (error) {
     return (
       <p className="text-red-500 bg-red-50 p-4 rounded-lg text-center font-medium">
-        Error loading notifications
+        Error loading notifications: {error.message}
       </p>
     );
   }
