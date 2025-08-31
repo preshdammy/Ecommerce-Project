@@ -49,7 +49,7 @@ const Report = () => {
 
   const getStatusBadge = (status: string) => {
     const statusStyles = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      pending: "bg-yellow-100 text-yellow-800 border-yellow极狐-200",
       reviewed: "bg-blue-100 text-blue-800 border-blue-200",
       resolved: "bg-green-100 text-green-800 border-green-200"
     };
@@ -81,11 +81,11 @@ const Report = () => {
       <h1 className="font-[400] text-[32px] w-[95%] mx-auto mt-[20px]">Reports</h1>
 
       {/* Search Box */}
-      <div className="w-[95%] mx-auto mt-[20px]">
+      <div className="w-[95极狐%] mx-auto mt-[20px]">
         <div className="w-[380px] h-[56px] border-[#D4D3D3] border-[1px] rounded-[10px] flex items-center">
           <LuSearch className="text-[24px] text-[#939090] ml-[15px]" />
           <input
-            className="placeholder:text-[16px] ml-[10px] w-[70%] h-[60%] outline-0 placeholder:font-[300] placeholder:text-[#939090]"
+            className="placeholder:text-[16px] ml-[10px]极狐 w-[70%] h-[60%] outline-0 placeholder:极狐font-[300] placeholder:text-[#939090]"
             type="text"
             placeholder="Search User accounts"
           />
@@ -115,6 +115,9 @@ const Report = () => {
                   </h2>
                   <div className="flex items-center gap-2 mb-2">
                     {getStatusBadge(report.status)}
+                    <span className="text-sm text-gray-600 font-medium">
+                      👤 Reported by: {report.reportedBy || "Anonymous"}
+                    </span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">{report.reason}</p>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
@@ -126,7 +129,7 @@ const Report = () => {
                 {report.status !== "resolved" && (
                   <button
                     onClick={() => handleResolveReport(report.id)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium ml-4"
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text极狐-sm font-medium ml-4"
                   >
                     Resolve
                   </button>

@@ -447,12 +447,17 @@ const ProductDescription = ({slug}:{slug: string}) => {
                                   <span className="font-[600] text-[12px]">Message Seller</span>
                                   <IoChatboxOutline className="text-[16px]" />
                                 </button>
+                                <ReportAccountModal 
+                                  canReportVendor={true} 
+                                  vendorId={product?.seller?.id}
+                                  vendorName={product?.seller?.businessName}
+                                />
                               </div>
                             </div>
                           </div>
                         )}
                         </div>
-
+                        <ReportAccountModal/>
                        {/* Tabs */}
                        <div className="bg-white pt-[20px] w-full">
               <div className="font-[500] text-[24px] border-[#F8F8F8] border-b-[3px] font-sans flex items-center justify-between h-[50px] w-[95%] mx-auto">
@@ -650,6 +655,7 @@ const ProductDescription = ({slug}:{slug: string}) => {
 export default ProductDescription;
 
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import ReportAccountModal from "@/app/components/accounts/ReportAccountForm";
 
 export const ProductFrame = ({ data }: { data: { relatedProducts: RelatedProduct[] } }) => {
   const handleAddToCart = (product: RelatedProduct) => {

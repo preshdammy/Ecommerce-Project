@@ -152,7 +152,6 @@ type DailyCommission {
     myComplaints: [Complaint!]!
     recentAdminCommissions: [RecentCommission]
     weeklyAdminCommissions: [DailyCommission]
-
   }
 
   type Mutation {

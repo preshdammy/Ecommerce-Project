@@ -3,6 +3,7 @@ import { vendorModel } from "../../../database/model/vendor.model";
 import { usermodel } from "../../../database/model/user.model";
 import { OrderModel } from "../../../database/model/orders.model";
 import { productModel } from "../../../database/model/product.model";
+import { ReportModel } from "@/shared/database/model/user.report";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { complaintModel } from "@/shared/database/model/complaint.model";
@@ -354,9 +355,17 @@ export const adminresolver = {
         amount: order.adminCommission,
         createdAt: order.createdAt.toISOString(),
       }));
-    }
-
     },
+     async getReports() {
+      return await ReportModel.find().sort({ createdAt: -1 }).exec();
+    },
+    async getReportById(_: any, { id }: { id: string }) {
+      return await ReportModel.findById(id);
+    },
+
+    
+   },
+     
 
    Mutation: {
     loginAdmin: async (_: any, { email, password }: { email: string; password: string }) => {
@@ -673,5 +682,6 @@ export const adminresolver = {
       return user;
     },
 
-  },
+ 
+   },
 }

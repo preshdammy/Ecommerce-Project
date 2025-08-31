@@ -1,14 +1,13 @@
-
 export const usertypedef = `#graphql
 type User {
   id: ID!
   name: String!
   email: String!
   password: String!
-  address: String!
-  state: String!
+  address: String
+  state: String
   city: String
-  gender: String!
+  gender: String
   dateOfBirth: String
   profilePicture: String
   walletBalance: Float
@@ -57,12 +56,10 @@ type Query {
 type Mutation {
   createuser(name: String!, email: String!, password: String!): User!
   loginuser(email: String!, password: String!): Token!
- upsertProfile(input: UserProfileInput!): Use
+ upsertProfile(input: UserProfileInput!): User 
   deleteuser(id: ID!): Boolean!
 }
 
 
 
-
 `;
-
